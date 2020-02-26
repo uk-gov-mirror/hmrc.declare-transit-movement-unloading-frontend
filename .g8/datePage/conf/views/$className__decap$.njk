@@ -27,7 +27,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{ routes.controllers.$className$Controller.onSubmit(mode).url }}" method="post">
+        <form action="{{ routes.controllers.$className$Controller.onSubmit(mrn, mode).url }}" method="post">
 
           {{ csrf() | safe }}
 
@@ -47,7 +47,8 @@
           }) }}
 
           {{ govukButton({
-            text: messages("site.continue")
+            text: messages("site.continue"),
+            attributes: {id:"submit"}
           }) }}
 
         </form>
