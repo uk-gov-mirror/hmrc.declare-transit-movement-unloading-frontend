@@ -48,7 +48,8 @@ lazy val root = (project in file("."))
     ),
     uglifyCompressOptions := Seq("unused=false", "dead_code=false"),
     pipelineStages in Assets := Seq(concat,uglify),
-    useSuperShell in ThisBuild:= false
+    useSuperShell in ThisBuild:= false,
+    scalafmtOnCompile in ThisBuild := true
   )
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
