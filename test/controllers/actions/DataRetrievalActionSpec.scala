@@ -46,8 +46,9 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
 
         val futureResult = action.callTransform(new IdentifierRequest(fakeRequest, "id"))
 
-        whenReady(futureResult) { result =>
-          result.userAnswers.isEmpty mustBe true
+        whenReady(futureResult) {
+          result =>
+            result.userAnswers.isEmpty mustBe true
         }
       }
     }
@@ -62,8 +63,9 @@ class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutur
 
         val futureResult = action.callTransform(new IdentifierRequest(fakeRequest, "id"))
 
-        whenReady(futureResult) { result =>
-          result.userAnswers.isDefined mustBe true
+        whenReady(futureResult) {
+          result =>
+            result.userAnswers.isDefined mustBe true
         }
       }
     }

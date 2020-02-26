@@ -29,24 +29,28 @@ import utils.CheckYourAnswersHelper
 import scala.concurrent.ExecutionContext
 
 class CheckYourAnswersController @Inject()(
-    override val messagesApi: MessagesApi,
-    identify: IdentifierAction,
-    getData: DataRetrievalAction,
-    requireData: DataRequiredAction,
-    val controllerComponents: MessagesControllerComponents,
-    renderer: Renderer
-)(implicit ec: ExecutionContext) extends FrontendBaseController with I18nSupport with NunjucksSupport {
+  override val messagesApi: MessagesApi,
+  identify: IdentifierAction,
+  getData: DataRetrievalAction,
+  requireData: DataRequiredAction,
+  val controllerComponents: MessagesControllerComponents,
+  renderer: Renderer
+)(implicit ec: ExecutionContext)
+    extends FrontendBaseController
+    with I18nSupport
+    with NunjucksSupport {
 
   def onPageLoad(): Action[AnyContent] = (identify andThen getData andThen requireData).async {
     implicit request =>
-
       val helper = new CheckYourAnswersHelper(request.userAnswers)
 
       val answers: Seq[SummaryList.Row] = Seq()
 
-      renderer.render(
-        "check-your-answers.njk",
-        Json.obj("list" -> answers)
-      ).map(Ok(_))
+      renderer
+        .render(
+          "check-your-answers.njk",
+          Json.obj("list" -> answers)
+        )
+        .map(Ok(_))
   }
 }
