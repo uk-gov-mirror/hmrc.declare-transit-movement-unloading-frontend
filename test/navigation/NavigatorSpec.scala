@@ -38,8 +38,8 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
 
         forAll(arbitrary[UserAnswers]) {
           answers =>
-
-            navigator.nextPage(UnknownPage, NormalMode, answers)
+            navigator
+              .nextPage(UnknownPage, NormalMode, answers)
               .mustBe(routes.IndexController.onPageLoad())
         }
       }
@@ -53,8 +53,8 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
 
         forAll(arbitrary[UserAnswers]) {
           answers =>
-
-            navigator.nextPage(UnknownPage, CheckMode, answers)
+            navigator
+              .nextPage(UnknownPage, CheckMode, answers)
               .mustBe(routes.CheckYourAnswersController.onPageLoad())
         }
       }

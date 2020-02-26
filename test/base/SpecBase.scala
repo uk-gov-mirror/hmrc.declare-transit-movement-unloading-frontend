@@ -27,14 +27,22 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.inject.{Injector, bind}
+import play.api.inject.{bind, Injector}
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
-trait SpecBase extends FreeSpec with MustMatchers with GuiceOneAppPerSuite with OptionValues with TryValues
-  with ScalaFutures with IntegrationPatience with MockitoSugar with BeforeAndAfterEach {
+trait SpecBase
+    extends FreeSpec
+    with MustMatchers
+    with GuiceOneAppPerSuite
+    with OptionValues
+    with TryValues
+    with ScalaFutures
+    with IntegrationPatience
+    with MockitoSugar
+    with BeforeAndAfterEach {
 
   override def beforeEach {
     Mockito.reset(mockRenderer)
