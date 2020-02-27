@@ -16,7 +16,7 @@ GET        /accessibility-statement                     controllers.Accessibilit
 
 GET        /:mrn/unloadingGuidance                       controllers.UnloadingGuidanceController.onPageLoad(mrn: MovementReferenceNumber)
 
-GET        /:mrn/dateGoodsUnloaded                  controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/dateGoodsUnloaded                  controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber)
 POST       /:mrn/dateGoodsUnloaded                  controllers.DateGoodsUnloadedController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/changeDateGoodsUnloaded                        controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/changeDateGoodsUnloaded                        controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber)
 POST       /:mrn/changeDateGoodsUnloaded                        controllers.DateGoodsUnloadedController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)

@@ -18,7 +18,8 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.MovementReferenceNumber
+import models.{Mode, MovementReferenceNumber, NormalMode}
+import pages.DateGoodsUnloadedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -40,7 +41,8 @@ class UnloadingGuidanceController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
-      val json = Json.obj("mrn" -> mrn)
+      val url = routes.DateGoodsUnloadedController.onPageLoad(mrn).url
+      val json = Json.obj("mrn" -> mrn, "url" -> url)
 
       renderer.render("unloadingGuidance.njk", json).map(Ok(_))
   }

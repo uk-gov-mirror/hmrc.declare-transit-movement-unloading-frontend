@@ -1,9 +1,11 @@
 {% extends "includes/layout.njk" %}
 
+{% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "macros/title.njk"                         import title %}
+{% extends "includes/layout.njk" %}
 
 {% block pageTitle %}
-  {{ title(messages("unloadingGuidance.title")) }}
+  {{ title(messages("index.title")) }}
 {% endblock %}
 
 {% block mainContent %}
@@ -16,8 +18,15 @@
           {{ messages("unloadingGuidance.heading") }}
         </h1>
 
+        {{ govukButton({
+          text: messages("site.continue"),
+          href: routes.controllers.DateGoodsUnloadedController.onPageLoad(mrn).url,
+          attributes: {id:"submit"}
+        }) }}
+
       </div>
     </div>
   </div>
 
 {% endblock %}
+

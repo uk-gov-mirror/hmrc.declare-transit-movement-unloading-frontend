@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber}
+import models.{Mode, MovementReferenceNumber, NormalMode}
 import navigation.Navigator
 import pages.DateGoodsUnloadedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -49,18 +49,20 @@ class DateGoodsUnloadedController @Inject()(
 
   val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
-      val preparedForm = request.userAnswers.get(DateGoodsUnloadedPage) match {
+      println("\n\n\n\n\nRELAX\n\n\n\n\n\n\n\n")
+      /*val preparedForm = request.userAnswers.get(DateGoodsUnloadedPage) match {
         case Some(value) => form.fill(value)
         case None        => form
       }
-
-      val viewModel = DateInput.localDate(preparedForm("value"))
+       */
+      val preparedForm = form
+      val viewModel    = DateInput.localDate(preparedForm("value"))
 
       val json = Json.obj(
         "form" -> preparedForm,
-        "mode" -> mode,
+        "mode" -> NormalMode,
         "mrn"  -> mrn,
         "date" -> viewModel
       )
