@@ -35,7 +35,7 @@ trait UserAnswersGenerator extends TryValues {
 
     Arbitrary {
       for {
-        id <- nonEmptyString
+        id <- arbitrary[MovementReferenceNumber]
         data <- generators match {
           case Nil => Gen.const(Map[QuestionPage[_], JsValue]())
           case _   => Gen.mapOf(oneOf(generators))

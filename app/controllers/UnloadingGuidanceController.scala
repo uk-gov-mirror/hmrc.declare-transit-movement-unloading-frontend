@@ -16,20 +16,18 @@
 
 package controllers
 
-import com.google.inject.Inject
-import controllers.actions.{DataRequiredAction, DataRetrievalAction, DataRetrievalActionProvider, IdentifierAction}
+import controllers.actions._
+import javax.inject.Inject
 import models.MovementReferenceNumber
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.{NunjucksSupport, SummaryList}
-import utils.CheckYourAnswersHelper
 
 import scala.concurrent.ExecutionContext
 
-class CheckYourAnswersController @Inject()(
+class UnloadingGuidanceController @Inject()(
   override val messagesApi: MessagesApi,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
@@ -38,20 +36,12 @@ class CheckYourAnswersController @Inject()(
   renderer: Renderer
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport
-    with NunjucksSupport {
+    with I18nSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
-      val helper = new CheckYourAnswersHelper(request.userAnswers)
+      val json = Json.obj("mrn" -> mrn)
 
-      val answers: Seq[SummaryList.Row] = Seq()
-
-      renderer
-        .render(
-          "check-your-answers.njk",
-          Json.obj("list" -> answers)
-        )
-        .map(Ok(_))
+      renderer.render("unloadingGuidance.njk", json).map(Ok(_))
   }
 }

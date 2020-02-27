@@ -16,57 +16,94 @@
 
 package controllers.actions
 
-import base.SpecBase
+import generators.Generators
+import models.requests.IdentifierRequest
+import models.requests.OptionalDataRequest
+import models.MovementReferenceNumber
 import models.UserAnswers
-import models.requests.{IdentifierRequest, OptionalDataRequest}
+import org.mockito.Matchers._
 import org.mockito.Mockito._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.concurrent.ScalaFutures
+import org.scalatest.FreeSpec
+import org.scalatest.MustMatchers
+import org.scalatest.OptionValues
 import org.scalatestplus.mockito.MockitoSugar
-import play.api.libs.json.Json
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.mvc.AnyContent
+import play.api.mvc.Request
+import play.api.mvc.Results
+import play.api.test.FakeRequest
+import play.api.test.Helpers._
 import repositories.SessionRepository
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class DataRetrievalActionSpec extends SpecBase with MockitoSugar with ScalaFutures {
+class DataRetrievalActionSpec
+    extends FreeSpec
+    with MustMatchers
+    with GuiceOneAppPerSuite
+    with ScalaFutures
+    with MockitoSugar
+    with Generators
+    with OptionValues {
 
-  class Harness(sessionRepository: SessionRepository) extends DataRetrievalActionImpl(sessionRepository) {
-    def callTransform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] = transform(request)
+  val sessionRepository: SessionRepository = mock[SessionRepository]
+  val mrn: MovementReferenceNumber         = arbitrary[MovementReferenceNumber].sample.value
+
+  override lazy val app: Application = {
+
+    import play.api.inject._
+
+    new GuiceApplicationBuilder()
+      .overrides(
+        bind[SessionRepository].toInstance(sessionRepository)
+      )
+      .build()
   }
 
-  "Data Retrieval Action" - {
+  def harness(mrn: MovementReferenceNumber, f: OptionalDataRequest[AnyContent] => Unit): Unit = {
 
-    "when there is no data in the cache" - {
+    lazy val actionProvider = app.injector.instanceOf[DataRetrievalActionProviderImpl]
 
-      "must set userAnswers to 'None' in the request" in {
-
-        val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("id")) thenReturn Future(None)
-        val action = new Harness(sessionRepository)
-
-        val futureResult = action.callTransform(new IdentifierRequest(fakeRequest, "id"))
-
-        whenReady(futureResult) {
-          result =>
-            result.userAnswers.isEmpty mustBe true
+    actionProvider(mrn)
+      .invokeBlock(
+        IdentifierRequest(FakeRequest(GET, "/").asInstanceOf[Request[AnyContent]], ""), {
+          request: OptionalDataRequest[AnyContent] =>
+            f(request)
+            Future.successful(Results.Ok)
         }
+      )
+      .futureValue
+  }
+
+  "a data retrieval action" - {
+
+    "must return an OptionalDataRequest with an empty UserAnswers" - {
+
+      "where there are no existing answers for this MRN" in {
+
+        when(sessionRepository.get(any())) thenReturn Future.successful(None)
+
+        harness(mrn, {
+          request =>
+            request.userAnswers must not be defined
+        })
       }
     }
 
-    "when there is data in the cache" - {
+    "must return an OptionalDataRequest with some defined UserAnswers" - {
 
-      "must build a userAnswers object and add it to the request" in {
+      "when there are existing answers for this MRN" in {
 
-        val sessionRepository = mock[SessionRepository]
-        when(sessionRepository.get("id")) thenReturn Future(Some(new UserAnswers("id")))
-        val action = new Harness(sessionRepository)
+        when(sessionRepository.get(any())) thenReturn Future.successful(Some(UserAnswers(mrn)))
 
-        val futureResult = action.callTransform(new IdentifierRequest(fakeRequest, "id"))
-
-        whenReady(futureResult) {
-          result =>
-            result.userAnswers.isDefined mustBe true
-        }
+        harness(mrn, {
+          request =>
+            request.userAnswers mustBe defined
+        })
       }
     }
   }

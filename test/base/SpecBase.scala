@@ -18,7 +18,7 @@ package base
 
 import config.FrontendAppConfig
 import controllers.actions._
-import models.UserAnswers
+import models.{MovementReferenceNumber, UserAnswers}
 import org.mockito.Mockito
 import org.scalatest.{BeforeAndAfterEach, FreeSpec, MustMatchers, OptionValues, TryValues}
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -48,9 +48,9 @@ trait SpecBase
     Mockito.reset(mockRenderer)
   }
 
-  val userAnswersId = "id"
+  val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
 
-  def emptyUserAnswers = UserAnswers(userAnswersId, Json.obj())
+  def emptyUserAnswers = UserAnswers(mrn, Json.obj())
 
   def injector: Injector = app.injector
 
@@ -69,7 +69,7 @@ trait SpecBase
       .overrides(
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[DataRetrievalAction].toInstance(new FakeDataRetrievalAction(userAnswers)),
+        bind[DataRetrievalActionProvider].toInstance(new FakeDataRetrievalActionProvider(userAnswers)),
         bind[NunjucksRenderer].toInstance(mockRenderer)
       )
 }
