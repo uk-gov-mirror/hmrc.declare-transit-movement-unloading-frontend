@@ -38,7 +38,7 @@ class UnloadingGuidanceController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
       val json = Json.obj("mrn" -> mrn)
 
