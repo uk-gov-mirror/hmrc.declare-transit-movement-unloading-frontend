@@ -132,3 +132,12 @@ compliant.nine.p3=This page was prepared on [date when it was first published]. 
 
 unloadingGuidance.title = unloadingGuidance
 unloadingGuidance.heading = unloadingGuidance
+
+dateGoodsUnloaded.title = DateGoodsUnloaded
+dateGoodsUnloaded.heading = DateGoodsUnloaded
+dateGoodsUnloaded.hint = For example, 12 11 2007
+dateGoodsUnloaded.checkYourAnswersLabel = DateGoodsUnloaded
+dateGoodsUnloaded.error.required.all = Enter the dateGoodsUnloaded
+dateGoodsUnloaded.error.required.two = The dateGoodsUnloaded must include {0} and {1}
+dateGoodsUnloaded.error.required = The dateGoodsUnloaded must include {0}
+dateGoodsUnloaded.error.invalid = Enter a real DateGoodsUnloaded

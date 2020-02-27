@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 
-package generators
+package forms
 
-import org.scalacheck.Arbitrary
-import pages._
+import java.time.{LocalDate, ZoneOffset}
 
-trait PageGenerators {
+import forms.behaviours.DateBehaviours
+import play.api.data.FormError
 
-  implicit lazy val arbitraryDateGoodsUnloadedPage: Arbitrary[DateGoodsUnloadedPage.type] =
-    Arbitrary(DateGoodsUnloadedPage)
+class DateGoodsUnloadedFormProviderSpec extends DateBehaviours {
+
+  val form = new DateGoodsUnloadedFormProvider()()
+
+  ".value" - {
+
+    val validData = datesBetween(
+      min = LocalDate.of(2000, 1, 1),
+      max = LocalDate.now(ZoneOffset.UTC)
+    )
+
+    behave like dateField(form, "value", validData)
+
+    behave like mandatoryDateField(form, "value", "dateGoodsUnloaded.error.required.all")
+  }
 }
