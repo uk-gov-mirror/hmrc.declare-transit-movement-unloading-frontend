@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber, NormalMode}
+import models.{Mode, MovementReferenceNumber, UserAnswers}
 import navigation.Navigator
 import pages.DateGoodsUnloadedPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -49,20 +49,22 @@ class DateGoodsUnloadedController @Inject()(
 
   val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
+  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
-      println("\n\n\n\n\nRELAX\n\n\n\n\n\n\n\n")
-      /*val preparedForm = request.userAnswers.get(DateGoodsUnloadedPage) match {
-        case Some(value) => form.fill(value)
-        case None        => form
+      val preparedForm = request.userAnswers match {
+        case Some(userAnswers) =>
+          userAnswers.get(DateGoodsUnloadedPage) match {
+            case Some(value) => form.fill(value)
+            case None        => form
+          }
+        case _ => form
       }
-       */
-      val preparedForm = form
-      val viewModel    = DateInput.localDate(preparedForm("value"))
+
+      val viewModel = DateInput.localDate(preparedForm("value"))
 
       val json = Json.obj(
         "form" -> preparedForm,
-        "mode" -> NormalMode,
+        "mode" -> mode,
         "mrn"  -> mrn,
         "date" -> viewModel
       )
@@ -70,7 +72,7 @@ class DateGoodsUnloadedController @Inject()(
       renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -90,7 +92,7 @@ class DateGoodsUnloadedController @Inject()(
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(DateGoodsUnloadedPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn)).set(DateGoodsUnloadedPage, value))
               _              <- sessionRepository.set(updatedAnswers)
             } yield Redirect(navigator.nextPage(DateGoodsUnloadedPage, mode, updatedAnswers))
         )
