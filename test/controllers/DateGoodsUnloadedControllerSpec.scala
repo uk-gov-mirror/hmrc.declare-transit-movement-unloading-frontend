@@ -187,27 +187,56 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       application.stop()
     }
 
-    "must redirect to Session Expired for a GET if no existing data is found" in {
+    "must return OK and the correct view  if no existing data is found" in {
+
+      when(mockRenderer.render(any(), any())(any()))
+        .thenReturn(Future.successful(Html("")))
 
       val application = applicationBuilder(userAnswers = None).build()
 
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+
       val result = route(application, getRequest).value
 
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val viewModel = DateInput.localDate(form("value"))
+
+      val expectedJson = Json.obj(
+        "form" -> form,
+        "mode" -> NormalMode,
+        "mrn"  -> mrn,
+        "date" -> viewModel
+      )
+
+      templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
     }
 
-    "must redirect to Session Expired for a POST if no existing data is found" in {
+    "must redirect to the next page when if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      val mockSessionRepository = mock[SessionRepository]
+
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+
+      val application =
+        applicationBuilder(userAnswers = None)
+          .overrides(
+            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
+            bind[SessionRepository].toInstance(mockSessionRepository)
+          )
+          .build()
 
       val result = route(application, postRequest).value
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+      redirectLocation(result).value mustEqual onwardRoute.url
 
       application.stop()
     }

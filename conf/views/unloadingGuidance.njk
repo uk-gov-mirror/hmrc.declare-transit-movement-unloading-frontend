@@ -1,5 +1,6 @@
 {% extends "includes/layout.njk" %}
 
+{% from "govuk/components/button/macro.njk"        import govukButton %}
 {% from "macros/title.njk"                         import title %}
 
 {% block pageTitle %}
@@ -15,6 +16,12 @@
         <h1 class="govuk-heading-xl">
           {{ messages("unloadingGuidance.heading") }}
         </h1>
+
+        {{ govukButton({
+          text: messages("site.continue"),
+          href: routes.controllers.DateGoodsUnloadedController.onPageLoad(mrn, mode).url,
+          attributes: {id:"submit"}
+        }) }}
 
       </div>
     </div>

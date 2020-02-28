@@ -19,13 +19,13 @@ package utils
 import java.time.format.DateTimeFormatter
 
 import controllers.routes
-import models.{CheckMode, UserAnswers}
+import models.{NormalMode, UserAnswers}
 import pages._
 import play.api.i18n.Messages
-import CheckYourAnswersHelper._
-import uk.gov.hmrc.viewmodels._
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
+import uk.gov.hmrc.viewmodels._
+import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
@@ -37,7 +37,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = routes.DateGoodsUnloadedController.onPageLoad(userAnswers.id, CheckMode).url,
+            href               = routes.DateGoodsUnloadedController.onPageLoad(userAnswers.id, NormalMode).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"dateGoodsUnloaded.checkYourAnswersLabel"))
           )
         )
