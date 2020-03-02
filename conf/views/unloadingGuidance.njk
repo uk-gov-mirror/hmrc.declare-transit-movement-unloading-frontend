@@ -17,12 +17,14 @@
           {{ messages("unloadingGuidance.heading") }}
         </h1>
 
+        <p class = "govuk-body">{{ messages("unloadingGuidance.paragraph1", mrn) }}</p>
+        <p class = "govuk-body">{{ messages("unloadingGuidance.paragraph2") }}</p>
+
         {{ govukButton({
           text: messages("site.continue"),
           href: routes.controllers.DateGoodsUnloadedController.onPageLoad(mrn, mode).url,
           attributes: {id:"submit"}
         }) }}
-
       </div>
     </div>
   </div>
