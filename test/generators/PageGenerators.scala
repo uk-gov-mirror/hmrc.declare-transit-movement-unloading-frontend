@@ -21,6 +21,9 @@ import pages._
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryGrossMassAmountPage: Arbitrary[GrossMassAmountPage.type] =
+    Arbitrary(GrossMassAmountPage)
+
   implicit lazy val arbitraryVehicleRegistrationCountryPage: Arbitrary[VehicleRegistrationCountryPage.type] =
     Arbitrary(VehicleRegistrationCountryPage)
 

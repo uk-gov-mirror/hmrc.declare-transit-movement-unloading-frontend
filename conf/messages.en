@@ -155,3 +155,9 @@ vehicleRegistrationCountry.heading = vehicleRegistrationCountry
 vehicleRegistrationCountry.checkYourAnswersLabel = vehicleRegistrationCountry
 vehicleRegistrationCountry.error.required = Enter vehicleRegistrationCountry
 vehicleRegistrationCountry.error.length = VehicleRegistrationCountry must be 100 characters or less
+
+grossMassAmount.title = grossMassAmount
+grossMassAmount.heading = grossMassAmount
+grossMassAmount.checkYourAnswersLabel = grossMassAmount
+grossMassAmount.error.required = Enter grossMassAmount
+grossMassAmount.error.length = GrossMassAmount must be 100 characters or less

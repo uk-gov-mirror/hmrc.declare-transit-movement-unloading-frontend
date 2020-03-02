@@ -30,3 +30,8 @@ GET        /:mrn/vehicleRegistrationCountry                        controllers.V
 POST       /:mrn/vehicleRegistrationCountry                        controllers.VehicleRegistrationCountryController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 GET        /:mrn/changeVehicleRegistrationCountry                  controllers.VehicleRegistrationCountryController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/changeVehicleRegistrationCountry                  controllers.VehicleRegistrationCountryController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/grossMassAmount                        controllers.GrossMassAmountController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/grossMassAmount                        controllers.GrossMassAmountController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/changeGrossMassAmount                  controllers.GrossMassAmountController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/changeGrossMassAmount                  controllers.GrossMassAmountController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
