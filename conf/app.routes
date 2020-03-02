@@ -25,3 +25,8 @@ GET        /:mrn/vehicleNameRegistrationReference                        control
 POST       /:mrn/vehicleNameRegistrationReference                        controllers.VehicleNameRegistrationReferenceController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 GET        /:mrn/changeVehicleNameRegistrationReference                  controllers.VehicleNameRegistrationReferenceController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/changeVehicleNameRegistrationReference                  controllers.VehicleNameRegistrationReferenceController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/vehicleRegistrationCountry                        controllers.VehicleRegistrationCountryController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/vehicleRegistrationCountry                        controllers.VehicleRegistrationCountryController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/changeVehicleRegistrationCountry                  controllers.VehicleRegistrationCountryController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/changeVehicleRegistrationCountry                  controllers.VehicleRegistrationCountryController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)

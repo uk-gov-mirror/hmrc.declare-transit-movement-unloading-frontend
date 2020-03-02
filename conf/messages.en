@@ -149,3 +149,9 @@ vehicleNameRegistrationReference.heading = vehicleNameRegistrationReference
 vehicleNameRegistrationReference.checkYourAnswersLabel = vehicleNameRegistrationReference
 vehicleNameRegistrationReference.error.required = Enter vehicleNameRegistrationReference
 vehicleNameRegistrationReference.error.length = VehicleNameRegistrationReference must be 100 characters or less
+
+vehicleRegistrationCountry.title = vehicleRegistrationCountry
+vehicleRegistrationCountry.heading = vehicleRegistrationCountry
+vehicleRegistrationCountry.checkYourAnswersLabel = vehicleRegistrationCountry
+vehicleRegistrationCountry.error.required = Enter vehicleRegistrationCountry
+vehicleRegistrationCountry.error.length = VehicleRegistrationCountry must be 100 characters or less

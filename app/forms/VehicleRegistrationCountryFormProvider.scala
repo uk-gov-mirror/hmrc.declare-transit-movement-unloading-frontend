@@ -14,19 +14,18 @@
  * limitations under the License.
  */
 
-package generators
+package forms
 
-import org.scalacheck.Arbitrary
-import pages._
+import javax.inject.Inject
 
-trait PageGenerators {
+import forms.mappings.Mappings
+import play.api.data.Form
 
-  implicit lazy val arbitraryVehicleRegistrationCountryPage: Arbitrary[VehicleRegistrationCountryPage.type] =
-    Arbitrary(VehicleRegistrationCountryPage)
+class VehicleRegistrationCountryFormProvider @Inject() extends Mappings {
 
-  implicit lazy val arbitraryVehicleNameRegistrationReferencePage: Arbitrary[VehicleNameRegistrationReferencePage.type] =
-    Arbitrary(VehicleNameRegistrationReferencePage)
-
-  implicit lazy val arbitraryDateGoodsUnloadedPage: Arbitrary[DateGoodsUnloadedPage.type] =
-    Arbitrary(DateGoodsUnloadedPage)
+  def apply(): Form[String] =
+    Form(
+      "value" -> text("vehicleRegistrationCountry.error.required")
+        .verifying(maxLength(100, "vehicleRegistrationCountry.error.length"))
+    )
 }
