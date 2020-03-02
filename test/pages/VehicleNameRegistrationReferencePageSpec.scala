@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package generators
+package pages
 
-import org.scalacheck.Arbitrary
-import pages._
+import pages.behaviours.PageBehaviours
 
-trait PageGenerators {
+class VehicleNameRegistrationReferencePageSpec extends PageBehaviours {
 
-  implicit lazy val arbitraryVehicleNameRegistrationReferencePage: Arbitrary[VehicleNameRegistrationReferencePage.type] =
-    Arbitrary(VehicleNameRegistrationReferencePage)
+  "VehicleNameRegistrationReferencePage" - {
 
-  implicit lazy val arbitraryDateGoodsUnloadedPage: Arbitrary[DateGoodsUnloadedPage.type] =
-    Arbitrary(DateGoodsUnloadedPage)
+    beRetrievable[String](VehicleNameRegistrationReferencePage)
+
+    beSettable[String](VehicleNameRegistrationReferencePage)
+
+    beRemovable[String](VehicleNameRegistrationReferencePage)
+  }
 }

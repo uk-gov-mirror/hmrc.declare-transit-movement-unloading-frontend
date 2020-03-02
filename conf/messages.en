@@ -143,3 +143,9 @@ dateGoodsUnloaded.error.required.all = Enter when the goods were unloaded
 dateGoodsUnloaded.error.required.two = The date goods were unloaded must include {0} and {1}
 dateGoodsUnloaded.error.required = The date goods were unloaded must include {0}
 dateGoodsUnloaded.error.invalid = Enter a real date
+
+vehicleNameRegistrationReference.title = vehicleNameRegistrationReference
+vehicleNameRegistrationReference.heading = vehicleNameRegistrationReference
+vehicleNameRegistrationReference.checkYourAnswersLabel = vehicleNameRegistrationReference
+vehicleNameRegistrationReference.error.required = Enter vehicleNameRegistrationReference
+vehicleNameRegistrationReference.error.length = VehicleNameRegistrationReference must be 100 characters or less
