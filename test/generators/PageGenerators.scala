@@ -21,6 +21,9 @@ import pages._
 
 trait PageGenerators {
 
+  implicit lazy val arbitrarySealNumberPage: Arbitrary[SealNumberPage.type] =
+    Arbitrary(SealNumberPage)
+
   implicit lazy val arbitraryGrossMassAmountPage: Arbitrary[GrossMassAmountPage.type] =
     Arbitrary(GrossMassAmountPage)
 

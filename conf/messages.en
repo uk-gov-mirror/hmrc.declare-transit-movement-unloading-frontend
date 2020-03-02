@@ -161,3 +161,9 @@ grossMassAmount.heading = grossMassAmount
 grossMassAmount.checkYourAnswersLabel = grossMassAmount
 grossMassAmount.error.required = Enter grossMassAmount
 grossMassAmount.error.length = GrossMassAmount must be 100 characters or less
+
+sealNumber.title = sealNumber
+sealNumber.heading = sealNumber
+sealNumber.checkYourAnswersLabel = sealNumber
+sealNumber.error.required = Enter sealNumber
+sealNumber.error.length = SealNumber must be 100 characters or less
