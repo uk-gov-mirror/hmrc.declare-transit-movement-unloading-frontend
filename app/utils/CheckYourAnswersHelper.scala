@@ -29,6 +29,21 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
+  def sealsInformation: Option[Row] = userAnswers.get(SealsInformationPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"sealsInformation.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(lit"$answer"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.SealsInformationController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"sealsInformation.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def sealNumber: Option[Row] = userAnswers.get(SealNumberPage) map {
     answer =>
       Row(

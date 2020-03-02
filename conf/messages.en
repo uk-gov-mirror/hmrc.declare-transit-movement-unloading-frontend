@@ -167,3 +167,9 @@ sealNumber.heading = sealNumber
 sealNumber.checkYourAnswersLabel = sealNumber
 sealNumber.error.required = Enter sealNumber
 sealNumber.error.length = SealNumber must be 100 characters or less
+
+sealsInformation.title = sealsInformation
+sealsInformation.heading = sealsInformation
+sealsInformation.checkYourAnswersLabel = sealsInformation
+sealsInformation.error.required = Enter sealsInformation
+sealsInformation.error.length = SealsInformation must be 100 characters or less

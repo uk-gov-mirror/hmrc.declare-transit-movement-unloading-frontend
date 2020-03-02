@@ -23,6 +23,14 @@ import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
 
+  implicit lazy val arbitrarySealsInformationReference: Arbitrary[(SealsInformationPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[SealsInformationPage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
   implicit lazy val arbitrarySealNumberReference: Arbitrary[(SealNumberPage.type, JsValue)] =
     Arbitrary {
       for {
