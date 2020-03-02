@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-package generators
+package forms
 
-import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.arbitrary
-import pages._
-import play.api.libs.json.{JsValue, Json}
+import java.time.LocalDate
 
-trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
+import forms.mappings.Mappings
+import javax.inject.Inject
+import play.api.data.Form
 
-  implicit lazy val arbitraryDateGoodsUnloadedUserAnswersEntry: Arbitrary[(DateGoodsUnloadedPage.type, JsValue)] =
-    Arbitrary {
-      for {
-        page  <- arbitrary[DateGoodsUnloadedPage.type]
-        value <- arbitrary[String].map(Json.toJson(_))
-      } yield (page, value)
-    }
+class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
 
+  def apply(): Form[LocalDate] =
+    Form(
+      "value" -> localDate(
+        invalidKey     = "dateGoodsUnloaded.error.invalid",
+        allRequiredKey = "dateGoodsUnloaded.error.required.all",
+        twoRequiredKey = "dateGoodsUnloaded.error.required.two",
+        requiredKey    = "dateGoodsUnloaded.error.required"
+      )
+    )
 }

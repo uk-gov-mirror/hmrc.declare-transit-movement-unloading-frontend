@@ -130,5 +130,16 @@ compliant.nine.p2.2=Digital Accessibility Centre
 compliant.nine.p2.3=The full service was tested by HMRC and included disabled users.
 compliant.nine.p3=This page was prepared on [date when it was first published]. It was last updated on [date when it was last updated].
 
-unloadingGuidance.title = unloadingGuidance
-unloadingGuidance.heading = unloadingGuidance
+unloadingGuidance.title = You must unload all of the goods before you send any unloading remarks
+unloadingGuidance.heading = You must unload all of the goods before you send any unloading remarks
+unloadingGuidance.paragraph1 = View and print the unloading permissions accompanying document for movement reference {0}.
+unloadingGuidance.paragraph2 = You can use this document to check that the unloaded goods match the information in the transit declaration.
+
+dateGoodsUnloaded.title = When were the goods unloaded?
+dateGoodsUnloaded.heading = When were the goods unloaded?
+dateGoodsUnloaded.hint = For example, 14 1 2020
+dateGoodsUnloaded.checkYourAnswersLabel = DateGoodsUnloaded
+dateGoodsUnloaded.error.required.all = Enter when the goods were unloaded
+dateGoodsUnloaded.error.required.two = The date goods were unloaded must include {0} and {1}
+dateGoodsUnloaded.error.required = The date goods were unloaded must include {0}
+dateGoodsUnloaded.error.invalid = Enter a real date

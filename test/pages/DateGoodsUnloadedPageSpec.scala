@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package generators
+package pages
+
+import java.time.LocalDate
 
 import org.scalacheck.Arbitrary
-import org.scalacheck.Arbitrary.arbitrary
-import pages._
-import play.api.libs.json.{JsValue, Json}
+import pages.behaviours.PageBehaviours
 
-trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
+class DateGoodsUnloadedPageSpec extends PageBehaviours {
 
-  implicit lazy val arbitraryDateGoodsUnloadedUserAnswersEntry: Arbitrary[(DateGoodsUnloadedPage.type, JsValue)] =
-    Arbitrary {
-      for {
-        page  <- arbitrary[DateGoodsUnloadedPage.type]
-        value <- arbitrary[String].map(Json.toJson(_))
-      } yield (page, value)
+  "DateGoodsUnloadedPage" - {
+
+    implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
+      datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
     }
 
+    beRetrievable[LocalDate](DateGoodsUnloadedPage)
+
+    beSettable[LocalDate](DateGoodsUnloadedPage)
+
+    beRemovable[LocalDate](DateGoodsUnloadedPage)
+  }
 }

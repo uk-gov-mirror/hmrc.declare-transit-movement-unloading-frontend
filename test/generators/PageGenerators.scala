@@ -19,4 +19,8 @@ package generators
 import org.scalacheck.Arbitrary
 import pages._
 
-trait PageGenerators {}
+trait PageGenerators {
+
+  implicit lazy val arbitraryDateGoodsUnloadedPage: Arbitrary[DateGoodsUnloadedPage.type] =
+    Arbitrary(DateGoodsUnloadedPage)
+}
