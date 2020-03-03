@@ -1,33 +1,33 @@
 #!/bin/bash
 
 echo ""
-echo "Applying migration AdditionalChangesinformation"
+echo "Applying migration AdditionalChangesInformation"
 
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/additionalChangesinformation                        controllers.AdditionalChangesinformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
-echo "POST       /:mrn/additionalChangesinformation                        controllers.AdditionalChangesinformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "POST       /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /:mrn/changeAdditionalChangesinformation                  controllers.AdditionalChangesinformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
-echo "POST       /:mrn/changeAdditionalChangesinformation                  controllers.AdditionalChangesinformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "POST       /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en
-echo "additionalChangesinformation.title = additionalChangesinformation" >> ../conf/messages.en
-echo "additionalChangesinformation.heading = additionalChangesinformation" >> ../conf/messages.en
-echo "additionalChangesinformation.checkYourAnswersLabel = additionalChangesinformation" >> ../conf/messages.en
-echo "additionalChangesinformation.error.required = Enter additionalChangesinformation" >> ../conf/messages.en
-echo "additionalChangesinformation.error.length = AdditionalChangesinformation must be 100 characters or less" >> ../conf/messages.en
+echo "additionalChangesInformation.title = additionalChangesInformation" >> ../conf/messages.en
+echo "additionalChangesInformation.heading = additionalChangesInformation" >> ../conf/messages.en
+echo "additionalChangesInformation.checkYourAnswersLabel = additionalChangesInformation" >> ../conf/messages.en
+echo "additionalChangesInformation.error.required = Enter additionalChangesInformation" >> ../conf/messages.en
+echo "additionalChangesInformation.error.length = AdditionalChangesInformation must be 100 characters or less" >> ../conf/messages.en
 
 echo "Adding to UserAnswersEntryGenerators"
 awk '/self: Generators =>/ {\
     print;\
     print "";\
-    print "  implicit lazy val arbitraryAdditionalChangesinformationUserAnswersEntry: Arbitrary[(AdditionalChangesinformationPage.type, JsValue)] =";\
+    print "  implicit lazy val arbitraryAdditionalChangesInformationUserAnswersEntry: Arbitrary[(AdditionalChangesInformationPage.type, JsValue)] =";\
     print "    Arbitrary {";\
     print "      for {";\
-    print "        page  <- arbitrary[AdditionalChangesinformationPage.type]";\
+    print "        page  <- arbitrary[AdditionalChangesInformationPage.type]";\
     print "        value <- arbitrary[String].suchThat(_.nonEmpty).map(Json.toJson(_))";\
     print "      } yield (page, value)";\
     print "    }";\
@@ -37,34 +37,34 @@ echo "Adding to PageGenerators"
 awk '/trait PageGenerators/ {\
     print;\
     print "";\
-    print "  implicit lazy val arbitraryAdditionalChangesinformationPage: Arbitrary[AdditionalChangesinformationPage.type] =";\
-    print "    Arbitrary(AdditionalChangesinformationPage)";\
+    print "  implicit lazy val arbitraryAdditionalChangesInformationPage: Arbitrary[AdditionalChangesInformationPage.type] =";\
+    print "    Arbitrary(AdditionalChangesInformationPage)";\
     next }1' ../test/generators/PageGenerators.scala > tmp && mv tmp ../test/generators/PageGenerators.scala
 
 echo "Adding to UserAnswersGenerator"
 awk '/val generators/ {\
     print;\
-    print "    arbitrary[(AdditionalChangesinformationPage.type, JsValue)] ::";\
+    print "    arbitrary[(AdditionalChangesInformationPage.type, JsValue)] ::";\
     next }1' ../test/generators/UserAnswersGenerator.scala > tmp && mv tmp ../test/generators/UserAnswersGenerator.scala
 
 echo "Adding helper method to CheckYourAnswersHelper"
 awk '/class CheckYourAnswersHelper/ {\
      print;\
      print "";\
-     print "  def additionalChangesinformation: Option[Row] = userAnswers.get(AdditionalChangesinformationPage) map {";\
+     print "  def additionalChangesInformation: Option[Row] = userAnswers.get(AdditionalChangesInformationPage) map {";\
      print "    answer =>";\
      print "      Row(";\
-     print "        key     = Key(msg\"additionalChangesinformation.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\
+     print "        key     = Key(msg\"additionalChangesInformation.checkYourAnswersLabel\", classes = Seq(\"govuk-!-width-one-half\")),";\
      print "        value   = Value(lit\"$answer\"),";\
      print "        actions = List(";\
      print "          Action(";\
      print "            content            = msg\"site.edit\",";\
-     print "            href               = routes.AdditionalChangesinformationController.onPageLoad(mrn, CheckMode).url,";\
-     print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"additionalChangesinformation.checkYourAnswersLabel\"))";\
+     print "            href               = routes.AdditionalChangesInformationController.onPageLoad(mrn, CheckMode).url,";\
+     print "            visuallyHiddenText = Some(msg\"site.edit.hidden\".withArgs(msg\"additionalChangesInformation.checkYourAnswersLabel\"))";\
      print "          )";\
      print "        )";\
      print "      )";\
      print "  }";\
      next }1' ../app/utils/CheckYourAnswersHelper.scala > tmp && mv tmp ../app/utils/CheckYourAnswersHelper.scala
 
-echo "Migration AdditionalChangesinformation completed"
+echo "Migration AdditionalChangesInformation completed"

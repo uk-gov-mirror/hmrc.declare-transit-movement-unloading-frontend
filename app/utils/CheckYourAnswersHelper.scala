@@ -29,16 +29,16 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
-  def additionalChangesinformation: Option[Row] = userAnswers.get(AdditionalChangesinformationPage) map {
+  def additionalChangesInformation: Option[Row] = userAnswers.get(AdditionalChangesInformationPage) map {
     answer =>
       Row(
-        key   = Key(msg"additionalChangesinformation.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"additionalChangesInformation.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
         value = Value(lit"$answer"),
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = routes.AdditionalChangesinformationController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"additionalChangesinformation.checkYourAnswersLabel"))
+            href               = routes.AdditionalChangesInformationController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"additionalChangesInformation.checkYourAnswersLabel"))
           )
         )
       )

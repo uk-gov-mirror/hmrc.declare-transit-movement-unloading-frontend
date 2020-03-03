@@ -18,14 +18,14 @@ package pages
 
 import pages.behaviours.PageBehaviours
 
-class AdditionalChangesinformationPageSpec extends PageBehaviours {
+class AdditionalChangesInformationPageSpec extends PageBehaviours {
 
-  "AdditionalChangesinformationPage" - {
+  "AdditionalChangesInformationPage" - {
 
-    beRetrievable[String](AdditionalChangesinformationPage)
+    beRetrievable[String](AdditionalChangesInformationPage)
 
-    beSettable[String](AdditionalChangesinformationPage)
+    beSettable[String](AdditionalChangesInformationPage)
 
-    beRemovable[String](AdditionalChangesinformationPage)
+    beRemovable[String](AdditionalChangesInformationPage)
   }
 }

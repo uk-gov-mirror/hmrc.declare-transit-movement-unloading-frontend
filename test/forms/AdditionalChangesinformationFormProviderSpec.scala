@@ -19,13 +19,13 @@ package forms
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class AdditionalChangesinformationFormProviderSpec extends StringFieldBehaviours {
+class AdditionalChangesInformationFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "additionalChangesinformation.error.required"
-  val lengthKey   = "additionalChangesinformation.error.length"
+  val requiredKey = "additionalChangesInformation.error.required"
+  val lengthKey   = "additionalChangesInformation.error.length"
   val maxLength   = 100
 
-  val form = new AdditionalChangesinformationFormProvider()()
+  val form = new AdditionalChangesInformationFormProvider()()
 
   ".value" - {
 

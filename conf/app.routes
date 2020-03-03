@@ -46,7 +46,7 @@ POST       /:mrn/sealsInformation                        controllers.SealsInform
 GET        /:mrn/changeSealsInformation                  controllers.SealsInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/changeSealsInformation                  controllers.SealsInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
-GET        /:mrn/additionalChangesinformation                        controllers.AdditionalChangesinformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-POST       /:mrn/additionalChangesinformation                        controllers.AdditionalChangesinformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/changeAdditionalChangesinformation                  controllers.AdditionalChangesinformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
-POST       /:mrn/changeAdditionalChangesinformation                  controllers.AdditionalChangesinformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)

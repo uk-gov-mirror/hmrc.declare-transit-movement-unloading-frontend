@@ -21,11 +21,11 @@ import javax.inject.Inject
 import forms.mappings.Mappings
 import play.api.data.Form
 
-class AdditionalChangesinformationFormProvider @Inject() extends Mappings {
+class AdditionalChangesInformationFormProvider @Inject() extends Mappings {
 
   def apply(): Form[String] =
     Form(
-      "value" -> text("additionalChangesinformation.error.required")
-        .verifying(maxLength(100, "additionalChangesinformation.error.length"))
+      "value" -> text("additionalChangesInformation.error.required")
+        .verifying(maxLength(100, "additionalChangesInformation.error.length"))
     )
 }
