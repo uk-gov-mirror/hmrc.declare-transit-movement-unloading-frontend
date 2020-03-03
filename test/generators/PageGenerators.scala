@@ -21,6 +21,24 @@ import pages._
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryAdditionalChangesInformationPage: Arbitrary[AdditionalChangesInformationPage.type] =
+    Arbitrary(AdditionalChangesInformationPage)
+
+  implicit lazy val arbitrarySealsInformationPage: Arbitrary[SealsInformationPage.type] =
+    Arbitrary(SealsInformationPage)
+
+  implicit lazy val arbitrarySealNumberPage: Arbitrary[SealNumberPage.type] =
+    Arbitrary(SealNumberPage)
+
+  implicit lazy val arbitraryGrossMassAmountPage: Arbitrary[GrossMassAmountPage.type] =
+    Arbitrary(GrossMassAmountPage)
+
+  implicit lazy val arbitraryVehicleRegistrationCountryPage: Arbitrary[VehicleRegistrationCountryPage.type] =
+    Arbitrary(VehicleRegistrationCountryPage)
+
+  implicit lazy val arbitraryVehicleNameRegistrationReferencePage: Arbitrary[VehicleNameRegistrationReferencePage.type] =
+    Arbitrary(VehicleNameRegistrationReferencePage)
+
   implicit lazy val arbitraryDateGoodsUnloadedPage: Arbitrary[DateGoodsUnloadedPage.type] =
     Arbitrary(DateGoodsUnloadedPage)
 }

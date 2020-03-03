@@ -23,6 +23,54 @@ import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators with ModelGenerators {
 
+  implicit lazy val arbitraryAdditionalChangesInformationReference: Arbitrary[(AdditionalChangesInformationPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[AdditionalChangesInformationPage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
+  implicit lazy val arbitrarySealsInformationReference: Arbitrary[(SealsInformationPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[SealsInformationPage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
+  implicit lazy val arbitrarySealNumberReference: Arbitrary[(SealNumberPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[SealNumberPage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
+  implicit lazy val arbitraryGrossMassAmountReference: Arbitrary[(GrossMassAmountPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[GrossMassAmountPage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
+  implicit lazy val arbitraryVehicleRegistrationCountryReference: Arbitrary[(VehicleRegistrationCountryPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[VehicleRegistrationCountryPage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
+  implicit lazy val arbitraryVehicleNameRegistrationReference: Arbitrary[(VehicleNameRegistrationReferencePage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[VehicleNameRegistrationReferencePage.type]
+        value <- arbitrary[String].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
   implicit lazy val arbitraryDateGoodsUnloadedUserAnswersEntry: Arbitrary[(DateGoodsUnloadedPage.type, JsValue)] =
     Arbitrary {
       for {
