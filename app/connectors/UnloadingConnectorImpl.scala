@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.google.inject.{ImplementedBy, Inject, Singleton}
+import com.google.inject.{Inject, Singleton}
 import config.FrontendAppConfig
 import models.{Movement, MovementReferenceNumber}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -29,7 +29,7 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 
   /**
     * Connector SHOULD
-    * - Consider returning more meaningful responses on failure
+    * - Consider returning more meaningful responses on failure (when we write the calling service)
     */
   def get(mrn: MovementReferenceNumber)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Seq[Movement]]] = {
 
@@ -38,12 +38,8 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     http
       .GET[Seq[Movement]](url)
       .map {
-        x =>
-          if (x.isEmpty) {
-            None
-          } else {
-            Some(x)
-          }
+        case Nil => None
+        case x   => Some(x)
       }
       .recover {
         case _ => None
@@ -52,8 +48,6 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 
 }
 
-@ImplementedBy(classOf[UnloadingConnectorImpl])
 trait UnloadingConnector {
   def get(mrn: MovementReferenceNumber)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Seq[Movement]]]
-
 }
