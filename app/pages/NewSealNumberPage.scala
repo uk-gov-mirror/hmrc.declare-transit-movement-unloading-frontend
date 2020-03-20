@@ -18,9 +18,9 @@ package pages
 
 import play.api.libs.json.JsPath
 
-case object SealNumberPage extends QuestionPage[String] {
+case object NewSealNumberPage extends QuestionPage[String] {
 
   override def path: JsPath = JsPath \ toString
 
-  override def toString: String = "sealNumber"
+  override def toString: String = "newSealNumber"
 }

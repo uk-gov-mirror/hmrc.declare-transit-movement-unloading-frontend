@@ -19,13 +19,13 @@ package forms
 import forms.behaviours.StringFieldBehaviours
 import play.api.data.FormError
 
-class SealNumberFormProviderSpec extends StringFieldBehaviours {
+class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "sealNumber.error.required"
-  val lengthKey   = "sealNumber.error.length"
+  val requiredKey = "newSealNumber.error.required"
+  val lengthKey   = "newSealNumber.error.length"
   val maxLength   = 100
 
-  val form = new SealNumberFormProvider()()
+  val form = new NewSealNumberFormProvider()()
 
   ".value" - {
 

@@ -104,16 +104,16 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
       )
   }
 
-  def sealNumber: Option[Row] = userAnswers.get(SealNumberPage) map {
+  def newSealNumber: Option[Row] = userAnswers.get(NewSealNumberPage) map {
     answer =>
       Row(
-        key   = Key(msg"sealNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"newSealNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
         value = Value(lit"$answer"),
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = routes.SealNumberController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"sealNumber.checkYourAnswersLabel"))
+            href               = routes.NewSealNumberController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"newSealNumber.checkYourAnswersLabel"))
           )
         )
       )

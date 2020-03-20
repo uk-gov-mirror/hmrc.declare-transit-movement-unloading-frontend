@@ -17,11 +17,11 @@
 package controllers
 
 import controllers.actions._
-import forms.SealNumberFormProvider
+import forms.NewSealNumberFormProvider
 import javax.inject.Inject
 import models.{Mode, MovementReferenceNumber}
 import navigation.Navigator
-import pages.SealNumberPage
+import pages.NewSealNumberPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -32,14 +32,14 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class SealNumberController @Inject()(
+class NewSealNumberController @Inject()(
   override val messagesApi: MessagesApi,
   sessionRepository: SessionRepository,
   navigator: Navigator,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
-  formProvider: SealNumberFormProvider,
+  formProvider: NewSealNumberFormProvider,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer
 )(implicit ec: ExecutionContext)
@@ -51,7 +51,7 @@ class SealNumberController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val preparedForm = request.userAnswers.get(SealNumberPage) match {
+      val preparedForm = request.userAnswers.get(NewSealNumberPage) match {
         case None        => form
         case Some(value) => form.fill(value)
       }
@@ -62,7 +62,7 @@ class SealNumberController @Inject()(
         "mode" -> mode
       )
 
-      renderer.render("sealNumber.njk", json).map(Ok(_))
+      renderer.render("newSealNumber.njk", json).map(Ok(_))
   }
 
   def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
@@ -78,13 +78,13 @@ class SealNumberController @Inject()(
               "mode" -> mode
             )
 
-            renderer.render("sealNumber.njk", json).map(BadRequest(_))
+            renderer.render("newSealNumber.njk", json).map(BadRequest(_))
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(SealNumberPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(NewSealNumberPage, value))
               _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(navigator.nextPage(SealNumberPage, mode, updatedAnswers))
+            } yield Redirect(navigator.nextPage(NewSealNumberPage, mode, updatedAnswers))
         )
   }
 }

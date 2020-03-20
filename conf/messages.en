@@ -163,11 +163,11 @@ grossMassAmount.checkYourAnswersLabel = grossMassAmount
 grossMassAmount.error.required = Enter grossMassAmount
 grossMassAmount.error.length = GrossMassAmount must be 100 characters or less
 
-sealNumber.title = sealNumber
-sealNumber.heading = sealNumber
-sealNumber.checkYourAnswersLabel = sealNumber
-sealNumber.error.required = Enter sealNumber
-sealNumber.error.length = SealNumber must be 100 characters or less
+newSealNumber.title = What is the new seal number or mark?
+newSealNumber.heading = What is the new seal number or mark?
+newSealNumber.checkYourAnswersLabel = What is the new seal number or mark?
+newSealNumber.error.required = Enter the new seal number
+newSealNumber.error.length = Seal number must be 100 characters or less
 
 sealsInformation.title = sealsInformation
 sealsInformation.heading = sealsInformation
@@ -184,15 +184,15 @@ additionalChangesInformation.error.length = AdditionalChangesInformation must be
 unloadingSummary.title = unloadingSummary
 unloadingSummary.heading = unloadingSummary
 
-canSealsBeRead.title = canSealsBeRead
-canSealsBeRead.heading = canSealsBeRead
-canSealsBeRead.checkYourAnswersLabel = canSealsBeRead
-canSealsBeRead.error.required = Select yes if canSealsBeRead
+canSealsBeRead.title = Can all of the seal numbers or marks be read?
+canSealsBeRead.heading = Can all of the seal numbers or marks be read?
+canSealsBeRead.checkYourAnswersLabel = Can all of the seal numbers or marks be read?
+canSealsBeRead.error.required = Select yes if all of the seals can be read
 
-areAnySealsBroken.title = areAnySealsBroken
-areAnySealsBroken.heading = areAnySealsBroken
-areAnySealsBroken.checkYourAnswersLabel = areAnySealsBroken
-areAnySealsBroken.error.required = Select yes if areAnySealsBroken
+areAnySealsBroken.title = Are any of the seals broken?
+areAnySealsBroken.heading = Are any of the seals broken?
+areAnySealsBroken.checkYourAnswersLabel = Are any of the seals broken?
+areAnySealsBroken.error.required = Select yes if any of the seals are broken
 
 anythingElseToReport.title = anythingElseToReport
 anythingElseToReport.heading = anythingElseToReport
