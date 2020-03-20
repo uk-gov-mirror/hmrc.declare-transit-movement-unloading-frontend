@@ -52,3 +52,8 @@ GET        /:mrn/changeAdditionalChangesInformation                  controllers
 POST       /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
 GET        /:mrn/unloadingSummary                       controllers.UnloadingSummaryController.onPageLoad(mrn: MovementReferenceNumber)
+
+GET        /:mrn/canSealsBeRead                        controllers.CanSealsBeReadController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/canSealsBeRead                        controllers.CanSealsBeReadController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/changeCanSealsBeRead                  controllers.CanSealsBeReadController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/changeCanSealsBeRead                  controllers.CanSealsBeReadController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)

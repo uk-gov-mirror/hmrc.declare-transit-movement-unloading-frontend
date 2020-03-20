@@ -29,6 +29,21 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
+  def canSealsBeRead: Option[Row] = userAnswers.get(CanSealsBeReadPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"canSealsBeRead.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(answer)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.CanSealsBeReadController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"canSealsBeRead.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def additionalChangesInformation: Option[Row] = userAnswers.get(AdditionalChangesInformationPage) map {
     answer =>
       Row(
