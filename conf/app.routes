@@ -50,3 +50,5 @@ GET        /:mrn/additionalChangesInformation                        controllers
 POST       /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 GET        /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/changeAdditionalChangesInformation                  controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/unloadingSummary                       controllers.UnloadingSummaryController.onPageLoad(mrn: MovementReferenceNumber)
