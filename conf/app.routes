@@ -16,10 +16,10 @@ GET        /accessibility-statement                     controllers.Accessibilit
 
 GET        /:mrn/unloadingGuidance                      controllers.UnloadingGuidanceController.onPageLoad(mrn: MovementReferenceNumber)
 
-GET        /:mrn/dateGoodsUnloaded                      controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber, mode:Mode = NormalMode)
-POST       /:mrn/dateGoodsUnloaded                      controllers.DateGoodsUnloadedController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/changeDateGoodsUnloaded                controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber, mode:Mode = CheckMode)
-POST       /:mrn/changeDateGoodsUnloaded                controllers.DateGoodsUnloadedController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/date-goods-unloaded                      controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber, mode:Mode = NormalMode)
+POST       /:mrn/date-goods-unloaded                    controllers.DateGoodsUnloadedController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-date-goods-unloaded              controllers.DateGoodsUnloadedController.onPageLoad(mrn: MovementReferenceNumber, mode:Mode = CheckMode)
+POST       /:mrn/change-date-goods-unloaded               controllers.DateGoodsUnloadedController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
 GET        /:mrn/vehicleNameRegistrationReference                        controllers.VehicleNameRegistrationReferenceController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 POST       /:mrn/vehicleNameRegistrationReference                        controllers.VehicleNameRegistrationReferenceController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
@@ -67,3 +67,5 @@ GET        /:mrn/anythingElseToReport                        controllers.Anythin
 POST       /:mrn/anythingElseToReport                        controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 GET        /:mrn/changeAnythingElseToReport                  controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/changeAnythingElseToReport                  controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/confirmation                       controllers.ConfirmationController.onPageLoad(mrn: MovementReferenceNumber)
