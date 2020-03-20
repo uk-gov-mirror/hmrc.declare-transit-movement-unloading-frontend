@@ -34,8 +34,8 @@ phaseBanner.1 = This is a new service – your
 phaseBanner.2 = feedback
 phaseBanner.3 = will help us to improve it.
 
-checkYourAnswers.title = Check your answers
-checkYourAnswers.heading = Check your answers
+checkYourAnswers.title = Check your answers before sending these unloading remarks
+checkYourAnswers.heading = Check your answers before sending these unloading remarks
 
 index.title = declare-transit-movement-unloading-frontend
 index.heading = declare-transit-movement-unloading-frontend
@@ -145,29 +145,29 @@ dateGoodsUnloaded.error.required.two = The date goods were unloaded must include
 dateGoodsUnloaded.error.required = The date goods were unloaded must include {0}
 dateGoodsUnloaded.error.invalid = Enter a real date
 
-vehicleNameRegistrationReference.title = vehicleNameRegistrationReference
-vehicleNameRegistrationReference.heading = vehicleNameRegistrationReference
-vehicleNameRegistrationReference.checkYourAnswersLabel = vehicleNameRegistrationReference
-vehicleNameRegistrationReference.error.required = Enter vehicleNameRegistrationReference
-vehicleNameRegistrationReference.error.length = VehicleNameRegistrationReference must be 100 characters or less
+vehicleNameRegistrationReference.title = What is the name, registration or reference of the new vehicle?
+vehicleNameRegistrationReference.heading = What is the name, registration or reference of the new vehicle?
+vehicleNameRegistrationReference.checkYourAnswersLabel = What is the name, registration or reference of the new vehicle?
+vehicleNameRegistrationReference.error.required = Enter the name, registration or reference of the new vehicle
+vehicleNameRegistrationReference.error.length = The name, registration or reference of the new vehicle must be 100 characters or less
 
-vehicleRegistrationCountry.title = vehicleRegistrationCountry
-vehicleRegistrationCountry.heading = vehicleRegistrationCountry
-vehicleRegistrationCountry.checkYourAnswersLabel = vehicleRegistrationCountry
-vehicleRegistrationCountry.error.required = Enter vehicleRegistrationCountry
-vehicleRegistrationCountry.error.length = VehicleRegistrationCountry must be 100 characters or less
+vehicleRegistrationCountry.title = Which country is the vehicle registered in?
+vehicleRegistrationCountry.heading = Which country is the vehicle registered in?
+vehicleRegistrationCountry.checkYourAnswersLabel = Which country is the vehicle registered in?
+vehicleRegistrationCountry.error.required = Enter which country the vehicle is registered in
+vehicleRegistrationCountry.error.length =  The country the vehicle is registered in must be 100 characters or less
 
-grossMassAmount.title = grossMassAmount
-grossMassAmount.heading = grossMassAmount
-grossMassAmount.checkYourAnswersLabel = grossMassAmount
-grossMassAmount.error.required = Enter grossMassAmount
-grossMassAmount.error.length = GrossMassAmount must be 100 characters or less
+grossMassAmount.title = What is the new total gross mass in kilograms?
+grossMassAmount.heading = What is the new total gross mass in kilograms?
+grossMassAmount.checkYourAnswersLabel = What is the new total gross mass in kilograms?
+grossMassAmount.error.required = Enter the new total gross mass in kilograms
+grossMassAmount.error.length = The new total gross mass in kilograms must be 100 characters or less
 
 newSealNumber.title = What is the new seal number or mark?
 newSealNumber.heading = What is the new seal number or mark?
 newSealNumber.checkYourAnswersLabel = What is the new seal number or mark?
-newSealNumber.error.required = Enter the new seal number
-newSealNumber.error.length = Seal number must be 100 characters or less
+newSealNumber.error.required = Enter the new seal number or mark
+newSealNumber.error.length = Seal number or mark must be 100 characters or less
 
 sealsInformation.title = sealsInformation
 sealsInformation.heading = sealsInformation
@@ -200,4 +200,10 @@ anythingElseToReport.checkYourAnswersLabel = anythingElseToReport
 anythingElseToReport.error.required = Select yes if anythingElseToReport
 
 confirmation.title = confirmation
-confirmation.heading = confirmation
+confirmation.heading = Sent unloading remarks
+confirmation.para = for movement reference number
+confirmation.subHeading= What happens next
+confirmation.para2 = You must wait for the goods to be released.
+confirmation.linkText = Go to arrival notifications
+confirmation.para3 = to see the latest messages.
+
