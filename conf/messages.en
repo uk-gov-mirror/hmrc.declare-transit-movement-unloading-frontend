@@ -179,3 +179,6 @@ additionalChangesInformation.heading = additionalChangesInformation
 additionalChangesInformation.checkYourAnswersLabel = additionalChangesInformation
 additionalChangesInformation.error.required = Enter additionalChangesInformation
 additionalChangesInformation.error.length = AdditionalChangesInformation must be 100 characters or less
+
+unloadingSummary.title = unloadingSummary
+unloadingSummary.heading = unloadingSummary
