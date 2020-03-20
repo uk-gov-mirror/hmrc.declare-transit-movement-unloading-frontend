@@ -21,6 +21,12 @@ import pages._
 
 trait PageGenerators {
 
+  implicit lazy val arbitraryAnythingElseToReportPage: Arbitrary[AnythingElseToReportPage.type] =
+    Arbitrary(AnythingElseToReportPage)
+
+  implicit lazy val arbitraryAreAnySealsBrokenPage: Arbitrary[AreAnySealsBrokenPage.type] =
+    Arbitrary(AreAnySealsBrokenPage)
+
   implicit lazy val arbitraryCanSealsBeReadPage: Arbitrary[CanSealsBeReadPage.type] =
     Arbitrary(CanSealsBeReadPage)
 

@@ -29,6 +29,36 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
+  def anythingElseToReport: Option[Row] = userAnswers.get(AnythingElseToReportPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"anythingElseToReport.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(answer)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.AnythingElseToReportController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"anythingElseToReport.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def areAnySealsBroken: Option[Row] = userAnswers.get(AreAnySealsBrokenPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"areAnySealsBroken.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(yesOrNo(answer)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.AreAnySealsBrokenController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"areAnySealsBroken.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def canSealsBeRead: Option[Row] = userAnswers.get(CanSealsBeReadPage) map {
     answer =>
       Row(

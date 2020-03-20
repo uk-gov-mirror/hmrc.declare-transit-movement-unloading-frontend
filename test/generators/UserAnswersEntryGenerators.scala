@@ -23,6 +23,22 @@ import play.api.libs.json.{JsValue, Json}
 
 trait UserAnswersEntryGenerators extends PageGenerators {
 
+  implicit lazy val arbitraryAnythingElseToReportUserAnswersEntry: Arbitrary[(AnythingElseToReportPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[AnythingElseToReportPage.type]
+        value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
+  implicit lazy val arbitraryAreAnySealsBrokenUserAnswersEntry: Arbitrary[(AreAnySealsBrokenPage.type, JsValue)] =
+    Arbitrary {
+      for {
+        page  <- arbitrary[AreAnySealsBrokenPage.type]
+        value <- arbitrary[Boolean].map(Json.toJson(_))
+      } yield (page, value)
+    }
+
   implicit lazy val arbitraryCanSealsBeReadUserAnswersEntry: Arbitrary[(CanSealsBeReadPage.type, JsValue)] =
     Arbitrary {
       for {

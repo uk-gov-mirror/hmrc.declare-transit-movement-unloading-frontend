@@ -187,3 +187,13 @@ canSealsBeRead.title = canSealsBeRead
 canSealsBeRead.heading = canSealsBeRead
 canSealsBeRead.checkYourAnswersLabel = canSealsBeRead
 canSealsBeRead.error.required = Select yes if canSealsBeRead
+
+areAnySealsBroken.title = areAnySealsBroken
+areAnySealsBroken.heading = areAnySealsBroken
+areAnySealsBroken.checkYourAnswersLabel = areAnySealsBroken
+areAnySealsBroken.error.required = Select yes if areAnySealsBroken
+
+anythingElseToReport.title = anythingElseToReport
+anythingElseToReport.heading = anythingElseToReport
+anythingElseToReport.checkYourAnswersLabel = anythingElseToReport
+anythingElseToReport.error.required = Select yes if anythingElseToReport

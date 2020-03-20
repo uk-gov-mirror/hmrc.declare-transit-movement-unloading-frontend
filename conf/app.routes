@@ -57,3 +57,13 @@ GET        /:mrn/canSealsBeRead                        controllers.CanSealsBeRea
 POST       /:mrn/canSealsBeRead                        controllers.CanSealsBeReadController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 GET        /:mrn/changeCanSealsBeRead                  controllers.CanSealsBeReadController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/changeCanSealsBeRead                  controllers.CanSealsBeReadController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/areAnySealsBroken                        controllers.AreAnySealsBrokenController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/areAnySealsBroken                        controllers.AreAnySealsBrokenController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/changeAreAnySealsBroken                  controllers.AreAnySealsBrokenController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/changeAreAnySealsBroken                  controllers.AreAnySealsBrokenController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/anythingElseToReport                        controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/anythingElseToReport                        controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/changeAnythingElseToReport                  controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/changeAnythingElseToReport                  controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
