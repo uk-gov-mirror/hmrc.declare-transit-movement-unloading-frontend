@@ -77,15 +77,15 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
       "must go from anything else to report page" - {
         "to check your answers page when no is selected " in {
 
-        forAll(arbitrary[UserAnswers]) {
-          answers =>
-            val updatedUserAnswers = answers.set(AnythingElseToReportPage, false).success.value
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.set(AnythingElseToReportPage, false).success.value
 
-            navigator
-              .nextPage(AnythingElseToReportPage, NormalMode, answers)
-              .mustBe(routes.CheckYourAnswersController.onPageLoad(updatedUserAnswers.id))
+              navigator
+                .nextPage(AnythingElseToReportPage, NormalMode, answers)
+                .mustBe(routes.CheckYourAnswersController.onPageLoad(updatedUserAnswers.id))
+          }
         }
-      }
         "to changes to report page when yes is selected" in {
 
           forAll(arbitrary[UserAnswers]) {
@@ -96,22 +96,23 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
                 .nextPage(AnythingElseToReportPage, NormalMode, answers)
                 .mustBe(routes.ChangesToReportController.onPageLoad(updatedUserAnswers.id, NormalMode))
 
+          }
         }
+
       }
 
-    }
+      "in Check mode" - {
 
-    "in Check mode" - {
+        "must go from a page that doesn't exist in the edit route map  to Check Your Answers" in {
 
-      "must go from a page that doesn't exist in the edit route map  to Check Your Answers" in {
+          case object UnknownPage extends Page
 
-        case object UnknownPage extends Page
-
-        forAll(arbitrary[UserAnswers]) {
-          answers =>
-            navigator
-              .nextPage(UnknownPage, CheckMode, answers)
-              .mustBe(routes.CheckYourAnswersController.onPageLoad(answers.id))
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              navigator
+                .nextPage(UnknownPage, CheckMode, answers)
+                .mustBe(routes.CheckYourAnswersController.onPageLoad(answers.id))
+          }
         }
       }
     }
