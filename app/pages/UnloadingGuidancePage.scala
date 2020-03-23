@@ -16,16 +16,4 @@
 
 package pages
 
-import pages.behaviours.PageBehaviours
-
-class NewSealNumberPageSpec extends PageBehaviours {
-
-  "NewSealNumberPage" - {
-
-    beRetrievable[String](NewSealNumberPage)
-
-    beSettable[String](NewSealNumberPage)
-
-    beRemovable[String](NewSealNumberPage)
-  }
-}
+case object UnloadingGuidancePage extends Page

@@ -43,6 +43,48 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
               .mustBe(routes.IndexController.onPageLoad())
         }
       }
+
+      "must go from date goods unloaded page to can seals be read page" in {
+
+        forAll(arbitrary[UserAnswers]) {
+          answers =>
+            navigator
+              .nextPage(DateGoodsUnloadedPage, NormalMode, answers)
+              .mustBe(routes.CanSealsBeReadController.onPageLoad(answers.id, NormalMode))
+        }
+      }
+
+      "must go from can seals be read page to are any seals broken page" in {
+
+        forAll(arbitrary[UserAnswers]) {
+          answers =>
+            navigator
+              .nextPage(CanSealsBeReadPage, NormalMode, answers)
+              .mustBe(routes.AreAnySealsBrokenController.onPageLoad(answers.id, NormalMode))
+        }
+      }
+
+      "must go are any seals broken page to unloading summary page" in {
+
+        forAll(arbitrary[UserAnswers]) {
+          answers =>
+            navigator
+              .nextPage(AreAnySealsBrokenPage, NormalMode, answers)
+              .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+        }
+      }
+
+      "must go from anything else to report page" - {
+        "to Seals information controller"
+
+        forAll(arbitrary[UserAnswers]) {
+          answers =>
+            navigator
+              .nextPage(AreAnySealsBrokenPage, NormalMode, answers)
+              .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+        }
+      }
+
     }
 
     "in Check mode" - {

@@ -44,9 +44,9 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
   val formProvider = new NewSealNumberFormProvider()
   val form         = formProvider()
 
-  lazy val sealNumberRoute = routes.NewSealNumberController.onPageLoad(mrn, NormalMode).url
+  lazy val newSealNumberRoute = routes.NewSealNumberController.onPageLoad(mrn, NormalMode).url
 
-  "SealNumber Controller" - {
+  "NewSealNumber Controller" - {
 
     "must return OK and the correct view for a GET" in {
 
@@ -54,7 +54,7 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
         .thenReturn(Future.successful(Html("")))
 
       val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-      val request        = FakeRequest(GET, sealNumberRoute)
+      val request        = FakeRequest(GET, newSealNumberRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -83,7 +83,7 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
       val userAnswers    = UserAnswers(mrn).set(NewSealNumberPage, "answer").success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
-      val request        = FakeRequest(GET, sealNumberRoute)
+      val request        = FakeRequest(GET, newSealNumberRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -122,7 +122,7 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
           .build()
 
       val request =
-        FakeRequest(POST, sealNumberRoute)
+        FakeRequest(POST, newSealNumberRoute)
           .withFormUrlEncodedBody(("value", "answer"))
 
       val result = route(application, request).value
@@ -139,7 +139,7 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
         .thenReturn(Future.successful(Html("")))
 
       val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-      val request        = FakeRequest(POST, sealNumberRoute).withFormUrlEncodedBody(("value", ""))
+      val request        = FakeRequest(POST, newSealNumberRoute).withFormUrlEncodedBody(("value", ""))
       val boundForm      = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
@@ -166,7 +166,7 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, sealNumberRoute)
+      val request = FakeRequest(GET, newSealNumberRoute)
 
       val result = route(application, request).value
 
@@ -182,7 +182,7 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       val application = applicationBuilder(userAnswers = None).build()
 
       val request =
-        FakeRequest(POST, sealNumberRoute)
+        FakeRequest(POST, newSealNumberRoute)
           .withFormUrlEncodedBody(("value", "answer"))
 
       val result = route(application, request).value

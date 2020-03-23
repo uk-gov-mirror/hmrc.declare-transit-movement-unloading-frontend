@@ -38,13 +38,13 @@ POST       /:mrn/change-gross-mass-amount                   controllers.GrossMas
 
 GET        /:mrn/new-seal-number                        controllers.NewSealNumberController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 POST       /:mrn/new-seal-number                        controllers.NewSealNumberController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/change-new-seal-number                  controllers.NewSealNumberController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
-POST       /:mrn/change-new-seal-number                  controllers.NewSealNumberController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/change-new-seal-number                 controllers.NewSealNumberController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-new-seal-number                 controllers.NewSealNumberController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
-GET        /:mrn/seals-information                        controllers.SealsInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-POST       /:mrn/seals=information                        controllers.SealsInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/change-seals-information                  controllers.SealsInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
-POST       /:mrn/change-seals-information                  controllers.SealsInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/seals-information                      controllers.SealsInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/seals-information                      controllers.SealsInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-seals-information               controllers.SealsInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-seals-information               controllers.SealsInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
 GET        /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 POST       /:mrn/additionalChangesInformation                        controllers.AdditionalChangesInformationController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
@@ -63,9 +63,9 @@ POST       /:mrn/are-any-seals-broken                      controllers.AreAnySea
 GET        /:mrn/change-are-any-seals-broken                  controllers.AreAnySealsBrokenController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/change-are-any-seals-broken                 controllers.AreAnySealsBrokenController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
-GET        /:mrn/anythingElseToReport                        controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-POST       /:mrn/anythingElseToReport                        controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/changeAnythingElseToReport                  controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
-POST       /:mrn/changeAnythingElseToReport                  controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/anything-else-to-report                  controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/anything-else-to-report                     controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-anything-else-to-report                controllers.AnythingElseToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-anything-else-to-report                 controllers.AnythingElseToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
 GET        /:mrn/confirmation                       controllers.ConfirmationController.onPageLoad(mrn: MovementReferenceNumber)

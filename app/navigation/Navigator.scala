@@ -16,17 +16,38 @@
 
 package navigation
 
-import javax.inject.{Inject, Singleton}
+import com.google.inject.{Inject, Singleton}
+import controllers.routes
+import models.{CheckMode, Mode, NormalMode, UserAnswers}
+import pages._
 
 import play.api.mvc.Call
-import controllers.routes
-import pages._
-import models._
 
 @Singleton
 class Navigator @Inject()() {
 
   private val normalRoutes: Page => UserAnswers => Call = {
+
+    case UnloadingGuidancePage =>
+      ua =>
+        routes.UnloadingGuidanceController.onPageLoad(ua.id)
+
+    case DateGoodsUnloadedPage =>
+      ua =>
+        routes.CanSealsBeReadController.onPageLoad(ua.id, NormalMode)
+
+    case CanSealsBeReadPage =>
+      ua =>
+        routes.AreAnySealsBrokenController.onPageLoad(ua.id, NormalMode)
+
+    case AreAnySealsBrokenPage =>
+      ua =>
+        routes.UnloadingSummaryController.onPageLoad(ua.id)
+
+    case AnythingElseToReportPage =>
+      ua =>
+        routes.CheckYourAnswersController.onPageLoad(ua.id)
+
     case _ =>
       _ =>
         routes.IndexController.onPageLoad()
@@ -44,4 +65,5 @@ class Navigator @Inject()() {
     case CheckMode =>
       checkRouteMap(page)(userAnswers)
   }
+
 }

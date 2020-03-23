@@ -194,13 +194,14 @@ areAnySealsBroken.heading = Are any of the seals broken?
 areAnySealsBroken.checkYourAnswersLabel = Are any of the seals broken?
 areAnySealsBroken.error.required = Select yes if any of the seals are broken
 
-anythingElseToReport.title = anythingElseToReport
-anythingElseToReport.heading = anythingElseToReport
-anythingElseToReport.checkYourAnswersLabel = anythingElseToReport
-anythingElseToReport.error.required = Select yes if anythingElseToReport
+anythingElseToReport.title = Is there anything else to report?
+anythingElseToReport.heading = Is there anything else to report?
+anythingElseToReport.checkYourAnswersLabel = Is there anything else to report?
+anythingElseToReport.error.required = Select yes if there is  anything else to report
 
 confirmation.title = confirmation
 confirmation.heading = Sent unloading remarks
+
 confirmation.para = for movement reference number
 confirmation.subHeading= What happens next
 confirmation.para2 = You must wait for the goods to be released.
