@@ -70,7 +70,7 @@ POST       /:mrn/change-anything-else-to-report                 controllers.Anyt
 
 GET        /:mrn/confirmation                       controllers.ConfirmationController.onPageLoad(mrn: MovementReferenceNumber)
 
-GET        /:mrn/changesToReport                        controllers.ChangesToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-POST       /:mrn/changesToReport                        controllers.ChangesToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
-GET        /:mrn/changeChangesToReport                  controllers.ChangesToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
-POST       /:mrn/changeChangesToReport                  controllers.ChangesToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+GET        /:mrn/changes-to-report                        controllers.ChangesToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/changes-to-report                        controllers.ChangesToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-changes-to-report                  controllers.ChangesToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-changes-to-report                  controllers.ChangesToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)

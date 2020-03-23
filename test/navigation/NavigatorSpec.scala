@@ -19,10 +19,10 @@ package navigation
 import base.SpecBase
 import controllers.routes
 import generators.Generators
-import pages._
 import models._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import pages._
 
 class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generators {
 
@@ -75,13 +75,27 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
       }
 
       "must go from anything else to report page" - {
-        "to Seals information controller"
+        "to check your answers page when no is selected " in {
 
         forAll(arbitrary[UserAnswers]) {
           answers =>
+            val updatedUserAnswers = answers.set(AnythingElseToReportPage, false).success.value
+
             navigator
-              .nextPage(AreAnySealsBrokenPage, NormalMode, answers)
-              .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+              .nextPage(AnythingElseToReportPage, NormalMode, answers)
+              .mustBe(routes.CheckYourAnswersController.onPageLoad(updatedUserAnswers.id))
+        }
+      }
+        "to changes to report page when yes is selected" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.set(AnythingElseToReportPage, true).success.value
+
+              navigator
+                .nextPage(AnythingElseToReportPage, NormalMode, answers)
+                .mustBe(routes.ChangesToReportController.onPageLoad(updatedUserAnswers.id, NormalMode))
+
         }
       }
 
