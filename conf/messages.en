@@ -208,3 +208,9 @@ confirmation.para2 = You must wait for the goods to be released.
 confirmation.linkText = Go to arrival notifications
 confirmation.para3 = to see the latest messages.
 
+
+changesToReport.title = changesToReport
+changesToReport.heading = changesToReport
+changesToReport.checkYourAnswersLabel = changesToReport
+changesToReport.error.required = Enter changesToReport
+changesToReport.error.length = ChangesToReport must be 350 characters or less

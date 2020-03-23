@@ -29,6 +29,21 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
+  def changesToReport: Option[Row] = userAnswers.get(ChangesToReportPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"changesToReport.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(lit"$answer"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.ChangesToReportController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changesToReport.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def anythingElseToReport: Option[Row] = userAnswers.get(AnythingElseToReportPage) map {
     answer =>
       Row(
