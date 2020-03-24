@@ -38,7 +38,7 @@ class Navigator @Inject()() {
 
     case CanSealsBeReadPage =>
       ua =>
-        ua.get(AreAnySealsBrokenPage) match {
+        ua.get(CanSealsBeReadPage) match {
           case Some(true) => routes.AreAnySealsBrokenController.onPageLoad(ua.id, NormalMode)
           case _          => routes.SessionExpiredController.onPageLoad() //TODO temporary redirect will be error page
         }
