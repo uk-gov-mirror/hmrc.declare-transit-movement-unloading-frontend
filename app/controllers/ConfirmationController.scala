@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.{MovementReferenceNumber, NormalMode}
+import models.MovementReferenceNumber
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -27,7 +27,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.ExecutionContext
 
-class UnloadingSummaryController @Inject()(
+class ConfirmationController @Inject()(
   override val messagesApi: MessagesApi,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
@@ -40,9 +40,8 @@ class UnloadingSummaryController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val redirectUrl = controllers.routes.AnythingElseToReportController.onPageLoad(mrn, NormalMode)
-      val json        = Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl.url)
+      val json = Json.obj("mrn" -> mrn)
 
-      renderer.render("unloadingSummary.njk", json).map(Ok(_))
+      renderer.render("confirmation.njk", json).map(Ok(_))
   }
 }
