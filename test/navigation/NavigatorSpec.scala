@@ -54,23 +54,76 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
         }
       }
 
-      "must go from can seals be read page to are any seals broken page" in {
+      "must go from can seals be read page" - {
+        "to Are any seals broken page when answer is Yes" in {
 
-        forAll(arbitrary[UserAnswers]) {
-          answers =>
-            navigator
-              .nextPage(CanSealsBeReadPage, NormalMode, answers)
-              .mustBe(routes.AreAnySealsBrokenController.onPageLoad(answers.id, NormalMode))
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.set(AreAnySealsBrokenPage, true).success.value
+              navigator
+                .nextPage(CanSealsBeReadPage, NormalMode, updatedUserAnswers)
+                .mustBe(routes.AreAnySealsBrokenController.onPageLoad(updatedUserAnswers.id, NormalMode))
+          }
+        }
+
+        "to session expired page when the answer is No" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.set(AreAnySealsBrokenPage, false).success.value
+              navigator
+                .nextPage(CanSealsBeReadPage, NormalMode, updatedUserAnswers)
+                .mustBe(routes.SessionExpiredController.onPageLoad())
+          }
+        }
+
+        "to session expired page when the answer is empty" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.remove(AreAnySealsBrokenPage).success.value
+              navigator
+                .nextPage(CanSealsBeReadPage, NormalMode, updatedUserAnswers)
+                .mustBe(routes.SessionExpiredController.onPageLoad())
+          }
         }
       }
 
-      "must go are any seals broken page to unloading summary page" in {
+      "must go from are any seals broken page " - {
+        "to unloading summary page when the answer is No" in {
 
-        forAll(arbitrary[UserAnswers]) {
-          answers =>
-            navigator
-              .nextPage(AreAnySealsBrokenPage, NormalMode, answers)
-              .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.set(AreAnySealsBrokenPage, false).success.value
+
+              navigator
+                .nextPage(AreAnySealsBrokenPage, NormalMode, updatedUserAnswers)
+                .mustBe(routes.UnloadingSummaryController.onPageLoad(updatedUserAnswers.id))
+          }
+        }
+
+        "to session expired page when the answer is Yes" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.set(AreAnySealsBrokenPage, true).success.value
+
+              navigator
+                .nextPage(AreAnySealsBrokenPage, NormalMode, updatedUserAnswers)
+                .mustBe(routes.SessionExpiredController.onPageLoad())
+          }
+        }
+
+        "to session expired page when the answer is empty" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              val updatedUserAnswers = answers.remove(AreAnySealsBrokenPage).success.value
+
+              navigator
+                .nextPage(AreAnySealsBrokenPage, NormalMode, updatedUserAnswers)
+                .mustBe(routes.SessionExpiredController.onPageLoad())
+          }
         }
       }
 
