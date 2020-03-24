@@ -1,6 +1,8 @@
 {% extends "includes/layout.njk" %}
 
 {% from "macros/title.njk"                         import title %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+
 
 {% block pageTitle %}
   {{ title(messages("unloadingSummary.title")) }}
@@ -15,6 +17,12 @@
         <h1 class="govuk-heading-xl">
           {{ messages("unloadingSummary.heading") }}
         </h1>
+
+        {{ govukButton({
+          text: messages("site.continue"),
+          href: redirectUrl,
+          attributes: {id:"submit"}
+        }) }}
 
       </div>
     </div>

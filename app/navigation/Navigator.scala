@@ -46,11 +46,19 @@ class Navigator @Inject()() {
 
     case AnythingElseToReportPage =>
       ua =>
+        ua.get(AnythingElseToReportPage) match {
+          case Some(true)  => routes.ChangesToReportController.onPageLoad(ua.id, NormalMode)
+          case Some(false) => routes.CheckYourAnswersController.onPageLoad(ua.id)
+          case _           => routes.SessionExpiredController.onPageLoad()
+        }
+    case ChangesToReportPage =>
+      ua =>
         routes.CheckYourAnswersController.onPageLoad(ua.id)
 
     case _ =>
       _ =>
         routes.IndexController.onPageLoad()
+
   }
 
   private val checkRouteMap: Page => UserAnswers => Call = {

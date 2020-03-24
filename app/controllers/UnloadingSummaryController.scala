@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.MovementReferenceNumber
+import models.{MovementReferenceNumber, NormalMode}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -40,7 +40,8 @@ class UnloadingSummaryController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val json = Json.obj("mrn" -> mrn)
+      val redirectUrl = controllers.routes.AnythingElseToReportController.onPageLoad(mrn, NormalMode)
+      val json        = Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl.url)
 
       renderer.render("unloadingSummary.njk", json).map(Ok(_))
   }
