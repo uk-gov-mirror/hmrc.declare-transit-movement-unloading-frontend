@@ -49,7 +49,7 @@ class ConfirmationControllerSpec extends SpecBase with MockitoSugar with JsonMat
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val expectedJson = Json.obj("mrn" -> mrn)
+      val expectedJson = Json.obj("mrn" -> mrn, "manageTransitMovementsUrl" -> frontendAppConfig.manageTransitMovementsUrl)
 
       templateCaptor.getValue mustEqual "confirmation.njk"
       jsonCaptor.getValue must containJson(expectedJson)

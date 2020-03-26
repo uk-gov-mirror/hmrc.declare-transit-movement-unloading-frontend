@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import controllers.actions._
 import javax.inject.Inject
 import models.MovementReferenceNumber
@@ -29,6 +30,7 @@ import scala.concurrent.ExecutionContext
 
 class ConfirmationController @Inject()(
   override val messagesApi: MessagesApi,
+  appConfig: FrontendAppConfig,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
@@ -40,7 +42,7 @@ class ConfirmationController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val json = Json.obj("mrn" -> mrn)
+      val json = Json.obj("mrn" -> mrn, "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl)
 
       renderer.render("confirmation.njk", json).map(Ok(_))
   }
