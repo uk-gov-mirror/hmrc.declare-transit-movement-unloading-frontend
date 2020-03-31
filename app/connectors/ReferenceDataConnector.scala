@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package forms
+package connectors
 
-import java.time.LocalDate
-
-import forms.mappings.Mappings
+import config.FrontendAppConfig
 import javax.inject.Inject
-import play.api.data.Form
+import models.reference.Country
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
-class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
+import scala.concurrent.{ExecutionContext, Future}
 
-  val dateNow = LocalDate.now()
+class ReferenceDataConnector @Inject()(config: FrontendAppConfig, http: HttpClient) {
 
-  def apply(): Form[LocalDate] =
-    Form(
-      "value" -> localDate(
-        invalidKey     = "dateGoodsUnloaded.error.invalid",
-        allRequiredKey = "dateGoodsUnloaded.error.required.all",
-        twoRequiredKey = "dateGoodsUnloaded.error.required.two",
-        requiredKey    = "dateGoodsUnloaded.error.required"
-      ).verifying(maxDate(dateNow, "dateGoodsUnloaded.error.max.date"))
-    )
+  def getCountryList()(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[Country]] = {
+    val serviceUrl = s"${config.referenceDataUrl}/countries-full-list"
+    http
+      .GET[Seq[Country]](serviceUrl)
+      .map {
+        case x => x
+      }
+      .recover {
+        case _ => Nil
+      }
+  }
 }

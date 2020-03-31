@@ -23,7 +23,10 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.{ReferenceDataService, UnloadingPermissionService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import viewModels.UnloadingSummaryViewModel
+import viewModels.sections.Section
 
 import scala.concurrent.ExecutionContext
 
@@ -33,15 +36,22 @@ class UnloadingSummaryController @Inject()(
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
+  renderer: Renderer,
+  unloadingPermissionService: UnloadingPermissionService,
+  referenceDataService: ReferenceDataService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
+      //TODO: Do we need to return UnloadingSummaryViewModel, could just return Seq[Sections]
+      val sections: Seq[Section] = unloadingPermissionService.getUnloadingPermission(mrn) match {
+        case Some(unloadingPermission) => UnloadingSummaryViewModel()(unloadingPermission).sections
+      }
+
       val redirectUrl = controllers.routes.AnythingElseToReportController.onPageLoad(mrn, NormalMode)
-      val json        = Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl.url)
+      val json        = Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl.url, "sections" -> Json.toJson(sections))
 
       renderer.render("unloadingSummary.njk", json).map(Ok(_))
   }

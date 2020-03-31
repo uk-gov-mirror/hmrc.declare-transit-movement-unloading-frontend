@@ -144,6 +144,7 @@ dateGoodsUnloaded.error.required.all = Enter when the goods were unloaded
 dateGoodsUnloaded.error.required.two = The date goods were unloaded must include {0} and {1}
 dateGoodsUnloaded.error.required = The date goods were unloaded must include {0}
 dateGoodsUnloaded.error.invalid = Enter a real date
+dateGoodsUnloaded.error.max.date = The date goods were unloaded must be no later than today
 
 vehicleNameRegistrationReference.title = What is the name, registration or reference of the new vehicle?
 vehicleNameRegistrationReference.heading = What is the name, registration or reference of the new vehicle?
@@ -181,8 +182,24 @@ additionalChangesInformation.checkYourAnswersLabel = additionalChangesInformatio
 additionalChangesInformation.error.required = Enter additionalChangesInformation
 additionalChangesInformation.error.length = AdditionalChangesInformation must be 100 characters or less
 
-unloadingSummary.title = unloadingSummary
-unloadingSummary.heading = unloadingSummary
+unloadingSummary.title = Check what you found against the transit declaration
+unloadingSummary.heading = Check what you found against the transit declaration
+
+vehicleUsed.title = Vehicle used
+changeVehicle.reference.label = Name, registration or reference
+changeVehicle.reference.change.hidden = name, registration or reference
+changeVehicle.registeredCountry.label = Registered
+changeVehicle.registeredCountry.change.hidden = registered
+
+changeSeal.title = Seals
+changeSeal.sealList.label = Seal {0}
+changeSeal.sealList.change.hidden = seal {0}
+
+changeItems.title = Items
+changeItems.grossMass.label = Total gross mass in kilograms
+changeItems.grossMass.change.hidden = total gross mass in kilograms
+changeItem.itemList.label = Item {0}
+changeItem.itemList.change.hidden = Item {0}
 
 canSealsBeRead.title = Can all of the seal numbers or marks be read?
 canSealsBeRead.heading = Can all of the seal numbers or marks be read?
