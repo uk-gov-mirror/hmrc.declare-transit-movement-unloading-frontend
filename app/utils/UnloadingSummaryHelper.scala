@@ -15,11 +15,11 @@
  */
 
 package utils
-import models.Index
+import models.{CheckMode, Index, MovementReferenceNumber, UserAnswers}
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels._
 
-object UnloadingSummaryHelper {
+class UnloadingSummaryHelper(userAnswers: UserAnswers) {
 
   def seals(index: Index, value: String) =
     Row(
@@ -28,7 +28,7 @@ object UnloadingSummaryHelper {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = "#",
+          href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, index, CheckMode).url,
           visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
           attributes         = Map("id" -> s"""change-seal-${index.position}""")
         )
@@ -37,16 +37,9 @@ object UnloadingSummaryHelper {
 
   def items(index: Index, value: String) =
     Row(
-      key   = Key(msg"changeItem.itemList.label".withArgs(index.display), classes = Seq("govuk-!-width-one-half")),
-      value = Value(lit"$value"),
-      actions = List(
-        Action(
-          content            = msg"site.edit",
-          href               = "#",
-          visuallyHiddenText = Some(msg"changeItem.itemList.change.hidden".withArgs(index.display)),
-          attributes         = Map("id" -> s"""change-item-${index.position}""")
-        )
-      )
+      key     = Key(msg"changeItem.itemList.label".withArgs(index.display), classes = Seq("govuk-!-width-one-half")),
+      value   = Value(lit"$value"),
+      actions = Nil
     )
 
   def vehicleUsed(value: String) =
@@ -56,7 +49,7 @@ object UnloadingSummaryHelper {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = "#",
+          href               = controllers.routes.VehicleNameRegistrationReferenceController.onPageLoad(mrn, CheckMode).url,
           visuallyHiddenText = Some(msg"changeVehicle.reference.change.hidden"),
           attributes         = Map("id" -> s"""change-vehicle-reference""")
         )
@@ -70,7 +63,7 @@ object UnloadingSummaryHelper {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = "#",
+          href               = controllers.routes.VehicleRegistrationCountryController.onPageLoad(mrn, CheckMode).url,
           visuallyHiddenText = Some(msg"changeVehicle.registeredCountry.change.hidden"),
           attributes         = Map("id" -> s"""change-vehicle-reference""")
         )
@@ -84,10 +77,11 @@ object UnloadingSummaryHelper {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = "#",
+          href               = controllers.routes.GrossMassAmountController.onPageLoad(mrn, CheckMode).url,
           visuallyHiddenText = Some(msg"changeItems.grossMass.change.hidden"),
           attributes         = Map("id" -> s"""change-gross-mass""")
         )
       )
     )
+  def mrn: MovementReferenceNumber = userAnswers.id
 }

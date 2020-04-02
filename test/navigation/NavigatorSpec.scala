@@ -191,6 +191,46 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
                 .mustBe(routes.CheckYourAnswersController.onPageLoad(answers.id))
           }
         }
+
+        "must go from Vehicle Name Registration Reference page to unloading summary page" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              navigator
+                .nextPage(VehicleNameRegistrationReferencePage, CheckMode, answers)
+                .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+          }
+        }
+
+        "must go from Vehicle Registration Country page to unloading summary page" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              navigator
+                .nextPage(VehicleNameRegistrationReferencePage, CheckMode, answers)
+                .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+          }
+        }
+
+        "must go from Gross mass amount page to unloading summary page" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              navigator
+                .nextPage(GrossMassAmountPage, CheckMode, answers)
+                .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+          }
+        }
+
+        "must go from New Seal Number page to unloading summary page" in {
+
+          forAll(arbitrary[UserAnswers]) {
+            answers =>
+              navigator
+                .nextPage(NewSealNumberPage(Index(0)), CheckMode, answers)
+                .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
+          }
+        }
       }
     }
   }
