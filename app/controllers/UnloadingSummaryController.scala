@@ -52,7 +52,7 @@ class UnloadingSummaryController @Inject()(
 
       val redirectUrl   = controllers.routes.AnythingElseToReportController.onPageLoad(mrn, NormalMode)
       val addCommentUrl = controllers.routes.ChangesToReportController.onPageLoad(mrn, NormalMode)
-      val json          = Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl.url, "sections" -> Json.toJson(sections))
+      val json          = Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl.url, "addCommentUrl" -> addCommentUrl.url, "sections" -> Json.toJson(sections))
 
       renderer.render("unloadingSummary.njk", json).map(Ok(_))
   }
