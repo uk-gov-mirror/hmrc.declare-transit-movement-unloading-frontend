@@ -170,12 +170,6 @@ newSealNumber.checkYourAnswersLabel = What is the new seal number or mark?
 newSealNumber.error.required = Enter the new seal number or mark
 newSealNumber.error.length = Seal number or mark must be 100 characters or less
 
-additionalChangesInformation.title = additionalChangesInformation
-additionalChangesInformation.heading = additionalChangesInformation
-additionalChangesInformation.checkYourAnswersLabel = additionalChangesInformation
-additionalChangesInformation.error.required = Enter additionalChangesInformation
-additionalChangesInformation.error.length = AdditionalChangesInformation must be 100 characters or less
-
 unloadingSummary.title = Check what you found against the transit declaration
 unloadingSummary.heading = Check what you found against the transit declaration
 unloadingSummary.link.text = Add comment
