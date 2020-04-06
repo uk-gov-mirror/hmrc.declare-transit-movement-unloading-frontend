@@ -32,7 +32,6 @@ trait UserAnswersGenerator extends TryValues {
       arbitrary[(AreAnySealsBrokenPage.type, JsValue)] ::
       arbitrary[(CanSealsBeReadPage.type, JsValue)] ::
       arbitrary[(AdditionalChangesInformationPage.type, JsValue)] ::
-      arbitrary[(SealsInformationPage.type, JsValue)] ::
       arbitrary[(NewSealNumberPage, JsValue)] ::
       arbitrary[(GrossMassAmountPage.type, JsValue)] ::
       arbitrary[(VehicleRegistrationCountryPage.type, JsValue)] ::
