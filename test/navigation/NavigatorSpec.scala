@@ -126,20 +126,6 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
               .mustBe(routes.CheckYourAnswersController.onPageLoad(answers.id))
 
         }
-
-        "to session expired when there is no answer" in {
-
-          forAll(arbitrary[UserAnswers]) {
-            answers =>
-              val updatedUserAnswers = answers.remove(AnythingElseToReportPage).success.value
-
-              navigator
-                .nextPage(AnythingElseToReportPage, NormalMode, updatedUserAnswers)
-                .mustBe(routes.SessionExpiredController.onPageLoad())
-
-          }
-        }
-
       }
 
       "in Check mode" - {
