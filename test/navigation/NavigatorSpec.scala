@@ -56,14 +56,14 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
           }
         }
 
-        "to session expired page when the answer is No" in {
+        "to Are any seals broken page  when the answer is No" in {
 
           forAll(arbitrary[UserAnswers]) {
             answers =>
               val updatedUserAnswers = answers.set(CanSealsBeReadPage, false).success.value
               navigator
                 .nextPage(CanSealsBeReadPage, NormalMode, updatedUserAnswers)
-                .mustBe(routes.SessionExpiredController.onPageLoad())
+                .mustBe(routes.AreAnySealsBrokenController.onPageLoad(updatedUserAnswers.id, NormalMode))
           }
         }
 
@@ -92,7 +92,7 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
           }
         }
 
-        "to session expired page when the answer is Yes" in {
+        "to unloading summary page when the answer is Yes" in {
 
           forAll(arbitrary[UserAnswers]) {
             answers =>
@@ -100,7 +100,7 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
 
               navigator
                 .nextPage(AreAnySealsBrokenPage, NormalMode, updatedUserAnswers)
-                .mustBe(routes.SessionExpiredController.onPageLoad())
+                .mustBe(routes.UnloadingSummaryController.onPageLoad(updatedUserAnswers.id))
           }
         }
 
