@@ -187,6 +187,8 @@ changeSeal.sealList.change.hidden = seal {0}
 changeItems.title = Items
 changeItems.grossMass.label = Total gross mass in kilograms
 changeItems.grossMass.change.hidden = total gross mass in kilograms
+changeItems.comments.label = Comments
+changeItems.comments.change.hidden = comments
 changeItem.itemList.label = Item {0}
 changeItem.itemList.change.hidden = Item {0}
 
