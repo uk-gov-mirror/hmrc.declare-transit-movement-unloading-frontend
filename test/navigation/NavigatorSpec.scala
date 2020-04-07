@@ -117,13 +117,13 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
         }
       }
 
-      "from changes to report page to check your answers page" - {
+      "from changes to report page to unloading summary page" - {
 
         forAll(arbitrary[UserAnswers]) {
           answers =>
             navigator
               .nextPage(ChangesToReportPage, NormalMode, answers)
-              .mustBe(routes.CheckYourAnswersController.onPageLoad(answers.id))
+              .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
 
         }
       }
