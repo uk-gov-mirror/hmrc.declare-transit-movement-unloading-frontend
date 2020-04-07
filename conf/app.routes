@@ -64,3 +64,5 @@ GET        /:mrn/changes-to-report                        controllers.ChangesToR
 POST       /:mrn/changes-to-report                        controllers.ChangesToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
 GET        /:mrn/change-changes-to-report                  controllers.ChangesToReportController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 POST       /:mrn/change-changes-to-report                  controllers.ChangesToReportController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/remove-changes-to-report                        controllers.ChangesToReportController.removeComment(mrn: MovementReferenceNumber, mode: Mode = NormalMode)

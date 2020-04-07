@@ -87,4 +87,10 @@ class ChangesToReportController @Inject()(
             } yield Redirect(navigator.nextPage(ChangesToReportPage, mode, updatedAnswers))
         )
   }
+
+  def removeComment(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+    implicit request =>
+      ???
+
+  }
 }
