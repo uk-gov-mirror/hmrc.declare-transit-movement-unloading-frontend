@@ -15,63 +15,53 @@
  */
 
 package viewModels
+import cats.data.NonEmptyList
 import models.{Index, UnloadingPermission, UserAnswers}
 import pages.{GrossMassAmountPage, NewSealNumberPage, VehicleNameRegistrationReferencePage, VehicleRegistrationCountryPage}
 import uk.gov.hmrc.viewmodels.SummaryList.Row
 import uk.gov.hmrc.viewmodels._
-import utils.UnloadingSummaryHelper
+import utils.UnloadingSummaryRow
 import viewModels.sections.Section
 
 case class UnloadingSummaryViewModel(sections: Seq[Section])
 
 object UnloadingSummaryViewModel {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission): UnloadingSummaryViewModel =
+  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission): UnloadingSummaryViewModel = {
+
+    implicit val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(userAnswers)
+
     UnloadingSummaryViewModel(SealsSection(userAnswers) ++ TransportSection(userAnswers) ++ ItemsSection(userAnswers))
+  }
 
 }
 
 object SealsSection {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission): Seq[Section] = {
-    val helper = new UnloadingSummaryHelper(userAnswers)
+  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] =
     unloadingPermission.seals match {
-      case Some(seals) => {
+      case Some(seals) =>
         val rows: Seq[Row] = seals.SealId.zipWithIndex.map(
-          seals =>
-            userAnswers.get(NewSealNumberPage(Index(seals._2))) match {
-              case Some(sealValue) => helper.seals(Index(seals._2), sealValue)
-              case None            => helper.seals(Index(seals._2), seals._1)
+          unloadingPermissionValue => {
+            val sealAnswer = SummaryRow.userAnswerWithIndex(Index(unloadingPermissionValue._2))(userAnswers)(NewSealNumberPage)
+            SummaryRow.rowWithIndex(Index(unloadingPermissionValue._2))(sealAnswer)(unloadingPermissionValue._1)(unloadingSummaryRow.seals)
           }
         )
         Seq(Section(msg"changeSeal.title", rows))
-      }
-      case _ => Nil
+
+      case None => Seq.empty
     }
-  }
 }
 
 object TransportSection {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission): Seq[Section] = {
-    val helper = new UnloadingSummaryHelper(userAnswers)
-    val transportIdentity: Seq[Row] = unloadingPermission.transportIdentity.map {
-      transportIdentity =>
-        userAnswers.get(VehicleNameRegistrationReferencePage) match {
-          case Some(identity) => helper.vehicleUsed(identity)
-          case None           => helper.vehicleUsed(transportIdentity)
-        }
+  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] = {
 
-    }.toSeq
+    val vehicleAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(VehicleNameRegistrationReferencePage)
+    val transportIdentity: Seq[Row]   = SummaryRow.row(vehicleAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsed)
 
-    val transportCountry: Seq[Row] = unloadingPermission.transportCountry.map {
-      transportCountry =>
-        userAnswers.get(VehicleRegistrationCountryPage) match {
-          case Some(country) => helper.registeredCountry(country.description)
-          case None          => helper.registeredCountry(transportCountry)
-
-        }
-    }.toSeq
+    val countryAnswer: Option[String] = SummaryRow.userAnswerCountry(userAnswers)(VehicleRegistrationCountryPage)
+    val transportCountry: Seq[Row]    = SummaryRow.row(countryAnswer)(unloadingPermission.transportCountry)(unloadingSummaryRow.registeredCountry)
 
     transportIdentity ++ transportCountry match {
       case transport if transport.nonEmpty =>
@@ -83,16 +73,19 @@ object TransportSection {
 
 object ItemsSection {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission): Seq[Section] = {
-    val helper = new UnloadingSummaryHelper(userAnswers)
-    val grossMassRow =
-      userAnswers.get(GrossMassAmountPage) match {
-        case Some(grossMass) => helper.grossMass(grossMass)
-        case None            => helper.grossMass(unloadingPermission.grossMass)
-      }
-    Seq(helper.grossMass(unloadingPermission.grossMass))
-    val itemsRow: Seq[Row] = unloadingPermission.goodsItems.zipWithIndex.map(x => helper.items(Index(x._2), x._1.description)).toList
+  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] = {
+    val grossMassAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(GrossMassAmountPage)
+    val grossMassRow: Seq[Row]          = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMass)
 
-    Seq(Section(msg"changeItems.title", Seq(grossMassRow) ++ itemsRow))
+    val itemsRow: NonEmptyList[Row] = unloadingPermission.goodsItems.zipWithIndex
+      .map {
+        unloadingPermissionValue =>
+          {
+            val userAnswer = None //TODO: Call get on UserAnswers when this is available
+            SummaryRow.rowWithIndex(Index(unloadingPermissionValue._2))(userAnswer)(unloadingPermissionValue._1.description)(unloadingSummaryRow.items)
+          }
+      }
+
+    Seq(Section(msg"changeItems.title", grossMassRow ++ itemsRow.toList))
   }
 }
