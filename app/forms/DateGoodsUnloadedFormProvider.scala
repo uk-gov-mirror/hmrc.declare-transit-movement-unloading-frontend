@@ -20,11 +20,14 @@ import java.time.LocalDate
 
 import forms.mappings.Mappings
 import javax.inject.Inject
+import play.api.Logger
 import play.api.data.Form
 
 class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
 
-  val dateNow = LocalDate.now()
+  def dateNow = LocalDate.now()
+
+  Logger.info(s"CTC Date Now: " + dateNow)
 
   def apply(): Form[LocalDate] =
     Form(
