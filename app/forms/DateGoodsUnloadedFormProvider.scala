@@ -24,7 +24,7 @@ import play.api.data.Form
 
 class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
 
-  val dateNow = LocalDate.now()
+  def dateNow = LocalDate.now()
 
   def apply(): Form[LocalDate] =
     Form(
