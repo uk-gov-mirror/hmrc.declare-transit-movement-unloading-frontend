@@ -17,16 +17,17 @@
 package controllers
 
 import controllers.actions._
+import derivable.DeriveNumberOfSeals
 import javax.inject.Inject
-import models.{MovementReferenceNumber, NormalMode}
-import pages.ChangesToReportPage
+import models.{Index, MovementReferenceNumber, NormalMode}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ReferenceDataService, UnloadingPermissionService}
+import services.{ReferenceDataService, UnloadingPermissionService, UnloadingPermissionServiceImpl}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import viewModels.UnloadingSummaryViewModel
+import utils.UnloadingSummaryRow
+import viewModels.{SealsSection, UnloadingSummaryViewModel}
 import viewModels.sections.Section
 
 import scala.concurrent.ExecutionContext
@@ -54,17 +55,31 @@ class UnloadingSummaryController @Inject()(
       unloadingPermissionService.getUnloadingPermission(mrn) match {
         case Some(unloadingPermission) => {
 
+          val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(request.userAnswers)
+          val sealsSection                             = SealsSection(request.userAnswers)(unloadingPermission, unloadingSummaryRow)
+
+          val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
+            case Some(sealsNum) => sealsNum
+            case None =>
+              unloadingPermissionServiceImpl.convertSeals(request.userAnswers) match {
+                case Some(ua) => ua.get(DeriveNumberOfSeals).getOrElse(0)
+                case _        => 0
+              }
+          }
+          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode
+
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
               val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry)(unloadingPermission).sections
 
               val json =
                 Json.obj(
-                  "mrn"                -> mrn,
-                  "redirectUrl"        -> redirectUrl(mrn).url,
-                  "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
-                  "addCommentUrl"      -> addCommentUrl(mrn).url,
-                  "sections"           -> Json.toJson(sections)
+                  "mrn"           -> mrn,
+                  "redirectUrl"   -> redirectUrl(mrn).url,
+                  "addCommentUrl" -> addCommentUrl(mrn).url,
+                  "addSealUrl"    -> addSealUrl.url,
+                  "sealsSection"  -> Json.toJson(sealsSection),
+                  "sections"      -> Json.toJson(sections)
                 )
 
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
