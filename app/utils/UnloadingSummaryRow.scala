@@ -108,7 +108,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
           ),
           Action(
             content            = msg"site.delete",
-            href               = "",
+            href               = controllers.routes.ConfirmRemoveCommentsController.onPageLoad(mrn, NormalMode).url,
             visuallyHiddenText = Some(msg"changeItems.comments.remove.hidden"),
             attributes         = Map("id" -> s"""remove-comment""")
           )
