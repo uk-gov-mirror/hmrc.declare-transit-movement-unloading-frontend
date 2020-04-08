@@ -181,6 +181,32 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
                 .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
           }
         }
+
+        "must go from Remove comments page " - {
+          "to unloading summary page when the answer is No" in {
+
+            forAll(arbitrary[UserAnswers]) {
+              answers =>
+                val updatedUserAnswers = answers.set(ConfirmRemoveCommentsPage, false).success.value
+
+                navigator
+                  .nextPage(ConfirmRemoveCommentsPage, NormalMode, updatedUserAnswers)
+                  .mustBe(routes.UnloadingSummaryController.onPageLoad(updatedUserAnswers.id))
+            }
+          }
+
+          "to unloading summary page when the answer is Yes" in {
+
+            forAll(arbitrary[UserAnswers]) {
+              answers =>
+                val updatedUserAnswers = answers.set(ConfirmRemoveCommentsPage, true).success.value
+
+                navigator
+                  .nextPage(ConfirmRemoveCommentsPage, NormalMode, updatedUserAnswers)
+                  .mustBe(routes.UnloadingSummaryController.onPageLoad(updatedUserAnswers.id))
+            }
+          }
+        }
       }
     }
   }

@@ -108,7 +108,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
           ),
           Action(
             content            = msg"site.delete",
-            href               = controllers.routes.ChangesToReportController.removeComment(mrn).url,
+            href               = "",
             visuallyHiddenText = Some(msg"addSeal.sealList.delete.hidden"),
             attributes         = Map("id" -> s"""remove-comment""")
           )

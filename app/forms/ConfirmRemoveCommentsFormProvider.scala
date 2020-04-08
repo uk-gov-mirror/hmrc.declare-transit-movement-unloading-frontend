@@ -16,23 +16,15 @@
 
 package forms
 
-import java.time.LocalDate
+import javax.inject.Inject
 
 import forms.mappings.Mappings
-import javax.inject.Inject
 import play.api.data.Form
 
-class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
+class ConfirmRemoveCommentsFormProvider @Inject() extends Mappings {
 
-  def dateNow = LocalDate.now()
-
-  def apply(): Form[LocalDate] =
+  def apply(): Form[Boolean] =
     Form(
-      "value" -> localDate(
-        invalidKey     = "dateGoodsUnloaded.error.invalid",
-        allRequiredKey = "dateGoodsUnloaded.error.required.all",
-        twoRequiredKey = "dateGoodsUnloaded.error.required.two",
-        requiredKey    = "dateGoodsUnloaded.error.required"
-      ).verifying(maxDate(dateNow, "dateGoodsUnloaded.error.max.date"))
+      "value" -> boolean("confirmRemoveComments.error.required")
     )
 }
