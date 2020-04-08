@@ -16,11 +16,4 @@
 
 package pages
 
-import play.api.libs.json.JsPath
-
-case object ConfirmRemoveCommentsPage extends QuestionPage[Boolean] {
-
-  override def path: JsPath = JsPath \ toString
-
-  override def toString: String = "confirmRemoveComments"
-}
+case object ConfirmRemoveCommentsPage extends Page

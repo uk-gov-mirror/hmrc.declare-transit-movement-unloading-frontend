@@ -109,7 +109,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
           Action(
             content            = msg"site.delete",
             href               = "",
-            visuallyHiddenText = Some(msg"addSeal.sealList.delete.hidden"),
+            visuallyHiddenText = Some(msg"changeItems.comments.remove.hidden"),
             attributes         = Map("id" -> s"""remove-comment""")
           )
         )
