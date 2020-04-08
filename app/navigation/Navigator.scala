@@ -54,7 +54,7 @@ class Navigator @Inject()() {
 
     case ChangesToReportPage =>
       ua =>
-        routes.CheckYourAnswersController.onPageLoad(ua.id)
+        routes.UnloadingSummaryController.onPageLoad(ua.id)
 
     case _ =>
       _ =>

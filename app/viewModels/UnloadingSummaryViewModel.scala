@@ -17,7 +17,7 @@
 package viewModels
 import cats.data.NonEmptyList
 import models.{Index, UnloadingPermission, UserAnswers}
-import pages.{GrossMassAmountPage, NewSealNumberPage, VehicleNameRegistrationReferencePage, VehicleRegistrationCountryPage}
+import pages._
 import uk.gov.hmrc.viewmodels.SummaryList.Row
 import uk.gov.hmrc.viewmodels._
 import utils.UnloadingSummaryRow
@@ -86,6 +86,9 @@ object ItemsSection {
           }
       }
 
-    Seq(Section(msg"changeItems.title", grossMassRow ++ itemsRow.toList))
+    val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
+    val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.comments)
+
+    Seq(Section(msg"changeItems.title", grossMassRow ++ itemsRow.toList ++ commentsRow))
   }
 }
