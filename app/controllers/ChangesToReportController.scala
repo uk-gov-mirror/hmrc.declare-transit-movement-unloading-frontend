@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.ChangesToReportFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber}
+import models.{Mode, MovementReferenceNumber, UserAnswers}
 import navigation.Navigator
 import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -31,6 +31,7 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 class ChangesToReportController @Inject()(
   override val messagesApi: MessagesApi,
@@ -86,11 +87,5 @@ class ChangesToReportController @Inject()(
               _              <- sessionRepository.set(updatedAnswers)
             } yield Redirect(navigator.nextPage(ChangesToReportPage, mode, updatedAnswers))
         )
-  }
-
-  def removeComment(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
-    implicit request =>
-      ???
-
   }
 }
