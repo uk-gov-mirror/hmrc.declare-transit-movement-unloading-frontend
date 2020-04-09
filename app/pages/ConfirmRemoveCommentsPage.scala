@@ -14,23 +14,6 @@
  * limitations under the License.
  */
 
-package forms
+package pages
 
-import java.time.LocalDate
-
-import forms.mappings.Mappings
-import javax.inject.Inject
-import play.api.data.Form
-
-class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
-
-  def apply(): Form[LocalDate] =
-    Form(
-      "value" -> localDate(
-        invalidKey     = "dateGoodsUnloaded.error.invalid",
-        allRequiredKey = "dateGoodsUnloaded.error.required.all",
-        twoRequiredKey = "dateGoodsUnloaded.error.required.two",
-        requiredKey    = "dateGoodsUnloaded.error.required"
-      ).verifying(maxDate(LocalDate.now(), "dateGoodsUnloaded.error.max.date"))
-    )
-}
+case object ConfirmRemoveCommentsPage extends Page

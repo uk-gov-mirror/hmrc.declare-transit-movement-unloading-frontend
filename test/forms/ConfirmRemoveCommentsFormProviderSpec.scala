@@ -16,21 +16,30 @@
 
 package forms
 
-import java.time.LocalDate
+import forms.behaviours.BooleanFieldBehaviours
+import play.api.data.FormError
 
-import forms.mappings.Mappings
-import javax.inject.Inject
-import play.api.data.Form
+class ConfirmRemoveCommentsFormProviderSpec extends BooleanFieldBehaviours {
 
-class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
+  val requiredKey = "confirmRemoveComments.error.required"
+  val invalidKey  = "error.boolean"
 
-  def apply(): Form[LocalDate] =
-    Form(
-      "value" -> localDate(
-        invalidKey     = "dateGoodsUnloaded.error.invalid",
-        allRequiredKey = "dateGoodsUnloaded.error.required.all",
-        twoRequiredKey = "dateGoodsUnloaded.error.required.two",
-        requiredKey    = "dateGoodsUnloaded.error.required"
-      ).verifying(maxDate(LocalDate.now(), "dateGoodsUnloaded.error.max.date"))
+  val form = new ConfirmRemoveCommentsFormProvider()()
+
+  ".value" - {
+
+    val fieldName = "value"
+
+    behave like booleanField(
+      form,
+      fieldName,
+      invalidError = FormError(fieldName, invalidKey)
     )
+
+    behave like mandatoryField(
+      form,
+      fieldName,
+      requiredError = FormError(fieldName, requiredKey)
+    )
+  }
 }
