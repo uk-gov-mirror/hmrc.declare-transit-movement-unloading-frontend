@@ -40,7 +40,8 @@ class UnloadingSummaryController @Inject()(
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
   unloadingPermissionService: UnloadingPermissionService,
-  referenceDataService: ReferenceDataService
+  referenceDataService: ReferenceDataService,
+  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -85,7 +86,23 @@ class UnloadingSummaryController @Inject()(
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
           }
 
+<<<<<<< HEAD
         }
+=======
+          val redirectUrl   = controllers.routes.CheckYourAnswersController.onPageLoad(mrn)
+          val addCommentUrl = controllers.routes.ChangesToReportController.onPageLoad(mrn, NormalMode)
+          val addSealUrl    = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(0), NormalMode) //todo add mode and also point to correct seal
+
+          val json = Json.obj(
+            "mrn"           -> mrn,
+            "redirectUrl"   -> redirectUrl.url,
+            "addCommentUrl" -> addCommentUrl.url,
+            "addSealUrl"    -> addSealUrl.url,
+            "sealsSection"  -> Json.toJson(sealsSection),
+            "sections"      -> Json.toJson(sections)
+          )
+          renderer.render("unloadingSummary.njk", json).map(Ok(_))
+>>>>>>> c50b1ec... updating tests
       }
   }
 
