@@ -25,9 +25,10 @@ import play.api.data.Form
 
 class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
 
-  Logger.info(s"CTC local date: " + LocalDate.now())
 
-  def apply(): Form[LocalDate] =
+  def apply(): Form[LocalDate] = {
+    Logger.info(s"CTC local date: " + LocalDate.now())
+
     Form(
       "value" -> localDate(
         invalidKey     = "dateGoodsUnloaded.error.invalid",
@@ -36,4 +37,5 @@ class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
         requiredKey    = "dateGoodsUnloaded.error.required"
       ).verifying(maxDate(LocalDate.now(), "dateGoodsUnloaded.error.max.date"))
     )
+  }
 }
