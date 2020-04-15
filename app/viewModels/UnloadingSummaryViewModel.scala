@@ -16,6 +16,7 @@
 
 package viewModels
 import cats.data.NonEmptyList
+import models.reference.Country
 import models.{UnloadingPermission, UserAnswers}
 import pages._
 import uk.gov.hmrc.viewmodels.SummaryList.Row
@@ -27,11 +28,11 @@ case class UnloadingSummaryViewModel(sections: Seq[Section])
 
 object UnloadingSummaryViewModel {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission): UnloadingSummaryViewModel = {
+  def apply(userAnswers: UserAnswers, transportCountry: Option[Country])(implicit unloadingPermission: UnloadingPermission): UnloadingSummaryViewModel = {
 
     implicit val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(userAnswers)
 
-    UnloadingSummaryViewModel(SealsSection(userAnswers) ++ TransportSection(userAnswers) ++ ItemsSection(userAnswers))
+    UnloadingSummaryViewModel(SealsSection(userAnswers) ++ TransportSection(userAnswers, transportCountry) ++ ItemsSection(userAnswers))
   }
 
 }
@@ -50,13 +51,19 @@ object SealsSection {
 
 object TransportSection {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] = {
+  def apply(userAnswers: UserAnswers, summaryTransportCountry: Option[Country])(implicit unloadingPermission: UnloadingPermission,
+                                                                                unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] = {
 
     val vehicleAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(VehicleNameRegistrationReferencePage)
     val transportIdentity: Seq[Row]   = SummaryRow.row(vehicleAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsed)
 
+    val transportCountryDescription: Option[String] = summaryTransportCountry match {
+      case Some(country) => Some(country.description)
+      case None          => unloadingPermission.transportCountry
+    }
+
     val countryAnswer: Option[String] = SummaryRow.userAnswerCountry(userAnswers)(VehicleRegistrationCountryPage)
-    val transportCountry: Seq[Row]    = SummaryRow.row(countryAnswer)(unloadingPermission.transportCountry)(unloadingSummaryRow.registeredCountry)
+    val transportCountry: Seq[Row]    = SummaryRow.row(countryAnswer)(transportCountryDescription)(unloadingSummaryRow.registeredCountry)
 
     transportIdentity ++ transportCountry match {
       case transport if transport.nonEmpty =>
