@@ -29,9 +29,9 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class TechicalDifficultiesControllerSpec extends SpecBase with MockitoSugar with JsonMatchers {
+class TechnicalDifficultiesControllerSpec extends SpecBase with MockitoSugar with JsonMatchers {
 
-  "TechicalDifficulties Controller" - {
+  "TechnicalDifficulties Controller" - {
 
     "return OK and the correct view for a GET" in {
 
@@ -39,7 +39,7 @@ class TechicalDifficultiesControllerSpec extends SpecBase with MockitoSugar with
         .thenReturn(Future.successful(Html("")))
 
       val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-      val request        = FakeRequest(GET, routes.TechicalDifficultiesController.onPageLoad().url)
+      val request        = FakeRequest(GET, routes.TechnicalDifficultiesController.onPageLoad().url)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -49,9 +49,9 @@ class TechicalDifficultiesControllerSpec extends SpecBase with MockitoSugar with
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val expectedJson = Json.obj()
+      val expectedJson = Json.obj("nctsEnquiries" -> frontendAppConfig.nctsEnquiriesUrl)
 
-      templateCaptor.getValue mustEqual "techicalDifficulties.njk"
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
