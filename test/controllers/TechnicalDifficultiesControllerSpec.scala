@@ -49,7 +49,7 @@ class TechnicalDifficultiesControllerSpec extends SpecBase with MockitoSugar wit
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val expectedJson = Json.obj("nctsEnquiries" -> frontendAppConfig.nctsEnquiriesUrl)
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
 
       templateCaptor.getValue mustEqual "technicalDifficulties.njk"
       jsonCaptor.getValue must containJson(expectedJson)
