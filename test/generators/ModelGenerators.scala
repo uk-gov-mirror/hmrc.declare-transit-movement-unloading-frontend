@@ -89,14 +89,14 @@ trait ModelGenerators {
   implicit lazy val arbitraryUnloadingPermission: Arbitrary[UnloadingPermission] =
     Arbitrary {
       for {
-        movementReferenceNumber <- stringsWithMaxLength(10: Int)
-        transportIdentity       <- Gen.option(stringsWithMaxLength(11: Int))
-        transportCountry        <- Gen.option(stringsWithMaxLength(11: Int))
+        movementReferenceNumber <- stringsWithMaxLength(UnloadingPermission.movementReferenceNumberLength)
+        transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
+        transportCountry        <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportCountryLength))
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- stringsWithMaxLength(2: Int)
         traderAtDestination     <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
-        presentationOffice      <- stringsWithMaxLength(2: Int)
+        presentationOffice      <- stringsWithMaxLength(UnloadingPermission.presentationOfficeLength)
         seals                   <- Gen.option(arbitrary[Seals])
         goodsItems              <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
       } yield

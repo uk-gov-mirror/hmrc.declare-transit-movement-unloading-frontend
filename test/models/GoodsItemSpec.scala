@@ -98,7 +98,7 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
 }
 
 object GoodsItemSpec {
-  private def packages(packages: Packages): Elem = {
+  private[models] def packages(packages: Packages): Elem = {
 
     val marksAndNumberPackage = packages.marksAndNumberPackage
       .map {
@@ -130,7 +130,7 @@ object GoodsItemSpec {
     }
   }
 
-  private def producedDocument(goodsItem: GoodsItem): NonEmptyList[Elem] =
+  private[models] def producedDocument(goodsItem: GoodsItem): NonEmptyList[Elem] =
     goodsItem.producedDocuments.map {
 
       producedDocument =>
@@ -155,7 +155,7 @@ object GoodsItemSpec {
         }
     }
 
-  private def sensitiveGoodsInformation(goodsItem: GoodsItem) =
+  private[models] def sensitiveGoodsInformation(goodsItem: GoodsItem) =
     goodsItem.sensitiveGoodsInformation.map {
       sensitiveGoodsInformation =>
         val goodsCode = sensitiveGoodsInformation.goodsCode.map {

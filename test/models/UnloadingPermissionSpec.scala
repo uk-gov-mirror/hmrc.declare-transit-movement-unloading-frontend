@@ -17,387 +17,240 @@
 package models
 import cats.data.NonEmptyList
 import com.lucidchart.open.xtract.{ParseFailure, ParseSuccess, XmlReader}
+import generators.Generators
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.xml.{Elem, XML}
+import scala.xml.Utility.trim
+import scala.xml.{Elem, NodeSeq}
 
-class UnloadingPermissionSpec extends FreeSpec with MustMatchers {
+class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks {
+
+  import UnloadingPermissionSpec._
 
   "UnloadingPermission" - {
 
-    "parse xml into UnloadingPermission for mandatory values only" in {
+    "must serialize UnloadingPermission from Xml" in {
 
-      XmlReader.of[UnloadingPermission].read(mandatoryXml) mustBe
-        ParseSuccess(
-          UnloadingPermission(
-            movementReferenceNumber = "19IT02110010007827",
-            transportIdentity       = None,
-            transportCountry        = None,
-            numberOfItems           = 1,
-            numberOfPackages        = 1,
-            grossMass               = "1000",
-            traderAtDestination     = traderWithoutEori,
-            presentationOffice      = "GB000060",
-            seals                   = None,
-            goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
-          )
-        )
-    }
+      forAll(arbitrary[UnloadingPermission]) {
+        unloadingPermission =>
+          //NOTE: Only extracting what we need for UnloadingRemarks message
+          val expectedResult = {
+            <CC043A>
+              <HEAHEA>
+                <DocNumHEA5>{unloadingPermission.movementReferenceNumber}</DocNumHEA5>
+                {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
+                {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
+                <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
+                <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
+                <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
+              </HEAHEA>
+              {trader(unloadingPermission.traderAtDestination)}
+              <CUSOFFPREOFFRES>
+                <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
+              </CUSOFFPREOFFRES>
+              {seals(unloadingPermission.seals)}
+              {goodsItems(unloadingPermission.goodsItems)}
+            </CC043A>
+          }
 
-    "parse xml into UnloadingPermission for all values" in {
-      XmlReader.of[UnloadingPermission].read(fullXml) mustBe
-        ParseSuccess(
-          UnloadingPermission(
-            movementReferenceNumber = "19IT02110010007827",
-            transportIdentity       = Some("abcd"),
-            transportCountry        = Some("IT"),
-            numberOfItems           = 1, //TODO Increase quantity of items
-            numberOfPackages        = 1, //TODO Increase quantity of packages
-            grossMass               = "1000",
-            traderAtDestination     = traderWithEori,
-            presentationOffice      = "GB000060",
-            seals                   = Some(Seals(1, Seq("Seals01"))), //TODO Increase quantity of seals
-            goodsItems              = NonEmptyList(goodsItem, Nil) //TODO Increase quantity of goodsItems
-          ))
+          XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe
+            ParseSuccess(unloadingPermission)
+      }
     }
 
     "return ParseFailure when converting into UnloadingPermission with no goodsItem" in {
 
-      XmlReader.of[UnloadingPermission].read(xmlNoGoodsItem) mustBe
+      val unloadingPermissionObject = arbitrary[UnloadingPermission]
+
+      val unloadingPermission = unloadingPermissionObject.sample.get
+
+      val expectedResult = {
+        <CC043A>
+          <HEAHEA>
+            <DocNumHEA5>{unloadingPermission.movementReferenceNumber}</DocNumHEA5>
+            {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
+            {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
+            <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
+            <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
+            <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
+          </HEAHEA>
+          {trader(unloadingPermission.traderAtDestination)}
+          <CUSOFFPREOFFRES>
+            <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
+          </CUSOFFPREOFFRES>
+          {seals(unloadingPermission.seals)}
+        </CC043A>
+      }
+
+      XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe
         ParseFailure(List())
     }
 
     "return ParseFailure when converting into UnloadingPermission with no producedDocuments" in {
 
-      XmlReader.of[UnloadingPermission].read(xmlNoProducedDocuments) mustBe
+      val unloadingPermissionObject = arbitrary[UnloadingPermission]
+
+      val unloadingPermission = unloadingPermissionObject.sample.get
+
+      val expectedResult = {
+        <CC043A>
+          <HEAHEA>
+            <DocNumHEA5>{unloadingPermission.movementReferenceNumber}</DocNumHEA5>
+            {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
+            {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
+            <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
+            <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
+            <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
+          </HEAHEA>
+          {trader(unloadingPermission.traderAtDestination)}
+          <CUSOFFPREOFFRES>
+            <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
+          </CUSOFFPREOFFRES>
+          {seals(unloadingPermission.seals)}
+          {goodsItems(unloadingPermission.goodsItems, ignoreProducedDocuments = true)}
+        </CC043A>
+      }
+
+      XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe
         ParseFailure(List())
     }
+
   }
 
-  private lazy val traderWithEori =
-    TraderAtDestinationWithEori("GB163910077000", Some("The Luggage Carriers"), Some("225 Suedopolish Yard,"), Some("SS8 2BB"), Some(","), Some("GB"))
+}
 
-  private lazy val traderWithoutEori =
-    TraderAtDestinationWithoutEori("The Luggage Carriers", "225 Suedopolish Yard,", "SS8 2BB", ",", "GB")
+object UnloadingPermissionSpec {
 
-  private lazy val packages = Packages(Some("Ref."), "BX", Some(1), None)
+  val transportIdentity: Option[String] => Option[Elem] =
+    transportIdentity =>
+      transportIdentity.map {
+        transportIdentity =>
+          <IdeOfMeaOfTraAtDHEA78>{transportIdentity}</IdeOfMeaOfTraAtDHEA78>
+    }
 
-  private lazy val producedDocuments = ProducedDocument("235", Some("Ref."), None)
+  val transportCountry: Option[String] => Option[Elem] =
+    transportCountry =>
+      transportCountry.map {
+        transportCountry =>
+          <NatOfMeaOfTraAtDHEA80>{transportCountry}</NatOfMeaOfTraAtDHEA80>
+    }
 
-  private lazy val goodsItemMandatory = GoodsItem(
-    itemNumber                = 1,
-    commodityCode             = None,
-    description               = "Flowers",
-    grossMass                 = Some("1000"),
-    netMass                   = Some("999"),
-    producedDocuments         = NonEmptyList(producedDocuments, Nil),
-    containers                = Seq.empty,
-    packages                  = packages,
-    sensitiveGoodsInformation = Seq.empty
-  )
+  def goodsItems(goodsItem: NonEmptyList[GoodsItem], ignoreProducedDocuments: Boolean = false) = {
 
-  private lazy val goodsItem = GoodsItem(
-    itemNumber                = 1,
-    commodityCode             = None,
-    description               = "Flowers",
-    grossMass                 = Some("1000"),
-    netMass                   = Some("999"),
-    producedDocuments         = NonEmptyList(producedDocuments, Nil),
-    containers                = Seq("container 1", "container 2"),
-    packages                  = packages,
-    sensitiveGoodsInformation = Seq(SensitiveGoodsInformation(Some(1), 1))
-  )
+    import GoodsItemSpec._
 
-  private val seal = Seals(1, Seq("Seals01"))
+    val response = goodsItem.map {
+      goodsItem =>
+        val commodityCode: Option[Elem] = goodsItem.commodityCode.map {
+          code =>
+            <ComCodTarCodGDS10>{code}</ComCodTarCodGDS10>
+        }
 
-  val fullXmlString: String = """<CC043A><SynIdeMES1>UNOC</SynIdeMES1>
-                    |<SynVerNumMES2>3</SynVerNumMES2>
-                    |<MesSenMES3>NTA.GB</MesSenMES3>
-                    |<MesRecMES6>SYST17B-NCTS_EU_EXIT</MesRecMES6>
-                    |<DatOfPreMES9>20190912</DatOfPreMES9>
-                    |<TimOfPreMES10>1448</TimOfPreMES10>
-                    |<IntConRefMES11>66390912144854</IntConRefMES11>
-                    |<AppRefMES14>NCTS</AppRefMES14>
-                    |<TesIndMES18>0</TesIndMES18>
-                    |<MesIdeMES19>66390912144854</MesIdeMES19>
-                    |<MesTypMES20>GB043A</MesTypMES20>
-                    |<HEAHEA><DocNumHEA5>19IT02110010007827</DocNumHEA5>
-                    |<TypOfDecHEA24>T1</TypOfDecHEA24>
-                    |<CouOfDesCodHEA30>GB</CouOfDesCodHEA30>
-                    |<CouOfDisCodHEA55>IT</CouOfDisCodHEA55>
-                    |<IdeOfMeaOfTraAtDHEA78>abcd</IdeOfMeaOfTraAtDHEA78>
-                    |<NatOfMeaOfTraAtDHEA80>IT</NatOfMeaOfTraAtDHEA80>
-                    |<ConIndHEA96>0</ConIndHEA96>
-                    |<AccDatHEA158>20190912</AccDatHEA158>
-                    |<TotNumOfIteHEA305>1</TotNumOfIteHEA305>
-                    |<TotNumOfPacHEA306>1</TotNumOfPacHEA306>
-                    |<TotGroMasHEA307>1000</TotGroMasHEA307>
-                    |</HEAHEA>
-                    |<TRAPRIPC1><NamPC17>Mancini Carriers</NamPC17>
-                    |<StrAndNumPC122>90 Desio Way</StrAndNumPC122>
-                    |<PosCodPC123>MOD 5JJ</PosCodPC123>
-                    |<CitPC124>Modena</CitPC124>
-                    |<CouPC125>IT</CouPC125>
-                    |<TINPC159>IT444100201000</TINPC159>
-                    |</TRAPRIPC1>
-                    |<TRACONCO1><NamCO17>Mancini Carriers</NamCO17>
-                    |<StrAndNumCO122>90 Desio Way</StrAndNumCO122>
-                    |<PosCodCO123>MOD 5JJ</PosCodCO123>
-                    |<CitCO124>Modena</CitCO124>
-                    |<CouCO125>IT</CouCO125>
-                    |<TINCO159>IT444100201000</TINCO159>
-                    |</TRACONCO1>
-                    |<TRACONCE1><NamCE17>Mancini Carriers</NamCE17>
-                    |<StrAndNumCE122>90 Desio Way</StrAndNumCE122>
-                    |<PosCodCE123>MOD 5JJ</PosCodCE123>
-                    |<CitCE124>Modena</CitCE124>
-                    |<CouCE125>IT</CouCE125>
-                    |<TINCE159>IT444100201000</TINCE159>
-                    |</TRACONCE1>
-                    |<TRADESTRD><NamTRD7>The Luggage Carriers</NamTRD7>
-                    |<StrAndNumTRD22>225 Suedopolish Yard,</StrAndNumTRD22>
-                    |<PosCodTRD23>SS8 2BB</PosCodTRD23>
-                    |<CitTRD24>,</CitTRD24>
-                    |<CouTRD25>GB</CouTRD25>
-                    |<TINTRD59>GB163910077000</TINTRD59>
-                    |</TRADESTRD>
-                    |<CUSOFFDEPEPT><RefNumEPT1>IT021100</RefNumEPT1>
-                    |</CUSOFFDEPEPT>
-                    |<CUSOFFPREOFFRES><RefNumRES1>GB000060</RefNumRES1>
-                    |</CUSOFFPREOFFRES>
-                    |<SEAINFSLI><SeaNumSLI2>1</SeaNumSLI2>
-                    |<SEAIDSID><SeaIdeSID1>Seals01</SeaIdeSID1>
-                    |</SEAIDSID>
-                    |</SEAINFSLI>
-                    |<GOOITEGDS><IteNumGDS7>1</IteNumGDS7>
-                    |<GooDesGDS23>Flowers</GooDesGDS23>
-                    |<GroMasGDS46>1000</GroMasGDS46>
-                    |<NetMasGDS48>999</NetMasGDS48>
-                    |<PRODOCDC2><DocTypDC21>235</DocTypDC21>
-                    |<DocRefDC23>Ref.</DocRefDC23>
-                    |</PRODOCDC2>
-                    |<CONNR2>
-                    |<ConNumNR21>container 1</ConNumNR21>
-                    |</CONNR2>
-                    |<CONNR2>
-                    |<ConNumNR21>container 2</ConNumNR21>
-                    |</CONNR2>
-                    |<PACGS2>
-                    |<MarNumOfPacGS21>Ref.</MarNumOfPacGS21>
-                    |<KinOfPacGS23>BX</KinOfPacGS23>
-                    |<NumOfPacGS24>1</NumOfPacGS24>
-                    |</PACGS2>
-                    |<SGICODSD2>
-                    |<SenGooCodSD22>1</SenGooCodSD22>
-                    |<SenQuaSD23>1</SenQuaSD23>
-                    |</SGICODSD2>
-                    |</GOOITEGDS>
-                    |</CC043A>
-                  |""".stripMargin
+        val grossMass: Option[Elem] = goodsItem.grossMass.map {
+          grossMass =>
+            <GroMasGDS46>{grossMass}</GroMasGDS46>
+        }
 
-  val noGoodsItem: String = """<CC043A><SynIdeMES1>UNOC</SynIdeMES1>
-                                |<SynVerNumMES2>3</SynVerNumMES2>
-                                |<MesSenMES3>NTA.GB</MesSenMES3>
-                                |<MesRecMES6>SYST17B-NCTS_EU_EXIT</MesRecMES6>
-                                |<DatOfPreMES9>20190912</DatOfPreMES9>
-                                |<TimOfPreMES10>1448</TimOfPreMES10>
-                                |<IntConRefMES11>66390912144854</IntConRefMES11>
-                                |<AppRefMES14>NCTS</AppRefMES14>
-                                |<TesIndMES18>0</TesIndMES18>
-                                |<MesIdeMES19>66390912144854</MesIdeMES19>
-                                |<MesTypMES20>GB043A</MesTypMES20>
-                                |<HEAHEA><DocNumHEA5>19IT02110010007827</DocNumHEA5>
-                                |<TypOfDecHEA24>T1</TypOfDecHEA24>
-                                |<CouOfDesCodHEA30>GB</CouOfDesCodHEA30>
-                                |<CouOfDisCodHEA55>IT</CouOfDisCodHEA55>
-                                |<IdeOfMeaOfTraAtDHEA78>abcd</IdeOfMeaOfTraAtDHEA78>
-                                |<NatOfMeaOfTraAtDHEA80>IT</NatOfMeaOfTraAtDHEA80>
-                                |<ConIndHEA96>0</ConIndHEA96>
-                                |<AccDatHEA158>20190912</AccDatHEA158>
-                                |<TotNumOfIteHEA305>1</TotNumOfIteHEA305>
-                                |<TotNumOfPacHEA306>1</TotNumOfPacHEA306>
-                                |<TotGroMasHEA307>1000</TotGroMasHEA307>
-                                |</HEAHEA>
-                                |<TRAPRIPC1><NamPC17>Mancini Carriers</NamPC17>
-                                |<StrAndNumPC122>90 Desio Way</StrAndNumPC122>
-                                |<PosCodPC123>MOD 5JJ</PosCodPC123>
-                                |<CitPC124>Modena</CitPC124>
-                                |<CouPC125>IT</CouPC125>
-                                |<TINPC159>IT444100201000</TINPC159>
-                                |</TRAPRIPC1>
-                                |<TRACONCO1><NamCO17>Mancini Carriers</NamCO17>
-                                |<StrAndNumCO122>90 Desio Way</StrAndNumCO122>
-                                |<PosCodCO123>MOD 5JJ</PosCodCO123>
-                                |<CitCO124>Modena</CitCO124>
-                                |<CouCO125>IT</CouCO125>
-                                |<TINCO159>IT444100201000</TINCO159>
-                                |</TRACONCO1>
-                                |<TRACONCE1><NamCE17>Mancini Carriers</NamCE17>
-                                |<StrAndNumCE122>90 Desio Way</StrAndNumCE122>
-                                |<PosCodCE123>MOD 5JJ</PosCodCE123>
-                                |<CitCE124>Modena</CitCE124>
-                                |<CouCE125>IT</CouCE125>
-                                |<TINCE159>IT444100201000</TINCE159>
-                                |</TRACONCE1>
-                                |<TRADESTRD><NamTRD7>The Luggage Carriers</NamTRD7>
-                                |<StrAndNumTRD22>225 Suedopolish Yard,</StrAndNumTRD22>
-                                |<PosCodTRD23>SS8 2BB</PosCodTRD23>
-                                |<CitTRD24>,</CitTRD24>
-                                |<CouTRD25>GB</CouTRD25>
-                                |<TINTRD59>GB163910077000</TINTRD59>
-                                |</TRADESTRD>
-                                |<CUSOFFDEPEPT><RefNumEPT1>IT021100</RefNumEPT1>
-                                |</CUSOFFDEPEPT>
-                                |<CUSOFFPREOFFRES><RefNumRES1>GB000060</RefNumRES1>
-                                |</CUSOFFPREOFFRES>
-                                |<SEAINFSLI><SeaNumSLI2>1</SeaNumSLI2>
-                                |<SEAIDSID><SeaIdeSID1>Seals01</SeaIdeSID1>
-                                |</SEAIDSID>
-                                |</SEAINFSLI>
-                                |</CC043A>
-                                |""".stripMargin
+        val netMass: Option[Elem] = goodsItem.netMass.map {
+          netMass =>
+            <NetMasGDS48>{netMass}</NetMasGDS48>
+        }
 
-  val mandatoryXmlString: String = """<CC043A><SynIdeMES1>UNOC</SynIdeMES1>
-                        |<SynVerNumMES2>3</SynVerNumMES2>
-                        |<MesSenMES3>NTA.GB</MesSenMES3>
-                        |<MesRecMES6>SYST17B-NCTS_EU_EXIT</MesRecMES6>
-                        |<DatOfPreMES9>20190912</DatOfPreMES9>
-                        |<TimOfPreMES10>1448</TimOfPreMES10>
-                        |<IntConRefMES11>66390912144854</IntConRefMES11>
-                        |<AppRefMES14>NCTS</AppRefMES14>
-                        |<TesIndMES18>0</TesIndMES18>
-                        |<MesIdeMES19>66390912144854</MesIdeMES19>
-                        |<MesTypMES20>GB043A</MesTypMES20>
-                        |<HEAHEA><DocNumHEA5>19IT02110010007827</DocNumHEA5>
-                        |<TypOfDecHEA24>T1</TypOfDecHEA24>
-                        |<CouOfDesCodHEA30>GB</CouOfDesCodHEA30>
-                        |<CouOfDisCodHEA55>IT</CouOfDisCodHEA55>
-                        |<ConIndHEA96>0</ConIndHEA96>
-                        |<AccDatHEA158>20190912</AccDatHEA158>
-                        |<TotNumOfIteHEA305>1</TotNumOfIteHEA305>
-                        |<TotNumOfPacHEA306>1</TotNumOfPacHEA306>
-                        |<TotGroMasHEA307>1000</TotGroMasHEA307>
-                        |</HEAHEA>
-                        |<TRAPRIPC1><NamPC17>Mancini Carriers</NamPC17>
-                        |<StrAndNumPC122>90 Desio Way</StrAndNumPC122>
-                        |<PosCodPC123>MOD 5JJ</PosCodPC123>
-                        |<CitPC124>Modena</CitPC124>
-                        |<CouPC125>IT</CouPC125>
-                        |<TINPC159>IT444100201000</TINPC159>
-                        |</TRAPRIPC1>
-                        |<TRACONCO1><NamCO17>Mancini Carriers</NamCO17>
-                        |<StrAndNumCO122>90 Desio Way</StrAndNumCO122>
-                        |<PosCodCO123>MOD 5JJ</PosCodCO123>
-                        |<CitCO124>Modena</CitCO124>
-                        |<CouCO125>IT</CouCO125>
-                        |<TINCO159>IT444100201000</TINCO159>
-                        |</TRACONCO1>
-                        |<TRACONCE1><NamCE17>Mancini Carriers</NamCE17>
-                        |<StrAndNumCE122>90 Desio Way</StrAndNumCE122>
-                        |<PosCodCE123>MOD 5JJ</PosCodCE123>
-                        |<CitCE124>Modena</CitCE124>
-                        |<CouCE125>IT</CouCE125>
-                        |<TINCE159>IT444100201000</TINCE159>
-                        |</TRACONCE1>
-                        |<TRADESTRD><NamTRD7>The Luggage Carriers</NamTRD7>
-                        |<StrAndNumTRD22>225 Suedopolish Yard,</StrAndNumTRD22>
-                        |<PosCodTRD23>SS8 2BB</PosCodTRD23>
-                        |<CitTRD24>,</CitTRD24>
-                        |<CouTRD25>GB</CouTRD25>
-                        |</TRADESTRD>
-                        |<CUSOFFDEPEPT><RefNumEPT1>IT021100</RefNumEPT1>
-                        |</CUSOFFDEPEPT>
-                        |<CUSOFFPREOFFRES><RefNumRES1>GB000060</RefNumRES1>
-                        |</CUSOFFPREOFFRES>
-                        |<GOOITEGDS><IteNumGDS7>1</IteNumGDS7>
-                        |<GooDesGDS23>Flowers</GooDesGDS23>
-                        |<GroMasGDS46>1000</GroMasGDS46>
-                        |<NetMasGDS48>999</NetMasGDS48>
-                        |<PRODOCDC2><DocTypDC21>235</DocTypDC21>
-                        |<DocRefDC23>Ref.</DocRefDC23>
-                        |</PRODOCDC2>
-                        |<PACGS2>
-                        |<MarNumOfPacGS21>Ref.</MarNumOfPacGS21>
-                        |<KinOfPacGS23>BX</KinOfPacGS23>
-                        |<NumOfPacGS24>1</NumOfPacGS24>
-                        |</PACGS2>
-                        |</GOOITEGDS>
-                        |</CC043A>
-                        |""".stripMargin
+        val containers: Seq[Elem] = goodsItem.containers.map {
+          value =>
+            <ConNumNR21>{value}</ConNumNR21>
+        }
 
-  val noProducedDocuments: String = """<CC043A><SynIdeMES1>UNOC</SynIdeMES1>
-                                     |<SynVerNumMES2>3</SynVerNumMES2>
-                                     |<MesSenMES3>NTA.GB</MesSenMES3>
-                                     |<MesRecMES6>SYST17B-NCTS_EU_EXIT</MesRecMES6>
-                                     |<DatOfPreMES9>20190912</DatOfPreMES9>
-                                     |<TimOfPreMES10>1448</TimOfPreMES10>
-                                     |<IntConRefMES11>66390912144854</IntConRefMES11>
-                                     |<AppRefMES14>NCTS</AppRefMES14>
-                                     |<TesIndMES18>0</TesIndMES18>
-                                     |<MesIdeMES19>66390912144854</MesIdeMES19>
-                                     |<MesTypMES20>GB043A</MesTypMES20>
-                                     |<HEAHEA><DocNumHEA5>19IT02110010007827</DocNumHEA5>
-                                     |<TypOfDecHEA24>T1</TypOfDecHEA24>
-                                     |<CouOfDesCodHEA30>GB</CouOfDesCodHEA30>
-                                     |<CouOfDisCodHEA55>IT</CouOfDisCodHEA55>
-                                     |<ConIndHEA96>0</ConIndHEA96>
-                                     |<AccDatHEA158>20190912</AccDatHEA158>
-                                     |<TotNumOfIteHEA305>1</TotNumOfIteHEA305>
-                                     |<TotNumOfPacHEA306>1</TotNumOfPacHEA306>
-                                     |<TotGroMasHEA307>1000</TotGroMasHEA307>
-                                     |</HEAHEA>
-                                     |<TRAPRIPC1><NamPC17>Mancini Carriers</NamPC17>
-                                     |<StrAndNumPC122>90 Desio Way</StrAndNumPC122>
-                                     |<PosCodPC123>MOD 5JJ</PosCodPC123>
-                                     |<CitPC124>Modena</CitPC124>
-                                     |<CouPC125>IT</CouPC125>
-                                     |<TINPC159>IT444100201000</TINPC159>
-                                     |</TRAPRIPC1>
-                                     |<TRACONCO1><NamCO17>Mancini Carriers</NamCO17>
-                                     |<StrAndNumCO122>90 Desio Way</StrAndNumCO122>
-                                     |<PosCodCO123>MOD 5JJ</PosCodCO123>
-                                     |<CitCO124>Modena</CitCO124>
-                                     |<CouCO125>IT</CouCO125>
-                                     |<TINCO159>IT444100201000</TINCO159>
-                                     |</TRACONCO1>
-                                     |<TRACONCE1><NamCE17>Mancini Carriers</NamCE17>
-                                     |<StrAndNumCE122>90 Desio Way</StrAndNumCE122>
-                                     |<PosCodCE123>MOD 5JJ</PosCodCE123>
-                                     |<CitCE124>Modena</CitCE124>
-                                     |<CouCE125>IT</CouCE125>
-                                     |<TINCE159>IT444100201000</TINCE159>
-                                     |</TRACONCE1>
-                                     |<TRADESTRD><NamTRD7>The Luggage Carriers</NamTRD7>
-                                     |<StrAndNumTRD22>225 Suedopolish Yard,</StrAndNumTRD22>
-                                     |<PosCodTRD23>SS8 2BB</PosCodTRD23>
-                                     |<CitTRD24>,</CitTRD24>
-                                     |<CouTRD25>GB</CouTRD25>
-                                     |<TINTRD59>GB163910077000</TINTRD59>
-                                     |</TRADESTRD>
-                                     |<CUSOFFDEPEPT><RefNumEPT1>IT021100</RefNumEPT1>
-                                     |</CUSOFFDEPEPT>
-                                     |<CUSOFFPREOFFRES><RefNumRES1>GB000060</RefNumRES1>
-                                     |</CUSOFFPREOFFRES>
-                                     |<SEAINFSLI><SeaNumSLI2>1</SeaNumSLI2>
-                                     |<SEAIDSID><SeaIdeSID1>Seals01</SeaIdeSID1>
-                                     |</SEAIDSID>
-                                     |</SEAINFSLI>
-                                     |<GOOITEGDS><IteNumGDS7>1</IteNumGDS7>
-                                     |<GooDesGDS23>Flowers</GooDesGDS23>
-                                     |<GroMasGDS46>1000</GroMasGDS46>
-                                     |<NetMasGDS48>999</NetMasGDS48>
-                                     |<PACGS2>
-                                     |<MarNumOfPacGS21>Ref.</MarNumOfPacGS21>
-                                     |<KinOfPacGS23>BX</KinOfPacGS23>
-                                     |<NumOfPacGS24>1</NumOfPacGS24>
-                                     |</PACGS2>
-                                     |</GOOITEGDS>
-                                     |</CC043A>
-                                     |""".stripMargin
+        <GOOITEGDS>
+          <IteNumGDS7>
+            {goodsItem.itemNumber}
+          </IteNumGDS7>
+          {commodityCode.getOrElse(NodeSeq.Empty)}
+          <GooDesGDS23>
+            {goodsItem.description}
+          </GooDesGDS23>
+          {grossMass.getOrElse(NodeSeq.Empty)}
+          {netMass.getOrElse(NodeSeq.Empty)}
+          {if(!ignoreProducedDocuments) producedDocument(goodsItem).toList}
+          {
+          containers.map {
+            x => <CONNR2>{x}</CONNR2>
+          }
+          }
+          {packages(goodsItem.packages)}
+          {sensitiveGoodsInformation(goodsItem)}
+        </GOOITEGDS>
+    }
 
-  lazy val fullXml: Elem                = XML.loadString(fullXmlString)
-  lazy val mandatoryXml: Elem           = XML.loadString(mandatoryXmlString)
-  lazy val xmlNoGoodsItem: Elem         = XML.loadString(noGoodsItem)
-  lazy val xmlNoProducedDocuments: Elem = XML.loadString(noProducedDocuments)
+    response.toList
+  }
 
+  def seals(seals: Option[Seals]) = seals match {
+    case Some(sealValues) => {
+      <SEAINFSLI>
+        <SeaNumSLI2>{sealValues.numberOfSeals}</SeaNumSLI2>
+        <SEAIDSID>
+          {
+          sealValues.SealId.map {
+            sealId => <SeaIdeSID1>{sealId}</SeaIdeSID1>
+          }
+          }
+        </SEAIDSID>
+      </SEAINFSLI>
+    }
+    case None => NodeSeq.Empty
+  }
+
+  def trader(traderAtDestination: TraderAtDestination): Elem = traderAtDestination match {
+
+    case traderWithEori: TraderAtDestinationWithEori => {
+
+      val name = traderWithEori.name.map {
+        name =>
+          <NamTRD7>{name}</NamTRD7>
+      }
+
+      val streetAndNumber = traderWithEori.streetAndNumber.map {
+        streetAndNumber =>
+          <StrAndNumTRD22>{streetAndNumber}</StrAndNumTRD22>
+      }
+
+      val postCode = traderWithEori.postCode.map {
+        postCode =>
+          <PosCodTRD23>{postCode}</PosCodTRD23>
+      }
+
+      val city = traderWithEori.city.map {
+        city =>
+          <CitTRD24>{city}</CitTRD24>
+      }
+
+      val countryCode = traderWithEori.countryCode.map {
+        countryCode =>
+          <CouTRD25>{countryCode}</CouTRD25>
+      }
+
+      <TRADESTRD>
+        {name.getOrElse(NodeSeq.Empty)}
+        {streetAndNumber.getOrElse(NodeSeq.Empty)}
+        {postCode.getOrElse(NodeSeq.Empty)}
+        {city.getOrElse(NodeSeq.Empty)}
+        {countryCode.getOrElse(NodeSeq.Empty)}
+        <TINTRD59>{traderWithEori.eori}</TINTRD59>
+      </TRADESTRD>
+
+    }
+    case traderWithOutEori: TraderAtDestinationWithoutEori => {
+
+      <TRADESTRD>
+        <NamTRD7>{traderWithOutEori.name}</NamTRD7>
+        <StrAndNumTRD22>{traderWithOutEori.streetAndNumber}</StrAndNumTRD22>
+        <PosCodTRD23>{traderWithOutEori.postCode}</PosCodTRD23>
+        <CitTRD24>{traderWithOutEori.city}</CitTRD24>
+        <CouTRD25>{traderWithOutEori.countryCode}</CouTRD25>
+      </TRADESTRD>
+    }
+  }
 }
