@@ -39,7 +39,7 @@ class TechnicalDifficultiesController @Inject()(
 
   def onPageLoad(): Action[AnyContent] = identify.async {
     implicit request =>
-      val json = Json.obj("nctsEnquiries" -> frontendAppConfig.nctsEnquiriesUrl)
+      val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
 
       renderer.render("technicalDifficulties.njk", json).map(Ok(_))
   }
