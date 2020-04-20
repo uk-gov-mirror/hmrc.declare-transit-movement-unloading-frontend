@@ -19,6 +19,7 @@ package controllers
 import controllers.actions._
 import javax.inject.Inject
 import models.{MovementReferenceNumber, NormalMode}
+import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -58,7 +59,13 @@ class UnloadingSummaryController @Inject()(
               val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry)(unloadingPermission).sections
 
               val json =
-                Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl(mrn).url, "addCommentUrl" -> addCommentUrl(mrn).url, "sections" -> Json.toJson(sections))
+                Json.obj(
+                  "mrn"                -> mrn,
+                  "redirectUrl"        -> redirectUrl(mrn).url,
+                  "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
+                  "addCommentUrl"      -> addCommentUrl(mrn).url,
+                  "sections"           -> Json.toJson(sections)
+                )
 
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
           }
@@ -66,4 +73,5 @@ class UnloadingSummaryController @Inject()(
         }
       }
   }
+
 }
