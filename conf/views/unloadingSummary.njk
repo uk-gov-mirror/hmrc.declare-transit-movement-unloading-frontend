@@ -27,9 +27,11 @@
           {{ sectionMacro(section.sectionTitle, section.rows) }}
         {% endfor %}
 
-        <p class ="govuk-body">
-                    <a id="value" href="{{ addCommentUrl }}" class="govuk-link"> {{ messages("unloadingSummary.link.text") }} </a>
-                  </p>
+        {% if showAddCommentLink %}
+          <p class ="govuk-body">
+             <a id="value" href="{{ addCommentUrl }}" class="govuk-link"> {{ messages("unloadingSummary.link.text") }} </a>
+          </p>
+        {% endif %}
 
         {{ govukButton({
           text: messages("site.continue"),
