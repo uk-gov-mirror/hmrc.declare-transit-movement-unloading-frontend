@@ -62,6 +62,24 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
       )
   }
 
+  val vehicleUsedCYA: String => Row = {
+    value =>
+      Row(
+        key     = Key(msg"changeVehicle.reference.label", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(lit"$value"),
+        actions = Nil
+      )
+  }
+
+  val registeredCountryCYA: String => Row = {
+    value =>
+      Row(
+        key     = Key(msg"changeVehicle.registeredCountry.label", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(lit"$value"),
+        actions = Nil
+      )
+  }
+
   val registeredCountry: String => Row = {
     value =>
       Row(
@@ -94,6 +112,15 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
       )
   }
 
+  val grossMassCYA: String => Row = {
+    value =>
+      Row(
+        key     = Key(msg"changeItems.grossMass.label", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(lit"$value"),
+        actions = Nil
+      )
+  }
+
   val comments: String => Row = {
     value =>
       Row(
@@ -113,6 +140,15 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
             attributes         = Map("id" -> s"""remove-comment""")
           )
         )
+      )
+  }
+
+  val commentsCYA: String => Row = {
+    value =>
+      Row(
+        key     = Key(msg"changeItems.comments.label", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(lit"$value"),
+        actions = Nil
       )
   }
 

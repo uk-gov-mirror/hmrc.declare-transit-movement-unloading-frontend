@@ -15,28 +15,68 @@
  */
 
 package viewModels
-import models.UserAnswers
+import cats.data.NonEmptyList
+import controllers.routes
+import models.reference.Country
+import models.{Mode, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import pages.{ChangesToReportPage, GrossMassAmountPage, VehicleNameRegistrationReferencePage, VehicleRegistrationCountryPage}
 import play.api.i18n.Messages
-import uk.gov.hmrc.viewmodels.SummaryList.Row
-import utils.CheckYourAnswersHelper
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Row}
+import utils.{CheckYourAnswersHelper, UnloadingSummaryRow}
 import viewModels.sections.Section
+import uk.gov.hmrc.viewmodels._
 
 case class CheckYourAnswersViewModel(sections: Seq[Section])
 
 object CheckYourAnswersViewModel {
 
-  def apply(userAnswers: UserAnswers)(implicit messages: Messages): CheckYourAnswersViewModel = {
+  def apply(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
+    implicit messages: Messages): CheckYourAnswersViewModel = {
 
-    val checkYourAnswersRow = new CheckYourAnswersHelper(userAnswers)
+    val checkYourAnswersRow           = new CheckYourAnswersHelper(userAnswers)
+    val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
+    val unloadingSummaryRow           = new UnloadingSummaryRow(userAnswers)
 
-    val row: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
+    val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
+    val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
 
-    if (row.nonEmpty) {
-      CheckYourAnswersViewModel(Seq(Section(row.toSeq)))
-    } else {
-      CheckYourAnswersViewModel(Nil)
+    val transportCountryDescription: Option[String] = summaryTransportCountry match {
+      case Some(country) => Some(country.description)
+      case None          => unloadingPermission.transportCountry
     }
 
+    val countryAnswer: Option[String] = SummaryRow.userAnswerCountry(userAnswers)(VehicleRegistrationCountryPage)
+    val transportCountry: Seq[Row]    = SummaryRow.row(countryAnswer)(transportCountryDescription)(unloadingSummaryRow.registeredCountryCYA)
+
+    val grossMassAnswer: Option[String] = userAnswers.get(GrossMassAmountPage)
+    val grossMass: Seq[Row]             = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMassCYA)
+
+    val itemsRow: NonEmptyList[Row] = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
+
+    val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
+    val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.commentsCYA)
+
+    CheckYourAnswersViewModel(
+      Seq(
+        Section(rowGoodsUnloaded.toSeq),
+        Section(msg"checkYourAnswers.subTitle", buildRows(transportIdentity ++ transportCountry ++ grossMass ++ itemsRow.toList ++ commentsRow, userAnswers.id))
+      ))
   }
 
+  private def buildRows(rows: Seq[Row], mrn: MovementReferenceNumber): Seq[Row] = rows match {
+    case head :: tail => {
+      val changeAction = head.copy(
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.UnloadingSummaryController.onPageLoad(mrn).url,
+            visuallyHiddenText = Some(msg"checkYourAnswers.changeItems.hidden"),
+            attributes         = Map("id" -> s"""change-answers""")
+          )))
+
+      Seq(changeAction) ++ tail
+    }
+    case _ => rows
+
+  }
 }
