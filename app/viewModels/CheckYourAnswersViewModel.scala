@@ -37,6 +37,9 @@ object CheckYourAnswersViewModel {
     val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
     val unloadingSummaryRow           = new UnloadingSummaryRow(userAnswers)
 
+    val rowCanSealsBeRead: Option[Row]    = checkYourAnswersRow.canSealsBeRead
+    val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
+
     val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
     val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
 
@@ -59,7 +62,9 @@ object CheckYourAnswersViewModel {
     CheckYourAnswersViewModel(
       Seq(
         Section(rowGoodsUnloaded.toSeq),
-        Section(msg"checkYourAnswers.subTitle", buildRows(transportIdentity ++ transportCountry ++ grossMass ++ itemsRow.toList ++ commentsRow, userAnswers.id))
+        Section(msg"checkYourAnswers.seals.subHeading", (rowCanSealsBeRead ++ rowAreAnySealsBroken).toSeq),
+        Section(msg"checkYourAnswers.subHeading",
+                buildRows(transportIdentity ++ transportCountry ++ grossMass ++ itemsRow.toList ++ commentsRow, userAnswers.id))
       ))
   }
 
