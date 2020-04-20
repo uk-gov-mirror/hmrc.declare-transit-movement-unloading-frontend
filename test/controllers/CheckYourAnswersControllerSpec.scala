@@ -45,22 +45,12 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
       status(result) mustEqual OK
 
-      val expectedJson = Json.obj(
-        "redirectUrl" -> controllers.routes.ConfirmationController.onPageLoad(mrn).url,
-        "sections"    -> JsArray()
-      )
-
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val jsonCaptorWithoutConfig: JsObject = jsonCaptor.getValue - "config"
-
       templateCaptor.getValue mustEqual "check-your-answers.njk"
-
-      //TODO review this test, not in arrivals frontend.  What is it trying to achieve?
-//      jsonCaptorWithoutConfig mustBe expectedJson
 
       application.stop()
     }
