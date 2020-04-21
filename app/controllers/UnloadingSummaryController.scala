@@ -20,6 +20,7 @@ import controllers.actions._
 import derivable.DeriveNumberOfSeals
 import javax.inject.Inject
 import models.{Index, MovementReferenceNumber, NormalMode}
+import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -75,12 +76,13 @@ class UnloadingSummaryController @Inject()(
 
               val json =
                 Json.obj(
-                  "mrn"           -> mrn,
-                  "redirectUrl"   -> redirectUrl(mrn).url,
-                  "addCommentUrl" -> addCommentUrl(mrn).url,
-                  "addSealUrl"    -> addSealUrl.url,
-                  "sealsSection"  -> Json.toJson(sealsSection),
-                  "sections"      -> Json.toJson(sections)
+                  "mrn"                -> mrn,
+                  "redirectUrl"        -> redirectUrl(mrn).url,
+                  "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
+                  "addCommentUrl"      -> addCommentUrl(mrn).url,
+                  "addSealUrl"         -> addSealUrl.url,
+                  "sealsSection"       -> Json.toJson(sealsSection),
+                  "sections"           -> Json.toJson(sections)
                 )
 
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
