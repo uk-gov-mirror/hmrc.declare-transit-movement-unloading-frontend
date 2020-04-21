@@ -15,11 +15,16 @@
  */
 
 package services
+import com.google.common.util.concurrent.Futures.FutureCombiner
 import connectors.UnloadingConnector
 import models.{MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
+import org.mockito.Matchers.{any, eq => eqTo}
+import org.mockito.Mockito.when
+
+import scala.concurrent.Future
 
 class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with MockitoSugar {
   private val mockConnector = mock[UnloadingConnector]
@@ -44,6 +49,16 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
         val userAnswers                  = UserAnswers(mrn, Json.obj())
         val userAnswersWithSeals         = UserAnswers(mrn, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)
         service.convertSeals(userAnswers) mustBe Some(userAnswersWithSeals)
+      }
+
+      "return None when ID doesn't return an unloading permission" in {
+        val mrn: MovementReferenceNumber = MovementReferenceNumber("41", "IT", "0211001000782")
+        val userAnswers                  = UserAnswers(mrn, Json.obj())
+
+        when(mockConnector.get(eqTo(mrn))(any(), any()))
+          .thenReturn(Future.successful(None))
+
+        service.convertSeals(userAnswers) mustBe None
       }
     }
   }

@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions._
 import derivable.DeriveNumberOfSeals
+import handlers.ErrorHandler
 import javax.inject.Inject
 import models.{Index, MovementReferenceNumber, NormalMode}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -40,7 +41,8 @@ class UnloadingSummaryController @Inject()(
   renderer: Renderer,
   unloadingPermissionService: UnloadingPermissionService,
   referenceDataService: ReferenceDataService,
-  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl
+  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -87,6 +89,8 @@ class UnloadingSummaryController @Inject()(
           }
 
         }
+        case _ =>
+          errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
 
       }
   }
