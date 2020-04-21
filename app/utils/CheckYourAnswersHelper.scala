@@ -22,6 +22,7 @@ import controllers.routes
 import models.{CheckMode, Index, NormalMode, UserAnswers}
 import pages._
 import play.api.i18n.Messages
+import queries.SealsQuery
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -89,18 +90,12 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
       )
   }
 
-  def newSealNumber(index: Index): Option[Row] = userAnswers.get(NewSealNumberPage(index)) map {
-    answer =>
+  def seals: Option[Row] = userAnswers.get(SealsQuery).map(seals => seals.mkString("<br>")).map {
+    seals =>
       Row(
-        key   = Key(msg"newSealNumber.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(lit"$answer"),
-        actions = List(
-          Action(
-            content            = msg"site.edit",
-            href               = routes.NewSealNumberController.onPageLoad(userAnswers.id, index, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"newSealNumber.checkYourAnswersLabel"))
-          )
-        )
+        key     = Key(msg"checkYourAnswers.seals.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value   = Value(Html(seals)),
+        actions = Nil
       )
   }
 
