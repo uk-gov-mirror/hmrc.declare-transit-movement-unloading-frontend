@@ -28,7 +28,6 @@ import services.{ReferenceDataService, UnloadingPermissionService, UnloadingPerm
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import utils.UnloadingSummaryRow
 import viewModels.{SealsSection, UnloadingSummaryViewModel}
-import viewModels.sections.Section
 
 import scala.concurrent.ExecutionContext
 
@@ -56,6 +55,7 @@ class UnloadingSummaryController @Inject()(
       unloadingPermissionService.getUnloadingPermission(mrn) match {
         case Some(unloadingPermission) => {
 
+          //TODO: Move unloading summary into UnloadingSummaryViewModel
           val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(request.userAnswers)
           val sealsSection                             = SealsSection(request.userAnswers)(unloadingPermission, unloadingSummaryRow)
 
@@ -86,31 +86,8 @@ class UnloadingSummaryController @Inject()(
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
           }
 
-<<<<<<< HEAD
         }
-=======
-          val redirectUrl   = controllers.routes.CheckYourAnswersController.onPageLoad(mrn)
-          val addCommentUrl = controllers.routes.ChangesToReportController.onPageLoad(mrn, NormalMode)
-          val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
-            case Some(sealsNum) => sealsNum
-            case None =>
-              unloadingPermissionServiceImpl.convertSeals(request.userAnswers) match {
-                case Some(ua) => ua.get(DeriveNumberOfSeals).getOrElse(0)
-                case _        => 0
-              }
-          }
-          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode and also point to correct seal
 
-          val json = Json.obj(
-            "mrn"           -> mrn,
-            "redirectUrl"   -> redirectUrl.url,
-            "addCommentUrl" -> addCommentUrl.url,
-            "addSealUrl"    -> addSealUrl.url,
-            "sealsSection"  -> Json.toJson(sealsSection),
-            "sections"      -> Json.toJson(sections)
-          )
-          renderer.render("unloadingSummary.njk", json).map(Ok(_))
->>>>>>> c50b1ec... updating tests
       }
   }
 
