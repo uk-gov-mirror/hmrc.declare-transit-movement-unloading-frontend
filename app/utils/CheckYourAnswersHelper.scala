@@ -68,7 +68,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
           Action(
             content            = msg"site.edit",
             href               = routes.AreAnySealsBrokenController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"areAnySealsBroken.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"areAnySealsBroken.checkYourAnswersLabel")),
+            attributes         = Map("id" -> s"""change-any-seals-broken""")
           )
         )
       )
@@ -83,7 +84,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
           Action(
             content            = msg"site.edit",
             href               = routes.CanSealsBeReadController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"canSealsBeRead.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"canSealsBeRead.checkYourAnswersLabel")),
+            attributes         = Map("id" -> s"""change-seals-can-be-read""")
           )
         )
       )
