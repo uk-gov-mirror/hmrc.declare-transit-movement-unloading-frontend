@@ -19,7 +19,7 @@ package utils
 import java.time.format.DateTimeFormatter
 
 import controllers.routes
-import models.{CheckMode, Index, NormalMode, UserAnswers}
+import models.{CheckMode, Index, UserAnswers}
 import pages._
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList._
@@ -68,7 +68,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
           Action(
             content            = msg"site.edit",
             href               = routes.AreAnySealsBrokenController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"areAnySealsBroken.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"areAnySealsBroken.checkYourAnswersLabel")),
+            attributes         = Map("id" -> "change-are-any-seals-broken")
           )
         )
       )
@@ -83,7 +84,8 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
           Action(
             content            = msg"site.edit",
             href               = routes.CanSealsBeReadController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"canSealsBeRead.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"canSealsBeRead.checkYourAnswersLabel")),
+            attributes         = Map("id" -> "change-can-seals-be-read")
           )
         )
       )
@@ -158,7 +160,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
             content            = msg"site.edit",
             href               = routes.DateGoodsUnloadedController.onPageLoad(userAnswers.id, CheckMode).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"dateGoodsUnloaded.checkYourAnswersLabel")),
-            attributes         = Map("id" -> s"""change-date-goods-unloaded""")
+            attributes         = Map("id" -> "change-date-goods-unloaded")
           )
         )
       )
