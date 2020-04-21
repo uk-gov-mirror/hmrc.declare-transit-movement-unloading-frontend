@@ -72,7 +72,7 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
 
         val data = UnloadingSummaryViewModel(emptyUserAnswers, transportCountry)(withSeals)
 
-        data.sections.length mustBe 2
+        data.sections.length mustBe 1
         data.sections.head.sectionTitle mustBe defined
         data.sections.head.rows.length mustBe 2
       }
@@ -85,13 +85,11 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
 
         val data = UnloadingSummaryViewModel(emptyUserAnswers, transportCountry)(withSeals)
 
-        data.sections.length mustBe 3
+        data.sections.length mustBe 2
         data.sections(0).sectionTitle mustBe defined
         data.sections(0).rows.length mustBe 2
         data.sections(1).sectionTitle mustBe defined
         data.sections(1).rows.length mustBe 2
-        data.sections(2).sectionTitle mustBe defined
-        data.sections(2).rows.length mustBe 2
       }
     }
 

@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package pages
+package derivable
 
-import models.Index
-import play.api.libs.json.JsPath
+import queries.Gettable
 
-final case class NewSealNumberPage(index: Index) extends QuestionPage[String] {
+trait Derivable[A, B] extends Gettable[A] {
 
-  override def path: JsPath = JsPath \ "seals" \ index.position
+  val derive: A => B
 
-  override def toString: String = "newSealNumber"
 }
