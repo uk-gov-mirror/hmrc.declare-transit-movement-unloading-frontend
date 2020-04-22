@@ -56,10 +56,6 @@ class UnloadingSummaryController @Inject()(
       unloadingPermissionService.getUnloadingPermission(mrn) match {
         case Some(unloadingPermission) => {
 
-          //TODO: Move unloading summary into UnloadingSummaryViewModel
-          val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(request.userAnswers)
-          val sealsSection                             = SealsSection(request.userAnswers)(unloadingPermission, unloadingSummaryRow)
-
           val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
             case Some(sealsNum) => sealsNum
             case None =>
@@ -68,11 +64,12 @@ class UnloadingSummaryController @Inject()(
                 case _        => 0
               }
           }
-          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode
 
+          //TODO: need to display There are no seals. within Seals section if no seals exist
+          //<p class="govuk-body">{{ messages("unloadingSummary.noSeals") }}</p>
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
-              val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry)(unloadingPermission).sections
+              val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry, numberOfSeals)(unloadingPermission).sections
 
               val json =
                 Json.obj(
@@ -80,8 +77,6 @@ class UnloadingSummaryController @Inject()(
                   "redirectUrl"        -> redirectUrl(mrn).url,
                   "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
                   "addCommentUrl"      -> addCommentUrl(mrn).url,
-                  "addSealUrl"         -> addSealUrl.url,
-                  "sealsSection"       -> Json.toJson(sealsSection),
                   "sections"           -> Json.toJson(sections)
                 )
 

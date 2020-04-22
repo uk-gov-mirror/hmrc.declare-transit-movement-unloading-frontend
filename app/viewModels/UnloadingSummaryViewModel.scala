@@ -17,10 +17,10 @@
 package viewModels
 import cats.data.NonEmptyList
 import models.reference.Country
-import models.{Index, UnloadingPermission, UserAnswers}
+import models.{Index, MovementReferenceNumber, NormalMode, UnloadingPermission, UserAnswers}
 import pages._
 import queries.SealsQuery
-import uk.gov.hmrc.viewmodels.SummaryList.Row
+import uk.gov.hmrc.viewmodels.SummaryList.{Action, Row}
 import uk.gov.hmrc.viewmodels._
 import utils.UnloadingSummaryRow
 import viewModels.sections.Section
@@ -29,18 +29,20 @@ case class UnloadingSummaryViewModel(sections: Seq[Section])
 
 object UnloadingSummaryViewModel {
 
-  def apply(userAnswers: UserAnswers, transportCountry: Option[Country])(implicit unloadingPermission: UnloadingPermission): UnloadingSummaryViewModel = {
+  def apply(userAnswers: UserAnswers, transportCountry: Option[Country], sealCount: Int)(
+    implicit unloadingPermission: UnloadingPermission): UnloadingSummaryViewModel = {
 
     implicit val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(userAnswers)
 
-    UnloadingSummaryViewModel(TransportSection(userAnswers, transportCountry) ++ ItemsSection(userAnswers))
+    UnloadingSummaryViewModel(SealsSection(userAnswers, sealCount) ++ TransportSection(userAnswers, transportCountry) ++ ItemsSection(userAnswers))
   }
 
 }
 
 object SealsSection {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Option[Seq[Section]] =
+  def apply(userAnswers: UserAnswers, sealCount: Int)(implicit unloadingPermission: UnloadingPermission,
+                                                      unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] =
     userAnswers.get(SealsQuery) match {
       case Some(seals) => {
         val rows: Seq[Row] = seals.zipWithIndex.map(
@@ -49,7 +51,7 @@ object SealsSection {
           }
         )
 
-        Some(Seq(Section(msg"changeSeal.title", rows)))
+        Seq(Section(msg"changeSeal.title", rows, addLink(userAnswers.id, sealCount)))
       }
 
       case None =>
@@ -62,12 +64,21 @@ object SealsSection {
               }
             )
 
-            Some(Seq(Section(msg"changeSeal.title", rows)))
+            Seq(Section(msg"changeSeal.title", rows))
           }
           case None =>
-            None
+            Nil
         }
     }
+
+  private def addLink(mrn: MovementReferenceNumber, sealCount: Int): Action =
+    Action(
+      content            = msg"unloadingSummary.addSeal.link.text",
+      href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(sealCount), NormalMode).url,
+      visuallyHiddenText = Some(msg"unloadingSummary.addSeal.link.text"),
+      attributes         = Map("id" -> s"""add-seal""")
+    )
+
 }
 
 object TransportSection {
