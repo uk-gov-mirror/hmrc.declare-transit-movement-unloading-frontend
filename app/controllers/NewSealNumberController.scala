@@ -26,7 +26,7 @@ import navigation.Navigator
 import pages.NewSealNumberPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import repositories.SessionRepository
 import services.UnloadingPermissionServiceImpl
@@ -83,9 +83,7 @@ class NewSealNumberController @Inject()(
             .bindFromRequest()
             .fold(
               formWithErrors => {
-
                 val json = Json.obj("form" -> formWithErrors, "mrn" -> mrn, "mode" -> mode)
-
                 renderer.render("newSealNumber.njk", json).map(BadRequest(_))
               },
               value =>

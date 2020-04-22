@@ -90,6 +90,7 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
   //TODO: to test the view
   def getUnloadingPermission(mrn: MovementReferenceNumber): Option[UnloadingPermission] = mrn.toString match {
     case "19IT02110010007827" => Some(unloadingPermissionSeals)
+    case "41IT02110010007825" => None
     case _                    => Some(unloadingPermissionNoSeals)
   }
 
@@ -100,7 +101,7 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
           userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
         case _ => Some(userAnswers)
       }
-    case _ => Some(userAnswers)
+    case _ => None
   }
 }
 
