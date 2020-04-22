@@ -33,7 +33,7 @@ class DateGoodsUnloadedFormProviderSpec extends DateBehaviours {
     )
 
     behave like dateField(form, "value", validData)
-   
+
     behave like mandatoryDateField(form, "value", "dateGoodsUnloaded.error.required.all")
 
   }
