@@ -21,6 +21,7 @@ import models.reference.Country
 import models.{Index, Mode, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import pages._
 import play.api.i18n.Messages
+import queries.SealsQuery
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Row}
 import utils.{CheckYourAnswersHelper, UnloadingSummaryRow}
 import viewModels.sections.Section
@@ -40,7 +41,11 @@ object CheckYourAnswersViewModel {
     val rowCanSealsBeRead: Option[Row]    = checkYourAnswersRow.canSealsBeRead
     val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
 
-    val seals: Option[Row] = checkYourAnswersRow.seals
+    val seals: Option[Row] = (userAnswers.get(SealsQuery), unloadingPermission.seals) match {
+      case (Some(userAnswersSeals), _)            => checkYourAnswersRow.seals(userAnswersSeals)
+      case (None, Some(unloadingPermissionSeals)) => checkYourAnswersRow.seals(unloadingPermissionSeals.SealId)
+      case (_, _)                                 => None
+    }
 
     val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
     val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)

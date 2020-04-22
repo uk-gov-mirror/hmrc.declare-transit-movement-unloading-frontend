@@ -90,13 +90,15 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
       )
   }
 
-  def seals: Option[Row] = userAnswers.get(SealsQuery).map(seals => seals.mkString("<br>")).map {
-    seals =>
-      Row(
-        key     = Key(msg"checkYourAnswers.seals.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value   = Value(Html(seals)),
-        actions = Nil
-      )
+  def seals(seals: Seq[String]): Option[Row] = seals match {
+    case _ :: _ =>
+      Some(
+        Row(
+          key     = Key(msg"checkYourAnswers.seals.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+          value   = Value(Html(seals.mkString("<br>"))),
+          actions = Nil
+        ))
+    case _ => None
   }
 
   def grossMassAmount: Option[Row] = userAnswers.get(GrossMassAmountPage) map {
