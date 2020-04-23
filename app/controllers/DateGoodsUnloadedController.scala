@@ -49,7 +49,7 @@ class DateGoodsUnloadedController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  val form = formProvider()
+  private def form = formProvider()
 
   def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
