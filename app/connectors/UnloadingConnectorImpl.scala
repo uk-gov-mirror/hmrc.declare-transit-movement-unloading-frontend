@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.{Inject, Singleton}
 import config.FrontendAppConfig
-import models.{Movement, MovementReferenceNumber}
+import models.Movement
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -31,16 +31,13 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     * Connector SHOULD
     * - Consider returning more meaningful responses on failure (when we write the calling service)
     */
-  def get(mrn: MovementReferenceNumber)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Seq[Movement]]] = {
+  def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]] = {
 
-    val url = config.arrivalsBackend ++ mrn.toString
+    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.toString}/messages/"
 
     http
-      .GET[Seq[Movement]](url)
-      .map {
-        case Nil => None
-        case x   => Some(x)
-      }
+      .GET[Movement](url)
+      .map(x => Some(x))
       .recover {
         case _ => None
       }
@@ -49,5 +46,5 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 }
 
 trait UnloadingConnector {
-  def get(mrn: MovementReferenceNumber)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Seq[Movement]]]
+  def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]]
 }

@@ -18,9 +18,14 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class Movement(messages: String)
+case class Movement(messages: Seq[Message])
 
 object Movement {
   implicit val formats: OFormat[Movement] = Json.format[Movement]
+}
 
+case class Message(messageType: String, message: String)
+
+object Message {
+  implicit val formats: OFormat[Message] = Json.format[Message]
 }
