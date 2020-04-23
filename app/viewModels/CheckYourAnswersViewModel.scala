@@ -18,14 +18,14 @@ package viewModels
 import cats.data.NonEmptyList
 import controllers.routes
 import models.reference.Country
-import models.{Index, Mode, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import pages._
 import play.api.i18n.Messages
 import queries.SealsQuery
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Row}
+import uk.gov.hmrc.viewmodels._
 import utils.{CheckYourAnswersHelper, UnloadingSummaryRow}
 import viewModels.sections.Section
-import uk.gov.hmrc.viewmodels._
 
 case class CheckYourAnswersViewModel(sections: Seq[Section])
 

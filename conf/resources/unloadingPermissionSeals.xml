@@ -13,8 +13,8 @@
     <TypOfDecHEA24>T1</TypOfDecHEA24>
     <CouOfDesCodHEA30>GB</CouOfDesCodHEA30>
     <CouOfDisCodHEA55>IT</CouOfDisCodHEA55>
-    <IdeOfMeaOfTraAtDHEA78>abcd</IdeOfMeaOfTraAtDHEA78>
-    <NatOfMeaOfTraAtDHEA80>IT</NatOfMeaOfTraAtDHEA80>
+    <IdeOfMeaOfTraAtDHEA78>NX56RTA</IdeOfMeaOfTraAtDHEA78>
+    <NatOfMeaOfTraAtDHEA80>GB</NatOfMeaOfTraAtDHEA80>
     <ConIndHEA96>0</ConIndHEA96>
     <AccDatHEA158>20190912</AccDatHEA158>
     <TotNumOfIteHEA305>1</TotNumOfIteHEA305>
@@ -54,11 +54,38 @@
 <CUSOFFPREOFFRES><RefNumRES1>GB000060</RefNumRES1>
 </CUSOFFPREOFFRES>
 <SEAINFSLI><SeaNumSLI2>1</SeaNumSLI2>
-    <SEAIDSID><SeaIdeSID1>Seals01</SeaIdeSID1>
+    <SEAIDSID>
+        <SeaIdeSID1>Seals01</SeaIdeSID1>
+    </SEAIDSID>
+    <SEAIDSID>
+        <SeaIdeSID1>Seals02</SeaIdeSID1>
     </SEAIDSID>
 </SEAINFSLI>
 <GOOITEGDS><IteNumGDS7>1</IteNumGDS7>
     <GooDesGDS23>Flowers</GooDesGDS23>
+    <GroMasGDS46>1000</GroMasGDS46>
+    <NetMasGDS48>999</NetMasGDS48>
+    <PRODOCDC2><DocTypDC21>235</DocTypDC21>
+        <DocRefDC23>Ref.</DocRefDC23>
+    </PRODOCDC2>
+    <CONNR2>
+        <ConNumNR21>container 1</ConNumNR21>
+    </CONNR2>
+    <CONNR2>
+        <ConNumNR21>container 2</ConNumNR21>
+    </CONNR2>
+    <PACGS2>
+        <MarNumOfPacGS21>Ref.</MarNumOfPacGS21>
+        <KinOfPacGS23>BX</KinOfPacGS23>
+        <NumOfPacGS24>1</NumOfPacGS24>
+    </PACGS2>
+    <SGICODSD2>
+        <SenGooCodSD22>1</SenGooCodSD22>
+        <SenQuaSD23>1</SenQuaSD23>
+    </SGICODSD2>
+</GOOITEGDS>
+<GOOITEGDS><IteNumGDS7>1</IteNumGDS7>
+    <GooDesGDS23>Chocolates</GooDesGDS23>
     <GroMasGDS46>1000</GroMasGDS46>
     <NetMasGDS48>999</NetMasGDS48>
     <PRODOCDC2><DocTypDC21>235</DocTypDC21>

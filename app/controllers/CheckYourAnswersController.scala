@@ -19,7 +19,6 @@ package controllers
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import models.MovementReferenceNumber
-import models.reference.Country
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -27,7 +26,7 @@ import renderer.Renderer
 import services.{ReferenceDataService, UnloadingPermissionService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewModels.{CheckYourAnswersViewModel, UnloadingSummaryViewModel}
+import viewModels.CheckYourAnswersViewModel
 import viewModels.sections.Section
 
 import scala.concurrent.ExecutionContext
@@ -52,46 +51,22 @@ class CheckYourAnswersController @Inject()(
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
       unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
-        response =>
-          response match {
-            case Some(unloadingPermission) => {
+        case Some(unloadingPermission) => {
 
-              referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
-                transportCountry =>
-                  val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
+          referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
+            transportCountry =>
+              val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
 
-                  val answers: Seq[Section] = viewModel.sections
+              val answers: Seq[Section] = viewModel.sections
 
-                  renderer
-                    .render(
-                      "check-your-answers.njk",
-                      Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
-                    )
-                    .map(Ok(_))
-              }
-            }
+              renderer
+                .render(
+                  "check-your-answers.njk",
+                  Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
+                )
+                .map(Ok(_))
           }
+        }
       }
   }
-//  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
-//    implicit request =>
-//      unloadingPermissionService.getUnloadingPermission(mrn) match {
-//        case Some(unloadingPermission) => {
-//
-//          referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
-//            transportCountry =>
-//              val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
-//
-//              val answers: Seq[Section] = viewModel.sections
-//
-//              renderer
-//                .render(
-//                  "check-your-answers.njk",
-//                  Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
-//                )
-//                .map(Ok(_))
-//          }
-//        }
-//      }
-//  }
 }
