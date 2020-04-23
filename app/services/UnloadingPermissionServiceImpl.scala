@@ -17,13 +17,16 @@
 package services
 import cats.data.NonEmptyList
 import com.google.inject.{Inject, Singleton}
+import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
 import models.{GoodsItem, Index, MovementReferenceNumber, Packages, ProducedDocument, Seals, TraderAtDestinationWithEori, UnloadingPermission, UserAnswers}
 import pages.NewSealNumberPage
 import queries.SealsQuery
+import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
+import scala.xml.XML
 
 @Singleton
 class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) extends UnloadingPermissionService {
@@ -88,23 +91,53 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
 
   //TODO: This will call the connector but can initially hard code UnloadingPermission
   //TODO: to test the view
-  def getUnloadingPermission(mrn: MovementReferenceNumber): Option[UnloadingPermission] = mrn.toString match {
-    case "19IT02110010007827" => Some(unloadingPermissionSeals)
-    case "41IT02110010007825" => None
-    case _                    => Some(unloadingPermissionNoSeals)
+  def getUnloadingPermission(mrn: MovementReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
+
+    val arrivalID = mrn.toString match {
+      case "19IT02110010007827" => 1
+      case "41IT02110010007825" => 2
+      case _                    => 3
+    }
+
+    connector.get(arrivalID).map {
+      case Some(x) => {
+        XmlReader.of[UnloadingPermission].read(XML.loadString(x.messages.head.message)) match {
+          case ParseSuccess(unloadingPermission) => Some(unloadingPermission) //Some(unloadingPermissionSeals)
+          case _                                 => None
+        }
+      }
+      case None => None
+    }
+
   }
 
-  def convertSeals(userAnswers: UserAnswers): Option[UserAnswers] = getUnloadingPermission(userAnswers.id) match {
-    case Some(unloadingPermission) =>
-      unloadingPermission.seals match {
-        case Some(seals) =>
-          userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
-        case _ => Some(userAnswers)
-      }
-    case _ => None
-  }
+//  def convertSeals(userAnswers: UserAnswers): Option[UserAnswers] = getUnloadingPermission(userAnswers.id) match {
+//    case Some(unloadingPermission) =>
+//      unloadingPermission.seals match {
+//        case Some(seals) =>
+//          userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
+//        case _ => Some(userAnswers)
+//      }
+//    case _ => None
+//  }
+
+  //TODO: Refactor
+  def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]] =
+    getUnloadingPermission(userAnswers.id).flatMap {
+      x =>
+        x match {
+          case Some(unloadingPermission) =>
+            unloadingPermission.seals match {
+              case Some(seals) =>
+                Future.successful(userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption)
+              case _ => Future.successful(Some(userAnswers))
+            }
+          case _ => Future.successful(None)
+        }
+    }
 }
 
 trait UnloadingPermissionService {
-  def getUnloadingPermission(mrn: MovementReferenceNumber): Option[UnloadingPermission]
+  def getUnloadingPermission(mrn: MovementReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]]
+  def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]]
 }

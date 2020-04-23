@@ -29,7 +29,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import repositories.SessionRepository
-import services.UnloadingPermissionServiceImpl
+import services.{UnloadingPermissionService, UnloadingPermissionServiceImpl}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -45,7 +45,7 @@ class NewSealNumberController @Inject()(
   formProvider: NewSealNumberFormProvider,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
-  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl,
+  unloadingPermissionService: UnloadingPermissionService,
   errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -72,12 +72,12 @@ class NewSealNumberController @Inject()(
 
   def onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val userAnswers: Option[UserAnswers] = request.userAnswers.get(DeriveNumberOfSeals) match {
-        case Some(_) => Some(request.userAnswers)
-        case None    => unloadingPermissionServiceImpl.convertSeals(request.userAnswers).map(ua => ua)
+      val userAnswers: Future[Option[UserAnswers]] = request.userAnswers.get(DeriveNumberOfSeals) match {
+        case Some(_) => Future.successful(Some(request.userAnswers))
+        case None    => unloadingPermissionService.convertSeals(request.userAnswers)
       }
 
-      userAnswers match {
+      userAnswers.flatMap {
         case Some(ua) =>
           form
             .bindFromRequest()
@@ -94,8 +94,8 @@ class NewSealNumberController @Inject()(
             )
         case _ =>
           errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
-
       }
 
   }
+
 }

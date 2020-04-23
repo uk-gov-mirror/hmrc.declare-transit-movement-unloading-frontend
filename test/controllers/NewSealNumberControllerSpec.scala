@@ -115,6 +115,9 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
         when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
+        when(mockUnloadingPermissionService.convertSeals(any())(any(), any()))
+          .thenReturn(Future.successful(Some(emptyUserAnswers)))
+
         val application =
           applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(

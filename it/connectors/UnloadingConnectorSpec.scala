@@ -18,7 +18,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
   override protected def portConfigKey: String = "microservice.services.arrivals-backend.port"
 
-  private lazy val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+  private lazy val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnectorImpl]
 
   implicit val hc = HeaderCarrier()
 
@@ -34,9 +34,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
               .willReturn(okJson(unloadingJson)
               ))
 
-          connector.get(arrivalId).futureValue mustBe Some(Movement(
-            Seq(Message("IE043E", "<CC043A></CC043A>"))
-          ))
+          connector.get(arrivalId).futureValue mustBe an[Option[Movement]]
         }
 
         "containing multiple messages" in {
@@ -45,9 +43,10 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
               .willReturn(okJson(jsonMultiple)
               ))
 
-          connector.get(arrivalId).futureValue mustBe Some(Movement(
-            Seq(Message("IE015E", "<CC015A></CC015A>"), Message("IE043E", "<CC043A></CC043A>"))
-          ))
+          val movement = connector.get(arrivalId).futureValue
+          movement.get.messages.length mustBe 2
+          movement.get.messages(0).messageType mustBe "IE015E"
+          movement.get.messages(1).messageType mustBe "IE043E"
         }
       }
 
@@ -118,7 +117,7 @@ object UnloadingConnectorSpec {
     """.stripMargin
 
   private val emptyObject: String = JsObject.empty.toString()
-  private val arrivalId = 1234
+  private val arrivalId = 1
   private val uri = s"/transit-movements-trader-at-destination/movements/arrivals/$arrivalId/messages/"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)

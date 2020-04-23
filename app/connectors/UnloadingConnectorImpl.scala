@@ -18,11 +18,12 @@ package connectors
 
 import com.google.inject.{Inject, Singleton}
 import config.FrontendAppConfig
-import models.Movement
+import models.{Message, Movement}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.xml.{Elem, XML}
 
 @Singleton
 class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient) extends UnloadingConnector {
@@ -41,6 +42,21 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
       .recover {
         case _ => None
       }
+  }
+
+}
+
+//TODO: This needs removing and UnloadingConnectorImpl needs injecting once backend is available
+@Singleton
+class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val http: HttpClient) extends UnloadingConnector {
+
+  val unloadingPermissionSeals: Elem   = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionSeals.xml"))
+  val unloadingPermissionNoSeals: Elem = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionNoSeals.xml"))
+
+  def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]] = arrivalId match {
+    case 1 => Future.successful(Some(Movement(Seq(Message(messageType = "IE043A", message = unloadingPermissionSeals.toString())))))
+    case 2 => Future.successful(Some(Movement(Seq(Message(messageType = "IE043A", message = unloadingPermissionNoSeals.toString())))))
+    case _ => Future.successful(None)
   }
 
 }

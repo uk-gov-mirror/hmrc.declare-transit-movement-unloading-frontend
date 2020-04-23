@@ -51,23 +51,47 @@ class CheckYourAnswersController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn) match {
-        case Some(unloadingPermission) => {
+      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
+        response =>
+          response match {
+            case Some(unloadingPermission) => {
 
-          referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
-            transportCountry =>
-              val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
+              referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
+                transportCountry =>
+                  val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
 
-              val answers: Seq[Section] = viewModel.sections
+                  val answers: Seq[Section] = viewModel.sections
 
-              renderer
-                .render(
-                  "check-your-answers.njk",
-                  Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
-                )
-                .map(Ok(_))
+                  renderer
+                    .render(
+                      "check-your-answers.njk",
+                      Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
+                    )
+                    .map(Ok(_))
+              }
+            }
           }
-        }
       }
   }
+//  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+//    implicit request =>
+//      unloadingPermissionService.getUnloadingPermission(mrn) match {
+//        case Some(unloadingPermission) => {
+//
+//          referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
+//            transportCountry =>
+//              val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
+//
+//              val answers: Seq[Section] = viewModel.sections
+//
+//              renderer
+//                .render(
+//                  "check-your-answers.njk",
+//                  Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
+//                )
+//                .map(Ok(_))
+//          }
+//        }
+//      }
+//  }
 }

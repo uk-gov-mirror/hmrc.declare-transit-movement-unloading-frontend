@@ -94,12 +94,10 @@ class DateGoodsUnloadedController @Inject()(
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn)).set(DateGoodsUnloadedPage, value))
-              _              <- sessionRepository.set(updatedAnswers)
+              updatedAnswers      <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn)).set(DateGoodsUnloadedPage, value))
+              _                   <- sessionRepository.set(updatedAnswers)
+              unloadingPermission <- unloadingPermissionService.getUnloadingPermission(mrn)
             } yield {
-
-              val unloadingPermission: Option[UnloadingPermission] = unloadingPermissionService.getUnloadingPermission(mrn)
-
               Redirect(navigator.nextPage(DateGoodsUnloadedPage, mode, updatedAnswers, unloadingPermission))
           }
         )

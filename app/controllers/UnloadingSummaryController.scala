@@ -55,44 +55,49 @@ class UnloadingSummaryController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn) match {
-        case Some(unloadingPermission) => {
+      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
+        x =>
+          x match {
+            case Some(unloadingPermission) => {
 
-          //TODO: Move unloading summary into UnloadingSummaryViewModel
-          val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(request.userAnswers)
-          val sealsSection                             = SealsSection(request.userAnswers)(unloadingPermission, unloadingSummaryRow)
+              //TODO: Move unloading summary into UnloadingSummaryViewModel
+              val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(request.userAnswers)
+              val sealsSection                             = SealsSection(request.userAnswers)(unloadingPermission, unloadingSummaryRow)
 
-          val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
-            case Some(sealsNum) => sealsNum
-            case None =>
-              unloadingPermissionServiceImpl.convertSeals(request.userAnswers) match {
-                case Some(ua) => ua.get(DeriveNumberOfSeals).getOrElse(0)
-                case _        => 0
+//            val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
+//              case Some(sealsNum) => sealsNum
+//              case None =>
+//                unloadingPermissionServiceImpl.convertSeals(request.userAnswers) match {
+//                  case Some(ua) => ua.get(DeriveNumberOfSeals).getOrElse(0)
+//                  case _        => 0
+//                }
+//            }
+              val numberOfSeals = 0
+              val addSealUrl    = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode
+
+              referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
+                transportCountry =>
+                  val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry)(unloadingPermission).sections
+
+                  val json =
+                    Json.obj(
+                      "mrn"                -> mrn,
+                      "redirectUrl"        -> redirectUrl(mrn).url,
+                      "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
+                      "addCommentUrl"      -> addCommentUrl(mrn).url,
+                      "addSealUrl"         -> addSealUrl.url,
+                      "sealsSection"       -> Json.toJson(sealsSection),
+                      "sections"           -> Json.toJson(sections)
+                    )
+
+                  renderer.render("unloadingSummary.njk", json).map(Ok(_))
               }
+
+            }
+            case _ =>
+              errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
+
           }
-          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode
-
-          referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
-            transportCountry =>
-              val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry)(unloadingPermission).sections
-
-              val json =
-                Json.obj(
-                  "mrn"                -> mrn,
-                  "redirectUrl"        -> redirectUrl(mrn).url,
-                  "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
-                  "addCommentUrl"      -> addCommentUrl(mrn).url,
-                  "addSealUrl"         -> addSealUrl.url,
-                  "sealsSection"       -> Json.toJson(sealsSection),
-                  "sections"           -> Json.toJson(sections)
-                )
-
-              renderer.render("unloadingSummary.njk", json).map(Ok(_))
-          }
-
-        }
-        case _ =>
-          errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
 
       }
   }
