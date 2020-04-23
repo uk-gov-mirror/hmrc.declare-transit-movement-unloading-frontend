@@ -53,9 +53,10 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
 
       "return None when ID doesn't return an unloading permission" in {
         val mrn: MovementReferenceNumber = MovementReferenceNumber("41", "IT", "0211001000782")
+        val arrivalId: Int               = 1
         val userAnswers                  = UserAnswers(mrn, Json.obj())
 
-        when(mockConnector.get(eqTo(mrn))(any(), any()))
+        when(mockConnector.get(eqTo(arrivalId))(any(), any()))
           .thenReturn(Future.successful(None))
 
         service.convertSeals(userAnswers) mustBe None
