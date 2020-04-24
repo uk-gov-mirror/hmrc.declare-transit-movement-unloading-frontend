@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.{Message, Movement}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -25,7 +25,6 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.{Elem, XML}
 
-@Singleton
 class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient) extends UnloadingConnector {
 
   /**
@@ -47,7 +46,6 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 }
 
 //TODO: This needs removing and UnloadingConnectorImpl needs injecting once backend is available
-@Singleton
 class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val http: HttpClient) extends UnloadingConnector {
 
   val unloadingPermissionSeals: Elem   = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionSeals.xml"))

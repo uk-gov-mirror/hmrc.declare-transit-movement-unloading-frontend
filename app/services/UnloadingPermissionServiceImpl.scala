@@ -25,7 +25,6 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.XML
 
-@Singleton
 class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) extends UnloadingPermissionService {
 
   //TODO: When uri is updated to arrivalId the getUnloadingPermission argument needs updating
@@ -39,15 +38,13 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
     }
 
     connector.get(arrivalID).map {
-      case Some(x) => {
-        XmlReader.of[UnloadingPermission].read(XML.loadString(x.messages.head.message)) match {
-          case ParseSuccess(unloadingPermission) => Some(unloadingPermission) //Some(unloadingPermissionSeals)
+      case Some(movement) =>
+        XmlReader.of[UnloadingPermission].read(XML.loadString(movement.messages.head.message)) match {
+          case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
           case _                                 => None
         }
-      }
       case None => None
     }
-
   }
 
   //TODO: Refactor
@@ -67,7 +64,6 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
       case Some(seals) =>
         userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
       case _ => Some(userAnswers)
-      case _ => None
     }
 }
 

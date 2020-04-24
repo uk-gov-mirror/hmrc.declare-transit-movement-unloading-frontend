@@ -34,7 +34,10 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
               .willReturn(okJson(unloadingJson)
               ))
 
-          connector.get(arrivalId).futureValue mustBe an[Option[Movement]]
+          val movement = connector.get(arrivalId).futureValue
+          movement.get.messages.length mustBe 1
+          movement.get.messages.head.messageType mustBe "IE043E"
+          movement.get.messages.head.message mustBe "<CC043A></CC043A>"
         }
 
         "containing multiple messages" in {
@@ -46,7 +49,9 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
           val movement = connector.get(arrivalId).futureValue
           movement.get.messages.length mustBe 2
           movement.get.messages(0).messageType mustBe "IE015E"
+          movement.get.messages(0).message mustBe "<CC015A></CC015A>"
           movement.get.messages(1).messageType mustBe "IE043E"
+          movement.get.messages(1).message mustBe "<CC043A></CC043A>"
         }
       }
 
