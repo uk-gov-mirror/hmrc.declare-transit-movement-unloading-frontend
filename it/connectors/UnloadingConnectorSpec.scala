@@ -1,7 +1,6 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.{Message, Movement, MovementReferenceNumber}
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{FreeSpec, MustMatchers}

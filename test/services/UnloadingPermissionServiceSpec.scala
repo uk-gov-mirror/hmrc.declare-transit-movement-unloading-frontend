@@ -16,7 +16,7 @@
 
 package services
 import connectors.UnloadingConnector
-import models.{Message, Movement, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{Movement, MovementMessage, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -40,20 +40,21 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
     //TODO: This needs more tests adding when we're calling connector
     "must return UnloadingPermission" in {
 
-      when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(Message(messageType = "IE043A", message = ie043Message))))))
+      when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
       service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Option[UnloadingPermission]]
     }
 
     "convertSeals" - {
       "return the same userAnswers when given an ID with no Seals" in {
-        when(mockConnector.get(any())(any(), any())).thenReturn(Future.successful(Some(Movement(Seq(Message(messageType = "IE043A", message = ie043Message))))))
+        when(mockConnector.get(any())(any(), any()))
+          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
         val mrn: MovementReferenceNumber = MovementReferenceNumber("22", "IT", "0211001000782")
         val userAnswers                  = UserAnswers(mrn, Json.obj())
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswers)
       }
 
       "return updated userAnswers when given an ID with seals" in {
-        when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(Message(messageType = "IE043A", message = ie043MessageSeals))))))
+        when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043MessageSeals))))))
         val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "IT", "0211001000782")
         val userAnswers                  = UserAnswers(mrn, Json.obj())
         val userAnswersWithSeals         = UserAnswers(mrn, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)
