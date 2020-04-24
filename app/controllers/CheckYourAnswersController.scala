@@ -19,7 +19,6 @@ package controllers
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import models.MovementReferenceNumber
-import models.reference.Country
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -27,7 +26,7 @@ import renderer.Renderer
 import services.{ReferenceDataService, UnloadingPermissionService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import viewModels.{CheckYourAnswersViewModel, UnloadingSummaryViewModel}
+import viewModels.CheckYourAnswersViewModel
 import viewModels.sections.Section
 
 import scala.concurrent.ExecutionContext
@@ -51,7 +50,7 @@ class CheckYourAnswersController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn) match {
+      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
         case Some(unloadingPermission) => {
 
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {

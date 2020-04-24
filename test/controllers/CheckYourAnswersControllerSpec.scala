@@ -17,14 +17,15 @@
 package controllers
 
 import base.SpecBase
+import cats.data.NonEmptyList
+import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
+import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import uk.gov.hmrc.viewmodels.SummaryList
 
 import scala.concurrent.Future
 
@@ -33,6 +34,8 @@ class CheckYourAnswersControllerSpec extends SpecBase {
   "Check Your Answers Controller" - {
 
     "must return OK and the correct view for a GET" in {
+
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
