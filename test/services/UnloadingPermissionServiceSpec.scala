@@ -38,14 +38,15 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
   "UnloadingPermissionService" - {
 
     "getUnloadingPermission" - {
+
       //TODO: This needs more tests adding when we're calling connector
-      "must return UnloadingPermission when IE0043 message exists" ignore {
+      "must return UnloadingPermission when IE0043 message exists" in {
 
         when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
-        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Option[UnloadingPermission]]
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Some[_]]
       }
 
-      "must return UnloadingPermission when invalid message exists" ignore {
+      "must return UnloadingPermission when invalid message exists" in {
 
         when(mockConnector.get(1: Int))
           .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = goodsReleasedMessage))))))
@@ -56,7 +57,7 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
 
         when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(
           Seq(MovementMessage(messageType = "IE007A", message = "<CC007A></CC007A>"), MovementMessage(messageType = "IE043A", message = ie043Message))))))
-        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Option[UnloadingPermission]]
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Some[_]]
       }
 
       "must return None when no message exists in the movement" in {

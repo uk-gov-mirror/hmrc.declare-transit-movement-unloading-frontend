@@ -39,14 +39,12 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
 
     connector.get(arrivalID).map {
       case Some(Movement(messages)) =>
-        print(messages)
-        messages match {
-          case head :: _ => {
+        messages.reverse match {
+          case head :: _ =>
             XmlReader.of[UnloadingPermission].read(XML.loadString(head.message)) match {
               case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
               case _                                 => None //TODO: Consider what happens when the message isn't unloading permission
             }
-          }
           case _ => None
         }
 
