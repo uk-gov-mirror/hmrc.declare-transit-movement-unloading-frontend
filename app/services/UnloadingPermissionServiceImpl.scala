@@ -18,7 +18,7 @@ package services
 import com.google.inject.{Inject, Singleton}
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
-import models.{MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{Movement, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import queries.SealsQuery
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -38,11 +38,18 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
     }
 
     connector.get(arrivalID).map {
-      case Some(movement) =>
-        XmlReader.of[UnloadingPermission].read(XML.loadString(movement.messages.head.message)) match {
-          case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
-          case _                                 => None
+      case Some(Movement(messages)) =>
+        print(messages)
+        messages match {
+          case head :: _ => {
+            XmlReader.of[UnloadingPermission].read(XML.loadString(head.message)) match {
+              case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
+              case _                                 => None //TODO: Consider what happens when the message isn't unloading permission
+            }
+          }
+          case _ => None
         }
+
       case None => None
     }
   }
