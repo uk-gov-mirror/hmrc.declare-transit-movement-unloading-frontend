@@ -45,6 +45,7 @@ class SectionSpec extends FreeSpec with MustMatchers with NunjucksSupport with G
       val value        = Value(lit"bar")
       val action       = Action(lit"baz", "quux")
       val sectionTitle = lit"Section title"
+      val actionSingle = Action(lit"baz", "delete")
 
       val expectedSection = Json.obj(
         "sectionTitle" -> sectionTitle.resolve,
@@ -58,7 +59,8 @@ class SectionSpec extends FreeSpec with MustMatchers with NunjucksSupport with G
               )
             )
           )
-        )
+        ),
+        "action" -> actionSingle
       )
 
       val section = Section(
@@ -71,14 +73,15 @@ class SectionSpec extends FreeSpec with MustMatchers with NunjucksSupport with G
               action
             )
           )
-        )
+        ),
+        Some(actionSingle)
       )
 
       Json.toJson(section) mustBe expectedSection
     }
 
     "must serialise empty section" in {
-      Json.toJson(Section(None, Nil)) mustBe Json.obj("sectionTitle" -> JsNull, "rows" -> Json.arr())
+      Json.toJson(Section(None, Nil, None)) mustBe Json.obj("sectionTitle" -> JsNull, "rows" -> Json.arr(), "action" -> JsNull)
     }
   }
 
