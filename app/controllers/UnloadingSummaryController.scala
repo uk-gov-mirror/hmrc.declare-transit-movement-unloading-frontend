@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions._
 import derivable.DeriveNumberOfSeals
+import handlers.ErrorHandler
 import javax.inject.Inject
 import models.{Index, MovementReferenceNumber, NormalMode}
 import pages.ChangesToReportPage
@@ -41,7 +42,8 @@ class UnloadingSummaryController @Inject()(
   renderer: Renderer,
   unloadingPermissionService: UnloadingPermissionService,
   referenceDataService: ReferenceDataService,
-  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl
+  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -53,13 +55,13 @@ class UnloadingSummaryController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn) match {
+      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
         case Some(unloadingPermission) => {
 
           val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
             case Some(sealsNum) => sealsNum
             case None =>
-              unloadingPermissionServiceImpl.convertSeals(request.userAnswers) match {
+              unloadingPermissionServiceImpl.convertSeals(request.userAnswers, unloadingPermission) match {
                 case Some(ua) => ua.get(DeriveNumberOfSeals).getOrElse(0)
                 case _        => 0
               }
@@ -82,8 +84,9 @@ class UnloadingSummaryController @Inject()(
 
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
           }
-
         }
+        case _ =>
+          errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
 
       }
   }

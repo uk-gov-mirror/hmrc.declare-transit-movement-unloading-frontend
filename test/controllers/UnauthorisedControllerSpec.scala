@@ -21,7 +21,6 @@ import matchers.JsonMatchers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -37,8 +36,6 @@ class UnauthorisedControllerSpec extends SpecBase with JsonMatchers {
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val expectedJson = Json.obj("loginHmrcService" -> frontendAppConfig.loginHmrcServiceUrl)
-
       val application = applicationBuilder(userAnswers = None).build()
 
       val request = FakeRequest(GET, routes.UnauthorisedController.onPageLoad().url)
@@ -48,12 +45,10 @@ class UnauthorisedControllerSpec extends SpecBase with JsonMatchers {
       status(result) mustEqual OK
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
       templateCaptor.getValue mustEqual "unauthorised.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
     }

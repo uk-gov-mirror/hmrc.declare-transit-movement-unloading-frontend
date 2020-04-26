@@ -17,7 +17,7 @@
 package config
 
 import com.google.inject.AbstractModule
-import connectors.{UnloadingConnector, UnloadingConnectorImpl}
+import connectors.{UnloadingConnector, UnloadingConnectorImpl, UnloadingConnectorTemporary}
 import controllers.actions._
 import repositories.{DefaultSessionRepository, SessionRepository}
 import services.{ReferenceDataService, ReferenceDataServiceImpl, UnloadingPermissionService, UnloadingPermissionServiceImpl}
@@ -36,7 +36,9 @@ class Module extends AbstractModule {
 
     bind(classOf[SessionRepository]).to(classOf[DefaultSessionRepository]).asEagerSingleton()
 
-    bind(classOf[UnloadingConnector]).to(classOf[UnloadingConnectorImpl]).asEagerSingleton()
+    //TODO: When connector is working this needs to go back in
+//    bind(classOf[UnloadingConnector]).to(classOf[UnloadingConnectorImpl]).asEagerSingleton()
+    bind(classOf[UnloadingConnector]).to(classOf[UnloadingConnectorTemporary]).asEagerSingleton()
 
     bind(classOf[UnloadingPermissionService]).to(classOf[UnloadingPermissionServiceImpl]).asEagerSingleton()
 

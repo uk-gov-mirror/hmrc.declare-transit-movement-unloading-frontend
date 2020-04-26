@@ -134,6 +134,8 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
 
     "must redirect to the next page when valid data is submitted" in {
 
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
+
       val mockSessionRepository = mock[SessionRepository]
 
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
@@ -219,6 +221,8 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
     }
 
     "must redirect to the next page when if no existing data is found" in {
+
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
 
       val mockSessionRepository = mock[SessionRepository]
 

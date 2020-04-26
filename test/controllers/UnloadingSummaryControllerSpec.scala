@@ -36,6 +36,8 @@ class UnloadingSummaryControllerSpec extends SpecBase with MockitoSugar with Jso
 
     "return OK and the correct view for a GET" in {
 
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
+
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
