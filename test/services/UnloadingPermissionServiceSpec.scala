@@ -37,11 +37,38 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
 
   "UnloadingPermissionService" - {
 
-    //TODO: This needs more tests adding when we're calling connector
-    "must return UnloadingPermission" in {
+    "getUnloadingPermission" - {
 
-      when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
-      service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Option[UnloadingPermission]]
+      //TODO: This needs more tests adding when we're calling connector
+      "must return UnloadingPermission when IE0043 message exists" in {
+
+        when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Some[_]]
+      }
+
+      "must return UnloadingPermission when invalid message exists" in {
+
+        when(mockConnector.get(1: Int))
+          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = goodsReleasedMessage))))))
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe None
+      }
+
+      "must return UnloadingPermission when multiple messages exists" in {
+
+        when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(
+          Seq(MovementMessage(messageType = "IE007A", message = "<CC007A></CC007A>"), MovementMessage(messageType = "IE043A", message = ie043Message))))))
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe a[Some[_]]
+      }
+
+      "must return None when no message exists in the movement" in {
+        when(mockConnector.get(1: Int)).thenReturn(Future.successful(Some(Movement(Seq.empty))))
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe None
+      }
+
+      "must return None when no movement exists" in {
+        when(mockConnector.get(1: Int)).thenReturn(Future.successful(None))
+        service.getUnloadingPermission(MovementReferenceNumber("19IT02110010007827").get).futureValue mustBe None
+      }
     }
 
     "convertSeals" - {
@@ -230,4 +257,29 @@ object UnloadingPermissionServiceSpec {
                |    </GOOITEGDS>
                |</CC043A>
                |""".stripMargin
+
+  val goodsReleasedMessage = """<CC025A><SynIdeMES1>UNOC</SynIdeMES1>
+               |    <SynVerNumMES2>3</SynVerNumMES2>
+               |    <MesSenMES3>NTA.GB</MesSenMES3>
+               |    <MesRecMES6>SYST17B-NCTS_EU_EXIT</MesRecMES6>
+               |    <DatOfPreMES9>20190912</DatOfPreMES9>
+               |    <TimOfPreMES10>1510</TimOfPreMES10>
+               |    <IntConRefMES11>70390912151020</IntConRefMES11>
+               |    <AppRefMES14>NCTS</AppRefMES14>
+               |    <TesIndMES18>0</TesIndMES18>
+               |    <MesIdeMES19>70390912151020</MesIdeMES19>
+               |    <MesTypMES20>GB025A</MesTypMES20>
+               |    <HEAHEA><DocNumHEA5>19IT02110010007827</DocNumHEA5>
+               |      <GooRelDatHEA176>20190912</GooRelDatHEA176>
+               |    </HEAHEA>
+               |    <TRADESTRD><NamTRD7>The Luggage Carriers</NamTRD7>
+               |      <StrAndNumTRD22>225 Suedopolish Yard,</StrAndNumTRD22>
+               |      <PosCodTRD23>SS8 2BB</PosCodTRD23>
+               |      <CitTRD24>,</CitTRD24>
+               |      <CouTRD25>GB</CouTRD25>
+               |      <TINTRD59>GB163910077000</TINTRD59>
+               |    </TRADESTRD>
+               |    <CUSOFFPREOFFRES><RefNumRES1>GB000060</RefNumRES1>
+               |    </CUSOFFPREOFFRES>
+               |  </CC025A>""".stripMargin
 }
