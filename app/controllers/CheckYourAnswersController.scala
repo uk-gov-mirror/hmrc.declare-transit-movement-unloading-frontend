@@ -67,6 +67,7 @@ class CheckYourAnswersController @Inject()(
                 .map(Ok(_))
           }
         }
+        case _ => ???
       }
   }
 }

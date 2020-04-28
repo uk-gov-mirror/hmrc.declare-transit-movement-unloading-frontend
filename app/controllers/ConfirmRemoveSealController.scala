@@ -21,7 +21,7 @@ import forms.ConfirmRemoveSealFormProvider
 import javax.inject.Inject
 import models.{Index, Mode, MovementReferenceNumber}
 import navigation.Navigator
-import pages.ConfirmRemoveSealPage
+import pages.{ConfirmRemoveCommentsPage, ConfirmRemoveSealPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -83,10 +83,15 @@ class ConfirmRemoveSealController @Inject()(
             renderer.render("confirmRemoveSeal.njk", json).map(BadRequest(_))
           },
           value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmRemoveSealPage, value))
-              _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, updatedAnswers))
+            if (value) {
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.remove(ConfirmRemoveSealPage))
+                _              <- sessionRepository.set(updatedAnswers)
+              } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, updatedAnswers))
+            } else {
+              Future.successful(Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, request.userAnswers)))
+
+          }
         )
   }
 }
