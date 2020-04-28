@@ -37,6 +37,28 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
       )
   }
 
+  val sealsWithRemove: (Index, String) => Row = {
+    (index, value) =>
+      Row(
+        key   = Key(msg"changeSeal.sealList.label".withArgs(index.display), classes = Seq("govuk-!-width-one-half")),
+        value = Value(lit"$value"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, index, CheckMode).url,
+            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
+            attributes         = Map("id" -> s"""change-seal-${index.position}""")
+          ),
+          Action( // TODO: This should be a remove link
+            content            = msg"site.edit",
+            href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, index, CheckMode).url,
+            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
+            attributes         = Map("id" -> s"""change-seal-${index.position}""")
+          )
+        )
+      )
+  }
+
   val items: (Index, String) => Row = {
     (index, value) =>
       Row(
