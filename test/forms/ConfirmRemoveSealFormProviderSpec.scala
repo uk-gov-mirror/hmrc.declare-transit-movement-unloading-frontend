@@ -24,7 +24,7 @@ class ConfirmRemoveSealFormProviderSpec extends BooleanFieldBehaviours {
   val requiredKey = "confirmRemoveSeal.error.required"
   val invalidKey  = "error.boolean"
 
-  val form = new ConfirmRemoveSealFormProvider()()
+  val form = new ConfirmRemoveSealFormProvider()("seal description")
 
   ".value" - {
 

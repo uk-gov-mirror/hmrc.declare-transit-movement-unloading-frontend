@@ -16,15 +16,14 @@
 
 package forms
 
-import javax.inject.Inject
-
 import forms.mappings.Mappings
+import javax.inject.Inject
 import play.api.data.Form
 
 class ConfirmRemoveSealFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[Boolean] =
+  def apply(description: String): Form[Boolean] =
     Form(
-      "value" -> boolean("confirmRemoveSeal.error.required")
+      "value" -> boolean("confirmRemoveSeal.error.required", args = Seq(description))
     )
 }
