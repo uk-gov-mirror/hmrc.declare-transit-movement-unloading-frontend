@@ -21,7 +21,7 @@ import forms.ConfirmRemoveSealFormProvider
 import javax.inject.Inject
 import models.{Index, Mode, MovementReferenceNumber}
 import navigation.Navigator
-import pages.{ConfirmRemoveCommentsPage, ConfirmRemoveSealPage}
+import pages.{ConfirmRemoveCommentsPage, ConfirmRemoveSealPage, NewSealNumberPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -51,16 +51,12 @@ class ConfirmRemoveSealController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val preparedForm = request.userAnswers.get(ConfirmRemoveSealPage) match {
-        case None        => form
-        case Some(value) => form.fill(value)
-      }
-
       val json = Json.obj(
-        "form"   -> preparedForm,
+        "form"   -> form,
         "mode"   -> mode,
         "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(preparedForm("value"))
+        "index"  -> index.display,
+        "radios" -> Radios.yesNo(form("value"))
       )
 
       renderer.render("confirmRemoveSeal.njk", json).map(Ok(_))
@@ -77,6 +73,7 @@ class ConfirmRemoveSealController @Inject()(
               "form"   -> formWithErrors,
               "mode"   -> mode,
               "mrn"    -> mrn,
+              "index"  -> index.display,
               "radios" -> Radios.yesNo(formWithErrors("value"))
             )
 
@@ -85,7 +82,7 @@ class ConfirmRemoveSealController @Inject()(
           value =>
             if (value) {
               for {
-                updatedAnswers <- Future.fromTry(request.userAnswers.remove(ConfirmRemoveSealPage))
+                updatedAnswers <- Future.fromTry(request.userAnswers.remove(NewSealNumberPage(index)))
                 _              <- sessionRepository.set(updatedAnswers)
               } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, updatedAnswers))
             } else {
