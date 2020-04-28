@@ -69,39 +69,8 @@ class ConfirmRemoveSealControllerSpec extends SpecBase with MockitoSugar with Nu
         "form"   -> form,
         "mode"   -> NormalMode,
         "mrn"    -> mrn,
+        "index"  -> index.display,
         "radios" -> Radios.yesNo(form("value"))
-      )
-
-      templateCaptor.getValue mustEqual "confirmRemoveSeal.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must populate the view correctly on a GET when the question has previously been answered" in {
-
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
-      val userAnswers    = UserAnswers(mrn).set(ConfirmRemoveSealPage, true).success.value
-      val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
-      val request        = FakeRequest(GET, confirmRemoveSealRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val filledForm = form.bind(Map("value" -> "true"))
-
-      val expectedJson = Json.obj(
-        "form"   -> filledForm,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(filledForm("value"))
       )
 
       templateCaptor.getValue mustEqual "confirmRemoveSeal.njk"
