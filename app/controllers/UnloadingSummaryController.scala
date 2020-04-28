@@ -20,7 +20,7 @@ import controllers.actions._
 import derivable.DeriveNumberOfSeals
 import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{Index, MovementReferenceNumber, NormalMode}
+import models.{MovementReferenceNumber, NormalMode}
 import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -28,8 +28,7 @@ import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
 import services.{ReferenceDataService, UnloadingPermissionService, UnloadingPermissionServiceImpl}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import utils.UnloadingSummaryRow
-import viewModels.{SealsSection, UnloadingSummaryViewModel}
+import viewModels.UnloadingSummaryViewModel
 
 import scala.concurrent.ExecutionContext
 
@@ -67,8 +66,6 @@ class UnloadingSummaryController @Inject()(
               }
           }
 
-          //TODO: need to display There are no seals. within Seals section if no seals exist
-          //<p class="govuk-body">{{ messages("unloadingSummary.noSeals") }}</p>
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
               val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry, numberOfSeals)(unloadingPermission).sections

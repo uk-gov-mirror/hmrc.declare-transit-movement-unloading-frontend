@@ -44,7 +44,7 @@ object SealsSection {
   def apply(userAnswers: UserAnswers, sealCount: Int)(implicit unloadingPermission: UnloadingPermission,
                                                       unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] =
     userAnswers.get(SealsQuery) match {
-      case Some(seals) => {
+      case Some(seals) =>
         val rows: Seq[Row] = seals.zipWithIndex.map(
           sealNumber => {
             SummaryRow.rowWithIndex(Index(sealNumber._2))(None)(sealNumber._1)(unloadingSummaryRow.seals)
@@ -52,22 +52,20 @@ object SealsSection {
         )
 
         Seq(Section(msg"changeSeal.title", rows, addLink(userAnswers.id, sealCount)))
-      }
 
       case None =>
         unloadingPermission.seals match {
-          case Some(seals) => {
+          case Some(seals) =>
             val rows: Seq[Row] = seals.SealId.zipWithIndex.map(
               unloadingPermissionValue => {
                 val sealAnswer = SummaryRow.userAnswerWithIndex(Index(unloadingPermissionValue._2))(userAnswers)(NewSealNumberPage)
                 SummaryRow.rowWithIndex(Index(unloadingPermissionValue._2))(sealAnswer)(unloadingPermissionValue._1)(unloadingSummaryRow.seals)
               }
             )
-
             Seq(Section(msg"changeSeal.title", rows))
-          }
+
           case None =>
-            Nil
+            Seq(Section(msg"changeSeal.title", Nil, addLink(userAnswers.id, sealCount = 0)))
         }
     }
 
@@ -78,7 +76,6 @@ object SealsSection {
       visuallyHiddenText = Some(msg"unloadingSummary.addSeal.link.text"),
       attributes         = Map("id" -> s"""add-seal""")
     )
-
 }
 
 object TransportSection {

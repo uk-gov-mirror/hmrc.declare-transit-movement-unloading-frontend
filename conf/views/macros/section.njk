@@ -2,18 +2,23 @@
 
 {% macro section(sectionTitle, rows, action) %}
 
-  {% if rows | length %}
-
     <div class="govuk-summary-sectionRows__row  govuk-!-margin-bottom-9">
 
       {% if sectionTitle %}
         <h2 class="govuk-heading-m">{{ sectionTitle }}</h2>
       {%  endif %}
 
-      {{ govukSummaryList({
-        rows: rows,
-        classes:"govuk-summary-list"
-      }) }}
+      {% if rows | length %}
+          {{ govukSummaryList({
+            rows: rows,
+            classes:"govuk-summary-list"
+          }) }}
+
+      {% else %}
+
+        <p class="govuk-body">{{ messages("unloadingSummary.noSeals") }}</p>
+
+      {% endif %}
 
       {% if action %}
         <p class="govuk-body">
@@ -23,5 +28,5 @@
 
     </div>
 
-  {% endif %}
+
 {% endmacro %}
