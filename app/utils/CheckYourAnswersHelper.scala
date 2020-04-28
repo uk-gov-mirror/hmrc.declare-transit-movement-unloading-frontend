@@ -30,21 +30,6 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
-  def confirmRemoveSeal: Option[Row] = userAnswers.get(ConfirmRemoveSealPage) map {
-    answer =>
-      Row(
-        key   = Key(msg"confirmRemoveSeal.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(yesOrNo(answer)),
-        actions = List(
-          Action(
-            content            = msg"site.edit",
-            href               = routes.ConfirmRemoveSealController.onPageLoad(userAnswers.id, CheckMode).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"confirmRemoveSeal.checkYourAnswersLabel"))
-          )
-        )
-      )
-  }
-
   def changesToReport: Option[Row] = userAnswers.get(ChangesToReportPage) map {
     answer =>
       Row(
