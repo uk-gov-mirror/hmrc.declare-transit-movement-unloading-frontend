@@ -71,3 +71,8 @@ GET        /:mrn/change-confirm-remove-comments                  controllers.Con
 POST       /:mrn/change-confirm-remove-comments                  controllers.ConfirmRemoveCommentsController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
 GET        /technical-difficulties                       controllers.TechnicalDifficultiesController.onPageLoad()
+
+GET        /:mrn/confirm-remove-seal                        controllers.ConfirmRemoveSealController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/confirm-remove-seal                        controllers.ConfirmRemoveSealController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-confirm-remove-seal                  controllers.ConfirmRemoveSealController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-confirm-remove-seal                  controllers.ConfirmRemoveSealController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
