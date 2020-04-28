@@ -45,21 +45,18 @@ object SealsSection {
       case Some(seals) => {
         val rows: Seq[Row] = seals.zipWithIndex.map(
           sealNumber => {
-            /*
             val index = sealNumber._2
 
             val exists = unloadingPermission.seals match {
-              case Some(seals) => true // check if seals.SealId.length is greater than or equal to index. if it is, this seal is from unloading permission
-              case None => false
+              case Some(seals) => seals.SealId.length >= index + 1
+              case None        => false
             }
 
-            if(exists) {
-              SummaryRow.rowWithIndex(Index(sealNumber._2))(None)(sealNumber._1)(unloadingSummaryRow.sealsWithRemove)
-            } else {
+            if (exists) {
               SummaryRow.rowWithIndex(Index(sealNumber._2))(None)(sealNumber._1)(unloadingSummaryRow.seals)
+            } else {
+              SummaryRow.rowWithIndex(Index(sealNumber._2))(None)(sealNumber._1)(unloadingSummaryRow.sealsWithRemove)
             }
-             */
-            SummaryRow.rowWithIndex(Index(sealNumber._2))(None)(sealNumber._1)(unloadingSummaryRow.seals)
           }
         )
 

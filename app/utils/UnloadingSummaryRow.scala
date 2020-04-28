@@ -50,10 +50,10 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
             attributes         = Map("id" -> s"""change-seal-${index.position}""")
           ),
           Action( // TODO: This should be a remove link
-            content            = msg"site.edit",
+            content            = msg"site.delete",
             href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, index, CheckMode).url,
-            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
-            attributes         = Map("id" -> s"""change-seal-${index.position}""")
+            visuallyHiddenText = Some(msg"changeSeal.sealList.remove.hidden".withArgs(index.display)),
+            attributes         = Map("id" -> s"""remove-seal-${index.position}""")
           )
         )
       )
