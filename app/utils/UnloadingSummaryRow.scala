@@ -24,7 +24,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val seals: (Index, String) => Row = {
     (index, value) =>
       Row(
-        key   = Key(msg"changeSeal.sealList.label".withArgs(index.display), classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"changeSeal.sealList.label".withArgs(index.display)),
         value = Value(lit"$value"),
         actions = List(
           Action(
@@ -40,7 +40,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val sealsWithRemove: (Index, String) => Row = {
     (index, value) =>
       Row(
-        key   = Key(msg"changeSeal.sealList.label".withArgs(index.display), classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"changeSeal.sealList.label".withArgs(index.display)),
         value = Value(lit"$value"),
         actions = List(
           Action(
@@ -62,7 +62,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val items: (Index, String) => Row = {
     (index, value) =>
       Row(
-        key     = Key(msg"changeItem.itemList.label".withArgs(index.display), classes = Seq("govuk-!-width-one-half")),
+        key     = Key(msg"changeItem.itemList.label".withArgs(index.display)),
         value   = Value(lit"$value"),
         actions = Nil
       )
@@ -71,7 +71,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val vehicleUsed: String => Row = {
     value =>
       Row(
-        key   = Key(msg"changeVehicle.reference.label", classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"changeVehicle.reference.label"),
         value = Value(lit"$value"),
         actions = List(
           Action(
@@ -87,7 +87,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val vehicleUsedCYA: String => Row = {
     value =>
       Row(
-        key     = Key(msg"changeVehicle.reference.label", classes = Seq("govuk-!-width-one-half")),
+        key     = Key(msg"changeVehicle.reference.label"),
         value   = Value(lit"$value"),
         actions = Nil
       )
@@ -96,7 +96,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val registeredCountryCYA: String => Row = {
     value =>
       Row(
-        key     = Key(msg"changeVehicle.registeredCountry.label", classes = Seq("govuk-!-width-one-half")),
+        key     = Key(msg"changeVehicle.registeredCountry.label"),
         value   = Value(lit"$value"),
         actions = Nil
       )
@@ -105,7 +105,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val registeredCountry: String => Row = {
     value =>
       Row(
-        key   = Key(msg"changeVehicle.registeredCountry.label", classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"changeVehicle.registeredCountry.label"),
         value = Value(lit"$value"),
         actions = List(
           Action(
@@ -121,7 +121,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val grossMass: String => Row = {
     value =>
       Row(
-        key   = Key(msg"changeItems.grossMass.label", classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"changeItems.grossMass.label"),
         value = Value(lit"$value"),
         actions = List(
           Action(
@@ -137,7 +137,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val grossMassCYA: String => Row = {
     value =>
       Row(
-        key     = Key(msg"changeItems.grossMass.label", classes = Seq("govuk-!-width-one-half")),
+        key     = Key(msg"changeItems.grossMass.label"),
         value   = Value(lit"$value"),
         actions = Nil
       )
@@ -146,7 +146,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val comments: String => Row = {
     value =>
       Row(
-        key   = Key(msg"changeItems.comments.label", classes = Seq("govuk-!-width-one-half")),
+        key   = Key(msg"changeItems.comments.label"),
         value = Value(lit"$value"),
         actions = List(
           Action(
@@ -168,7 +168,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
   val commentsCYA: String => Row = {
     value =>
       Row(
-        key     = Key(msg"changeItems.comments.label", classes = Seq("govuk-!-width-one-half")),
+        key     = Key(msg"changeItems.comments.label"),
         value   = Value(lit"$value"),
         actions = Nil
       )
