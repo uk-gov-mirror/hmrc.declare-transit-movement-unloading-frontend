@@ -58,8 +58,7 @@ class ConfirmRemoveSealController @Inject()(
             val form = formProvider(seal)
             renderedPage(mrn, index, mode, form, seal).map(Ok(_))
 
-          case _ => ???
-
+          case _ => Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
         }
     }
 
