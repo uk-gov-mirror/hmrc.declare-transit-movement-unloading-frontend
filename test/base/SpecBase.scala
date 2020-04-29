@@ -47,7 +47,7 @@ trait SpecBase
     with BeforeAndAfterEach {
 
   override def beforeEach {
-    Mockito.reset(mockRenderer)
+    Mockito.reset(mockRenderer, mockUnloadingPermissionService)
   }
 
   val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")

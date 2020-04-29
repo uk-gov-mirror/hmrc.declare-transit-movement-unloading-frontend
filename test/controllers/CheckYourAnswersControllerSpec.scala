@@ -17,8 +17,6 @@
 package controllers
 
 import base.SpecBase
-import cats.data.NonEmptyList
-import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -69,6 +67,29 @@ class CheckYourAnswersControllerSpec extends SpecBase {
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+
+      application.stop()
+    }
+
+    "must return BAD REQUEST when unloading permission does not exist" in {
+
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+
+      val result = route(application, request).value
+
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+
+      templateCaptor.getValue mustEqual "badRequest.njk"
 
       application.stop()
     }

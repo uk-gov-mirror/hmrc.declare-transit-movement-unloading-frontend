@@ -143,6 +143,9 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
         when(mockRenderer.render(any(), any())(any()))
           .thenReturn(Future.successful(Html("")))
 
+        when(mockUnloadingPermissionService.convertSeals(any())(any(), any()))
+          .thenReturn(Future.successful(Some(emptyUserAnswers)))
+
         val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
         val request        = FakeRequest(POST, newSealNumberRoute).withFormUrlEncodedBody(("value", ""))
         val boundForm      = form.bind(Map("value" -> ""))
