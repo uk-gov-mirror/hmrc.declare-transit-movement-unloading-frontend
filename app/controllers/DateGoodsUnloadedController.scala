@@ -49,7 +49,7 @@ class DateGoodsUnloadedController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  val form = formProvider()
+  private def form = formProvider()
 
   def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn)).async {
     implicit request =>
@@ -94,12 +94,10 @@ class DateGoodsUnloadedController @Inject()(
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn)).set(DateGoodsUnloadedPage, value))
-              _              <- sessionRepository.set(updatedAnswers)
+              updatedAnswers      <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn)).set(DateGoodsUnloadedPage, value))
+              _                   <- sessionRepository.set(updatedAnswers)
+              unloadingPermission <- unloadingPermissionService.getUnloadingPermission(mrn)
             } yield {
-
-              val unloadingPermission: Option[UnloadingPermission] = unloadingPermissionService.getUnloadingPermission(mrn)
-
               Redirect(navigator.nextPage(DateGoodsUnloadedPage, mode, updatedAnswers, unloadingPermission))
           }
         )

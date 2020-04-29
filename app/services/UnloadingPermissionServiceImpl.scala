@@ -15,95 +15,64 @@
  */
 
 package services
-import cats.data.NonEmptyList
 import com.google.inject.{Inject, Singleton}
+import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
-import models.{GoodsItem, Index, MovementReferenceNumber, Packages, ProducedDocument, Seals, TraderAtDestinationWithEori, UnloadingPermission, UserAnswers}
-import pages.NewSealNumberPage
+import models.{Movement, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import queries.SealsQuery
+import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.Future
-import scala.util.Try
+import scala.concurrent.{ExecutionContext, Future}
+import scala.xml.XML
 
-@Singleton
 class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) extends UnloadingPermissionService {
 
-  private val trader =
-    TraderAtDestinationWithEori("GB163910077000", Some("The Luggage Carriers"), Some("225 Suedopolish Yard,"), Some("SS8 2BB"), Some(","), Some("GB"))
+  //TODO: When uri is updated to arrivalId the getUnloadingPermission argument needs updating
+  def getUnloadingPermission(mrn: MovementReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
-  private lazy val packages = Packages(Some("Ref."), "BX", Some(1), None)
+    //TODO: Only needed until we call backend through connector and update uri to use arrivalId
+    val arrivalID = mrn.toString match {
+      case "19IT02110010007827" => 1
+      case "99IT9876AB88901209" => 2
+      case _                    => 3
+    }
 
-  private lazy val producedDocuments = ProducedDocument("235", Some("Ref."), None)
+    connector.get(arrivalID).map {
+      case Some(Movement(messages)) =>
+        messages.reverse match {
+          case head :: _ =>
+            XmlReader.of[UnloadingPermission].read(XML.loadString(head.message)) match {
+              case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
+              case _                                 => None //TODO: Consider what happens when the message isn't unloading permission
+            }
+          case _ => None
+        }
 
-  private lazy val goodsItemMandatory = GoodsItem(
-    itemNumber                = 1,
-    commodityCode             = None,
-    description               = "Flowers",
-    grossMass                 = Some("1000"),
-    netMass                   = Some("999"),
-    producedDocuments         = NonEmptyList(producedDocuments, Nil),
-    containers                = Seq.empty,
-    packages                  = packages,
-    sensitiveGoodsInformation = Seq.empty
-  )
-
-  private val unloadingPermissionNoSeals = UnloadingPermission(
-    movementReferenceNumber = "19IT02110010007827",
-    transportIdentity       = None,
-    transportCountry        = None,
-    numberOfItems           = 1,
-    numberOfPackages        = 1,
-    grossMass               = "1000",
-    traderAtDestination     = trader,
-    presentationOffice      = "GB000060",
-    seals                   = None,
-    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
-  )
-
-  private val unloadingPermissionSeals = UnloadingPermission(
-    movementReferenceNumber = "19IT02110010007827",
-    transportIdentity       = Some("NX56RTA"),
-    transportCountry        = Some("GB"),
-    numberOfItems           = 2,
-    numberOfPackages        = 1,
-    grossMass               = "1000",
-    traderAtDestination     = trader,
-    presentationOffice      = "GB000060",
-    seals                   = Some(Seals(1, Seq("Seals01", "Seals02"))),
-    goodsItems              = NonEmptyList(goodsItemMandatory, List(goodsItemMandatory))
-  )
-
-  private val unloadingPermissionwithNoChanges = UnloadingPermission(
-    movementReferenceNumber = "99IT9876AB88901209",
-    transportIdentity       = None,
-    transportCountry        = None,
-    numberOfItems           = 1,
-    numberOfPackages        = 1,
-    grossMass               = "1000",
-    traderAtDestination     = trader,
-    presentationOffice      = "GB000060",
-    seals                   = None,
-    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
-  )
-
-  //TODO: This will call the connector but can initially hard code UnloadingPermission
-  //TODO: to test the view
-  def getUnloadingPermission(mrn: MovementReferenceNumber): Option[UnloadingPermission] = mrn.toString match {
-    case "19IT02110010007827" => Some(unloadingPermissionSeals)
-    case _                    => Some(unloadingPermissionNoSeals)
+      case None => None
+    }
   }
 
-  def convertSeals(userAnswers: UserAnswers): Option[UserAnswers] = getUnloadingPermission(userAnswers.id) match {
-    case Some(unloadingPermission) =>
-      unloadingPermission.seals match {
-        case Some(seals) =>
-          userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
-        case _ => Some(userAnswers)
-      }
-    case _ => Some(userAnswers)
-  }
+  //TODO: Refactor
+  def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]] =
+    getUnloadingPermission(userAnswers.id).flatMap {
+      case Some(unloadingPermission) =>
+        unloadingPermission.seals match {
+          case Some(seals) =>
+            Future.successful(userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption)
+          case _ => Future.successful(Some(userAnswers))
+        }
+      case _ => Future.successful(None)
+    }
+
+  def convertSeals(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Option[UserAnswers] =
+    unloadingPermission.seals match {
+      case Some(seals) =>
+        userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
+      case _ => Some(userAnswers)
+    }
 }
 
 trait UnloadingPermissionService {
-  def getUnloadingPermission(mrn: MovementReferenceNumber): Option[UnloadingPermission]
+  def getUnloadingPermission(mrn: MovementReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]]
+  def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]]
 }

@@ -18,13 +18,14 @@ package viewModels
 import cats.data.NonEmptyList
 import controllers.routes
 import models.reference.Country
-import models.{Mode, MovementReferenceNumber, UnloadingPermission, UserAnswers}
-import pages.{ChangesToReportPage, GrossMassAmountPage, VehicleNameRegistrationReferencePage, VehicleRegistrationCountryPage}
+import models.{MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import pages._
 import play.api.i18n.Messages
+import queries.SealsQuery
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Row}
+import uk.gov.hmrc.viewmodels._
 import utils.{CheckYourAnswersHelper, UnloadingSummaryRow}
 import viewModels.sections.Section
-import uk.gov.hmrc.viewmodels._
 
 case class CheckYourAnswersViewModel(sections: Seq[Section])
 
@@ -39,6 +40,12 @@ object CheckYourAnswersViewModel {
 
     val rowCanSealsBeRead: Option[Row]    = checkYourAnswersRow.canSealsBeRead
     val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
+
+    val seals: Option[Row] = (userAnswers.get(SealsQuery), unloadingPermission.seals) match {
+      case (Some(userAnswersSeals), _)            => checkYourAnswersRow.seals(userAnswersSeals)
+      case (None, Some(unloadingPermissionSeals)) => checkYourAnswersRow.seals(unloadingPermissionSeals.SealId)
+      case (_, _)                                 => None
+    }
 
     val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
     val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
@@ -64,7 +71,7 @@ object CheckYourAnswersViewModel {
         Section(rowGoodsUnloaded.toSeq),
         Section(msg"checkYourAnswers.seals.subHeading", (rowCanSealsBeRead ++ rowAreAnySealsBroken).toSeq),
         Section(msg"checkYourAnswers.subHeading",
-                buildRows(transportIdentity ++ transportCountry ++ grossMass ++ itemsRow.toList ++ commentsRow, userAnswers.id))
+                buildRows(seals.toSeq ++ transportIdentity ++ transportCountry ++ grossMass ++ itemsRow.toList ++ commentsRow, userAnswers.id))
       ))
   }
 
