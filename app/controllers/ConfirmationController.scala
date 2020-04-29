@@ -24,6 +24,7 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.ExecutionContext
@@ -34,6 +35,7 @@ class ConfirmationController @Inject()(
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
+  sessionRepository: SessionRepository,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer
 )(implicit ec: ExecutionContext)
@@ -44,6 +46,7 @@ class ConfirmationController @Inject()(
     implicit request =>
       val json = Json.obj("mrn" -> mrn, "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl)
 
+      sessionRepository.remove(mrn.toString)
       renderer.render("confirmation.njk", json).map(Ok(_))
   }
 }
