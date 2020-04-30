@@ -18,9 +18,9 @@ package navigation
 
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
-import models.{CheckMode, Mode, NormalMode, UserAnswers}
-import pages._
-
+import derivable.DeriveNumberOfSeals
+import models.{CheckMode, Index, Mode, NormalMode, UserAnswers}
+import pages.{ConfirmRemoveSealPage, _}
 import play.api.mvc.Call
 
 @Singleton
@@ -61,6 +61,10 @@ class Navigator @Inject()() {
         routes.UnloadingSummaryController.onPageLoad(ua.id)
 
     case ConfirmRemoveCommentsPage =>
+      ua =>
+        routes.UnloadingSummaryController.onPageLoad(ua.id)
+
+    case ConfirmRemoveSealPage =>
       ua =>
         routes.UnloadingSummaryController.onPageLoad(ua.id)
 

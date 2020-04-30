@@ -18,6 +18,7 @@ package controllers
 
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import handlers.ErrorHandler
 import models.MovementReferenceNumber
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -39,7 +40,8 @@ class CheckYourAnswersController @Inject()(
   unloadingPermissionService: UnloadingPermissionService,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
-  referenceDataService: ReferenceDataService
+  referenceDataService: ReferenceDataService,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -52,7 +54,6 @@ class CheckYourAnswersController @Inject()(
     implicit request =>
       unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
         case Some(unloadingPermission) => {
-
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
               val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
@@ -67,6 +68,7 @@ class CheckYourAnswersController @Inject()(
                 .map(Ok(_))
           }
         }
+        case _ => errorHandler.onClientError(request, BAD_REQUEST)
       }
   }
 }
