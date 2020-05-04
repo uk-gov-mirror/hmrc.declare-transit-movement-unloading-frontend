@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import play.api.libs.json.{Json, OFormat}
+import pages.behaviours.PageBehaviours
 
-case class Movement(messages: Seq[MovementMessage])
+class ConfirmRemoveSealPageSpec extends PageBehaviours {
 
-object Movement {
-  implicit val formats: OFormat[Movement] = Json.format[Movement]
-}
+  "ConfirmRemoveSealPage" - {
 
-case class MovementMessage(messageType: String, message: String)
+    beRetrievable[Boolean](ConfirmRemoveSealPage)
 
-object MovementMessage {
-  implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
+    beSettable[Boolean](ConfirmRemoveSealPage)
+
+    beRemovable[Boolean](ConfirmRemoveSealPage)
+  }
 }

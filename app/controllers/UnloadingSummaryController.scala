@@ -17,16 +17,19 @@
 package controllers
 
 import controllers.actions._
+import derivable.DeriveNumberOfSeals
+import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{MovementReferenceNumber, NormalMode}
+import models.{Index, MovementReferenceNumber, NormalMode}
+import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ReferenceDataService, UnloadingPermissionService}
+import services.{ReferenceDataService, UnloadingPermissionService, UnloadingPermissionServiceImpl}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import viewModels.UnloadingSummaryViewModel
-import viewModels.sections.Section
+import utils.UnloadingSummaryRow
+import viewModels.{SealsSection, UnloadingSummaryViewModel}
 
 import scala.concurrent.ExecutionContext
 
@@ -38,7 +41,9 @@ class UnloadingSummaryController @Inject()(
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
   unloadingPermissionService: UnloadingPermissionService,
-  referenceDataService: ReferenceDataService
+  referenceDataService: ReferenceDataService,
+  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -50,20 +55,46 @@ class UnloadingSummaryController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn) match {
+      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
         case Some(unloadingPermission) => {
+
+          //TODO: Move unloading summary into UnloadingSummaryViewModel
+          val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(request.userAnswers)
+          val sealsSection                             = SealsSection(request.userAnswers)(unloadingPermission, unloadingSummaryRow)
+
+          val numberOfSeals = request.userAnswers.get(DeriveNumberOfSeals) match {
+            case Some(sealsNum) => sealsNum
+            case None =>
+              unloadingPermissionServiceImpl.convertSeals(request.userAnswers, unloadingPermission) match {
+                case Some(ua) => ua.get(DeriveNumberOfSeals).getOrElse(0)
+                case _        => 0
+              }
+          }
+
+          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode
 
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
               val sections = UnloadingSummaryViewModel(request.userAnswers, transportCountry)(unloadingPermission).sections
 
               val json =
-                Json.obj("mrn" -> mrn, "redirectUrl" -> redirectUrl(mrn).url, "addCommentUrl" -> addCommentUrl(mrn).url, "sections" -> Json.toJson(sections))
+                Json.obj(
+                  "mrn"                -> mrn,
+                  "redirectUrl"        -> redirectUrl(mrn).url,
+                  "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
+                  "addCommentUrl"      -> addCommentUrl(mrn).url,
+                  "addSealUrl"         -> addSealUrl.url,
+                  "sealsSection"       -> Json.toJson(sealsSection),
+                  "sections"           -> Json.toJson(sections)
+                )
 
               renderer.render("unloadingSummary.njk", json).map(Ok(_))
           }
-
         }
+        case _ =>
+          errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
+
       }
   }
+
 }

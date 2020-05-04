@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package derivable
+import play.api.libs.json.JsPath
+import queries.SealsQuery
 
-import play.api.libs.json.{Json, OFormat}
+case object DeriveNumberOfSeals extends Derivable[List[String], Int] {
+  override val derive: List[String] => Int = _.size
 
-case class Movement(messages: Seq[MovementMessage])
-
-object Movement {
-  implicit val formats: OFormat[Movement] = Json.format[Movement]
-}
-
-case class MovementMessage(messageType: String, message: String)
-
-object MovementMessage {
-  implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
+  override def path: JsPath = SealsQuery.path
 }

@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package models
+package queries
 
-import play.api.libs.json.{Json, OFormat}
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case class Movement(messages: Seq[MovementMessage])
-
-object Movement {
-  implicit val formats: OFormat[Movement] = Json.format[Movement]
-}
-
-case class MovementMessage(messageType: String, message: String)
-
-object MovementMessage {
-  implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
+final case object SealsQuery extends QuestionPage[Seq[String]] {
+  override def path: JsPath = JsPath \ "seals"
 }

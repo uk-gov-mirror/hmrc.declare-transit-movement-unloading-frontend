@@ -17,16 +17,19 @@
 package controllers
 
 import controllers.actions._
+import derivable.DeriveNumberOfSeals
 import forms.NewSealNumberFormProvider
+import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{Index, Mode, MovementReferenceNumber}
+import models.{Index, Mode, MovementReferenceNumber, UserAnswers}
 import navigation.Navigator
 import pages.NewSealNumberPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import renderer.Renderer
 import repositories.SessionRepository
+import services.{UnloadingPermissionService, UnloadingPermissionServiceImpl}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -41,7 +44,9 @@ class NewSealNumberController @Inject()(
   requireData: DataRequiredAction,
   formProvider: NewSealNumberFormProvider,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
+  renderer: Renderer,
+  unloadingPermissionService: UnloadingPermissionService,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -67,24 +72,30 @@ class NewSealNumberController @Inject()(
 
   def onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      form
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
+      val userAnswers: Future[Option[UserAnswers]] = request.userAnswers.get(DeriveNumberOfSeals) match {
+        case Some(_) => Future.successful(Some(request.userAnswers))
+        case None    => unloadingPermissionService.convertSeals(request.userAnswers)
+      }
 
-            val json = Json.obj(
-              "form" -> formWithErrors,
-              "mrn"  -> mrn,
-              "mode" -> mode
+      userAnswers.flatMap {
+        case Some(ua) =>
+          form
+            .bindFromRequest()
+            .fold(
+              formWithErrors => {
+                val json = Json.obj("form" -> formWithErrors, "mrn" -> mrn, "mode" -> mode)
+                renderer.render("newSealNumber.njk", json).map(BadRequest(_))
+              },
+              value =>
+                for {
+                  updatedAnswers <- Future.fromTry(ua.set(NewSealNumberPage(index), value))
+                  _              <- sessionRepository.set(updatedAnswers)
+                } yield Redirect(navigator.nextPage(NewSealNumberPage(index), mode, updatedAnswers))
             )
+        case _ =>
+          errorHandler.onClientError(request, BAD_REQUEST, "errors.malformedSeals") //todo: get design and content to look at this
+      }
 
-            renderer.render("newSealNumber.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(NewSealNumberPage(index), value))
-              _              <- sessionRepository.set(updatedAnswers)
-            } yield Redirect(navigator.nextPage(NewSealNumberPage(index), mode, updatedAnswers))
-        )
   }
+
 }

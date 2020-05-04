@@ -16,22 +16,14 @@
 
 package forms
 
-import java.time.LocalDate
-
 import forms.mappings.Mappings
 import javax.inject.Inject
-import play.api.Logger
 import play.api.data.Form
 
-class DateGoodsUnloadedFormProvider @Inject() extends Mappings {
+class ConfirmRemoveSealFormProvider @Inject() extends Mappings {
 
-  def apply(): Form[LocalDate] =
+  def apply(description: String): Form[Boolean] =
     Form(
-      "value" -> localDate(
-        invalidKey     = "dateGoodsUnloaded.error.invalid",
-        allRequiredKey = "dateGoodsUnloaded.error.required.all",
-        twoRequiredKey = "dateGoodsUnloaded.error.required.two",
-        requiredKey    = "dateGoodsUnloaded.error.required"
-      ).verifying(maxDate(LocalDate.now(), "dateGoodsUnloaded.error.max.date"), minDate(LocalDate.now.minusYears(1), "dateGoodsUnloaded.error.min.date"))
+      "value" -> boolean("confirmRemoveSeal.error.required", args = Seq(description))
     )
 }

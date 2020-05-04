@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package models
+package pages
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.JsPath
 
-case class Movement(messages: Seq[MovementMessage])
+case object ConfirmRemoveSealPage extends QuestionPage[Boolean] {
 
-object Movement {
-  implicit val formats: OFormat[Movement] = Json.format[Movement]
-}
+  override def path: JsPath = JsPath \ toString
 
-case class MovementMessage(messageType: String, message: String)
-
-object MovementMessage {
-  implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
+  override def toString: String = "confirmRemoveSeal"
 }

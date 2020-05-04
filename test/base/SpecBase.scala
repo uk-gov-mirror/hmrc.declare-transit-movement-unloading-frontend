@@ -16,11 +16,12 @@
 
 package base
 
+import cats.data.NonEmptyList
 import config.FrontendAppConfig
 import controllers.actions._
-import models.{MovementReferenceNumber, UserAnswers}
+import models.{GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
 import org.mockito.Mockito
-import org.scalatest.{BeforeAndAfterEach, FreeSpec, MustMatchers, OptionValues, TryValues}
+import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
@@ -31,6 +32,7 @@ import play.api.inject.{bind, Injector}
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
+import services.UnloadingPermissionService
 import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 trait SpecBase
@@ -45,7 +47,7 @@ trait SpecBase
     with BeforeAndAfterEach {
 
   override def beforeEach {
-    Mockito.reset(mockRenderer)
+    Mockito.reset(mockRenderer, mockUnloadingPermissionService)
   }
 
   val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
@@ -62,6 +64,8 @@ trait SpecBase
 
   val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
 
+  val mockUnloadingPermissionService: UnloadingPermissionService = mock[UnloadingPermissionService]
+
   implicit def messages: Messages = messagesApi.preferred(fakeRequest)
 
   protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
@@ -69,7 +73,40 @@ trait SpecBase
       .overrides(
         bind[DataRequiredAction].to[DataRequiredActionImpl],
         bind[IdentifierAction].to[FakeIdentifierAction],
+        bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService),
         bind[DataRetrievalActionProvider].toInstance(new FakeDataRetrievalActionProvider(userAnswers)),
         bind[NunjucksRenderer].toInstance(mockRenderer)
       )
+
+  protected lazy val traderWithoutEori =
+    TraderAtDestinationWithoutEori("The Luggage Carriers", "225 Suedopolish Yard,", "SS8 2BB", ",", "GB")
+
+  protected lazy val packages = Packages(Some("Ref."), "BX", Some(1), None)
+
+  protected lazy val producedDocuments = ProducedDocument("235", Some("Ref."), None)
+
+  protected lazy val goodsItemMandatory = GoodsItem(
+    itemNumber                = 1,
+    commodityCode             = None,
+    description               = "Flowers",
+    grossMass                 = Some("1000"),
+    netMass                   = Some("999"),
+    producedDocuments         = NonEmptyList(producedDocuments, Nil),
+    containers                = Seq.empty,
+    packages                  = packages,
+    sensitiveGoodsInformation = Seq.empty
+  )
+
+  protected val unloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    numberOfItems           = 1,
+    numberOfPackages        = 1,
+    grossMass               = "1000",
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
+  )
 }

@@ -10,7 +10,7 @@ GET        /this-service-has-been-reset                 controllers.SessionExpir
 
 GET        /:mrn/check-your-answers                     controllers.CheckYourAnswersController.onPageLoad(mrn: MovementReferenceNumber)
 
-GET        /unauthorised                                controllers.UnauthorisedController.onPageLoad
+GET        /cannot-use-service-no-eori                  controllers.UnauthorisedController.onPageLoad
 
 GET        /accessibility-statement                     controllers.AccessibilityController.onPageLoad
 
@@ -40,6 +40,10 @@ GET        /:mrn/seal/:index/new-seal-number                        controllers.
 POST       /:mrn/seal/:index/new-seal-number                        controllers.NewSealNumberController.onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode = NormalMode)
 GET        /:mrn/seal/:index/change-new-seal-number                 controllers.NewSealNumberController.onPageLoad(mrn: MovementReferenceNumber, index: Index, mode: Mode = CheckMode)
 POST       /:mrn/seal/:index/change-new-seal-number                 controllers.NewSealNumberController.onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode = CheckMode)
+GET        /:mrn/seal/:index/confirm-remove-seal                        controllers.ConfirmRemoveSealController.onPageLoad(mrn: MovementReferenceNumber, index: Index, mode: Mode = NormalMode)
+POST       /:mrn/seal/:index/confirm-remove-seal                        controllers.ConfirmRemoveSealController.onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode = NormalMode)
+GET        /:mrn/seal/:index/change-confirm-remove-seal                  controllers.ConfirmRemoveSealController.onPageLoad(mrn: MovementReferenceNumber, index: Index, mode: Mode = CheckMode)
+POST       /:mrn/seal/:index/change-confirm-remove-seal                  controllers.ConfirmRemoveSealController.onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode = CheckMode)
 
 GET        /:mrn/unloading-summary                       controllers.UnloadingSummaryController.onPageLoad(mrn: MovementReferenceNumber)
 
@@ -71,3 +75,4 @@ GET        /:mrn/change-confirm-remove-comments                  controllers.Con
 POST       /:mrn/change-confirm-remove-comments                  controllers.ConfirmRemoveCommentsController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
 
 GET        /technical-difficulties                       controllers.TechnicalDifficultiesController.onPageLoad()
+

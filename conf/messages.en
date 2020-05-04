@@ -38,6 +38,13 @@ phaseBanner.3 = will help us to improve it.
 checkYourAnswers.title = Check your answers before sending these unloading remarks
 checkYourAnswers.heading = Check your answers before sending these unloading remarks
 
+checkYourAnswers.seals.subHeading = Check seals
+checkYourAnswers.seals.checkYourAnswersLabel = Seal numbers
+checkYourAnswers.subHeading = What you found when unloading
+
+checkYourAnswers.confirmation.heading = Now send your unloading remarks
+checkYourAnswers.confirmation.paragraph = By sending this you are confirming that the details you are providing are correct, to the best of your knowledge.
+checkYourAnswers.changeItems.hidden = change answers
 checkYourAnswers.confirmation.heading = Now send your unloading remarks
 checkYourAnswers.confirmation.paragraph = By sending this you are confirming that the details you are providing are correct, to the best of your knowledge.
 
@@ -49,8 +56,12 @@ session_expired.title = For your security, this service has been reset
 session_expired.heading = For your security, this service has been reset
 session_expired.guidance = The details you have given have been deleted because you did not continue the service for 15 minutes.
 
-unauthorised.title = You can’t access this service with this account
-unauthorised.heading = You can’t access this service with this account
+unauthorised.title = You cannot use this service
+unauthorised.heading = You cannot use this service
+unauthorised.paragraph1 = You must have an account with an activated EORI number.
+unauthorised.paragraph2 = If you are waiting for an EORI number to be activated, you can try to
+unauthorised.signIn = sign in to HMRC services
+unauthorised.again.later = again later.
 
 technicalDifficulties.title = Sorry, there is a problem with the service
 technicalDifficulties.heading = Sorry, there is a problem with the service
@@ -155,6 +166,7 @@ dateGoodsUnloaded.error.required.two = The date goods were unloaded must include
 dateGoodsUnloaded.error.required = The date goods were unloaded must include {0}
 dateGoodsUnloaded.error.invalid = Enter a real date
 dateGoodsUnloaded.error.max.date = When the goods were unloaded must be today or in the past
+dateGoodsUnloaded.error.min.date = When the goods were unloaded must be after one year in the past
 
 vehicleNameRegistrationReference.title = What is the name, registration or reference of the new vehicle?
 vehicleNameRegistrationReference.heading = What is the name, registration or reference of the new vehicle?
@@ -182,7 +194,10 @@ newSealNumber.error.length = Seal number or mark must be 100 characters or less
 
 unloadingSummary.title = Check what you found against the transit declaration
 unloadingSummary.heading = Check what you found against the transit declaration
-unloadingSummary.link.text = Add comment
+unloadingSummary.addSeal.link.text = Add a new seal number
+unloadingSummary.addComment.link.text = Add comment
+unloadingSummary.noSeals = There are no seals.
+unloadingSummary.seals.subheading = Seals
 
 vehicleUsed.title = Vehicle used
 changeVehicle.reference.label = Name, registration or reference
@@ -193,6 +208,7 @@ changeVehicle.registeredCountry.change.hidden = registered
 changeSeal.title = Seals
 changeSeal.sealList.label = Seal {0}
 changeSeal.sealList.change.hidden = seal {0}
+changeSeal.sealList.remove.hidden = seal {0}
 
 changeItems.title = Items
 changeItems.grossMass.label = Total gross mass in kilograms
@@ -241,3 +257,9 @@ confirmRemoveComments.error.required = Select yes if you are sure you want to re
 
 techicalDifficulties.title = techicalDifficulties
 techicalDifficulties.heading = techicalDifficulties
+
+
+confirmRemoveSeal.title = Are you sure you want to remove seal?
+confirmRemoveSeal.heading = Are you sure you want to remove seal {0}?
+confirmRemoveSeal.checkYourAnswersLabel = Are you sure you want to remove seal {0}?
+confirmRemoveSeal.error.required = Select yes if you are sure you want to remove seal {0}

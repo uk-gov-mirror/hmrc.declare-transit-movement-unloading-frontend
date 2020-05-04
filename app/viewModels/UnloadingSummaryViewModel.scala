@@ -17,8 +17,9 @@
 package viewModels
 import cats.data.NonEmptyList
 import models.reference.Country
-import models.{UnloadingPermission, UserAnswers}
+import models.{Index, UnloadingPermission, UserAnswers}
 import pages._
+import queries.SealsQuery
 import uk.gov.hmrc.viewmodels.SummaryList.Row
 import uk.gov.hmrc.viewmodels._
 import utils.UnloadingSummaryRow
@@ -32,20 +33,46 @@ object UnloadingSummaryViewModel {
 
     implicit val unloadingSummaryRow: UnloadingSummaryRow = new UnloadingSummaryRow(userAnswers)
 
-    UnloadingSummaryViewModel(SealsSection(userAnswers) ++ TransportSection(userAnswers, transportCountry) ++ ItemsSection(userAnswers))
+    UnloadingSummaryViewModel(TransportSection(userAnswers, transportCountry) ++ ItemsSection(userAnswers))
   }
 
 }
 
 object SealsSection {
 
-  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Seq[Section] =
-    unloadingPermission.seals match {
-      case Some(seals) =>
-        val rows: Seq[Row] = SummaryRow.rowSeals(seals.SealId)(userAnswers)(unloadingSummaryRow.seals)
-        Seq(Section(msg"changeSeal.title", rows))
+  def apply(userAnswers: UserAnswers)(implicit unloadingPermission: UnloadingPermission, unloadingSummaryRow: UnloadingSummaryRow): Option[Seq[Section]] =
+    userAnswers.get(SealsQuery) match {
+      case Some(seals) => {
+        val rows: Seq[Row] = seals.zipWithIndex.map {
+          case (sealNumber, index) => {
 
-      case None => Seq.empty
+            unloadingPermission.seals match {
+              case Some(existingSeals) if existingSeals.SealId.length >= index + 1 =>
+                SummaryRow.rowWithIndex(Index(index))(None)(sealNumber)(unloadingSummaryRow.seals)
+
+              case _ => SummaryRow.rowWithIndex(Index(index))(None)(sealNumber)(unloadingSummaryRow.sealsWithRemove)
+            }
+          }
+        }
+
+        Some(Seq(Section(msg"changeSeal.title", rows)))
+      }
+
+      case None =>
+        unloadingPermission.seals match {
+          case Some(seals) => {
+            val rows: Seq[Row] = seals.SealId.zipWithIndex.map {
+              case (sealNumber, index) => {
+                val sealAnswer = SummaryRow.userAnswerWithIndex(Index(index))(userAnswers)(NewSealNumberPage)
+                SummaryRow.rowWithIndex(Index(index))(sealAnswer)(sealNumber)(unloadingSummaryRow.seals)
+              }
+            }
+
+            Some(Seq(Section(msg"changeSeal.title", rows)))
+          }
+          case None =>
+            None
+        }
     }
 }
 

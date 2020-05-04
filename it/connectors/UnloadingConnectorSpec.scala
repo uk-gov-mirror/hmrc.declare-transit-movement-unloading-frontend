@@ -1,12 +1,11 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import models.{Movement, MovementReferenceNumber}
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.{JsArray, JsObject, JsString}
+import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,7 +17,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
   override protected def portConfigKey: String = "microservice.services.arrivals-backend.port"
 
-  private lazy val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+  private lazy val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnectorImpl]
 
   implicit val hc = HeaderCarrier()
 
@@ -26,13 +25,33 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
     "GET" - {
 
-      "should handle a 200 response" in {
-        server.stubFor(
-          get(uri)
-            .willReturn(okJson(unloadingJson)
-            ))
+      "should handle a 200 response" - {
 
-        connector.get(mrn).futureValue mustBe Some(Seq(Movement("test")))
+        "containing single message" in {
+          server.stubFor(
+            get(uri)
+              .willReturn(okJson(unloadingJson)
+              ))
+
+          val movement = connector.get(arrivalId).futureValue
+          movement.get.messages.length mustBe 1
+          movement.get.messages.head.messageType mustBe "IE043E"
+          movement.get.messages.head.message mustBe "<CC043A></CC043A>"
+        }
+
+        "containing multiple messages" in {
+          server.stubFor(
+            get(uri)
+              .willReturn(okJson(jsonMultiple)
+              ))
+
+          val movement = connector.get(arrivalId).futureValue
+          movement.get.messages.length mustBe 2
+          movement.get.messages(0).messageType mustBe "IE015E"
+          movement.get.messages(0).message mustBe "<CC015A></CC015A>"
+          movement.get.messages(1).messageType mustBe "IE043E"
+          movement.get.messages(1).message mustBe "<CC043A></CC043A>"
+        }
       }
 
       "should handle a 404 response" in {
@@ -41,7 +60,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
           get(uri)
             .willReturn(notFound)
         )
-        connector.get(mrn).futureValue mustBe None
+        connector.get(arrivalId).futureValue mustBe None
       }
 
       "should handle client and server errors" in {
@@ -51,7 +70,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
               get(uri)
                 .willReturn(aResponse().withStatus(code))
             )
-            connector.get(mrn).futureValue mustBe None
+            connector.get(arrivalId).futureValue mustBe None
         }
       }
 
@@ -61,7 +80,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
           get(uri)
             .willReturn(okJson(emptyObject))
         )
-        connector.get(mrn).futureValue mustBe None
+        connector.get(arrivalId).futureValue mustBe None
       }
 
       "should return None when json is malformed" in {
@@ -70,7 +89,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
           get(uri)
             .willReturn(okJson(malFormedJson))
         )
-        connector.get(mrn).futureValue mustBe None
+        connector.get(arrivalId).futureValue mustBe None
       }
     }
   }
@@ -79,7 +98,20 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
 object UnloadingConnectorSpec {
 
-  private val unloadingJson = JsArray(Seq(JsObject(Map("messages" -> JsString("test"))))).toString
+  private val unloadingJson =
+      Json.obj("messages" -> Json.arr(
+        Json.obj(
+        "messageType" -> "IE043E",
+          "message" -> "<CC043A></CC043A>"))).toString()
+
+  private val jsonMultiple =
+      Json.obj("messages" -> Json.arr(
+        Json.obj(
+          "messageType" -> "IE015E",
+          "message" -> "<CC015A></CC015A>"),
+        Json.obj(
+          "messageType" -> "IE043E",
+          "message" -> "<CC043A></CC043A>"))).toString()
 
   private val malFormedJson =
     """
@@ -89,8 +121,8 @@ object UnloadingConnectorSpec {
     """.stripMargin
 
   private val emptyObject: String = JsObject.empty.toString()
-  private val mrn = new MovementReferenceNumber("99","IT","9876AB88901209")
-  private val uri = s"/common-transit-convention-trader-at-destination/movements/$mrn"
+  private val arrivalId = 1
+  private val uri = s"/transit-movements-trader-at-destination/movements/arrivals/$arrivalId/messages/"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }

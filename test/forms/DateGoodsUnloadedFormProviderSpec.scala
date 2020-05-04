@@ -28,12 +28,17 @@ class DateGoodsUnloadedFormProviderSpec extends DateBehaviours {
   ".value" - {
 
     val validData = datesBetween(
-      min = LocalDate.of(2000, 1, 1),
+      min = LocalDate.now.minusYears(1),
       max = LocalDate.now(ZoneOffset.UTC)
     )
 
     behave like dateField(form, "value", validData)
 
     behave like mandatoryDateField(form, "value", "dateGoodsUnloaded.error.required.all")
+
+    behave like dateFieldWithMax(form, "value", max = LocalDate.now, FormError("value", "dateGoodsUnloaded.error.max.date"))
+
+    behave like dateFieldWithMin(form, "value", min = LocalDate.now.minusYears(1), FormError("value", "dateGoodsUnloaded.error.min.date"))
+
   }
 }

@@ -1,0 +1,61 @@
+[1mdiff --git a/app/controllers/ConfirmRemoveSealController.scala b/app/controllers/ConfirmRemoveSealController.scala[m
+[1mindex e314ad6..3026ebf 100644[m
+[1m--- a/app/controllers/ConfirmRemoveSealController.scala[m
+[1m+++ b/app/controllers/ConfirmRemoveSealController.scala[m
+[36m@@ -21,7 +21,7 @@[m [mimport forms.ConfirmRemoveSealFormProvider[m
+ import javax.inject.Inject[m
+ import models.{Index, Mode, MovementReferenceNumber}[m
+ import navigation.Navigator[m
+[31m-import pages.ConfirmRemoveSealPage[m
+[32m+[m[32mimport pages.{ConfirmRemoveCommentsPage, ConfirmRemoveSealPage}[m
+ import play.api.i18n.{I18nSupport, MessagesApi}[m
+ import play.api.libs.json.Json[m
+ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}[m
+[36m@@ -83,10 +83,15 @@[m [mclass ConfirmRemoveSealController @Inject()([m
+             renderer.render("confirmRemoveSeal.njk", json).map(BadRequest(_))[m
+           },[m
+           value =>[m
+[31m-            for {[m
+[31m-              updatedAnswers <- Future.fromTry(request.userAnswers.set(ConfirmRemoveSealPage, value))[m
+[31m-              _              <- sessionRepository.set(updatedAnswers)[m
+[31m-            } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, updatedAnswers))[m
+[32m+[m[32m            if (value) {[m
+[32m+[m[32m              for {[m
+[32m+[m[32m                updatedAnswers <- Future.fromTry(request.userAnswers.remove(ConfirmRemoveSealPage))[m
+[32m+[m[32m                _              <- sessionRepository.set(updatedAnswers)[m
+[32m+[m[32m              } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, updatedAnswers))[m
+[32m+[m[32m            } else {[m
+[32m+[m[32m              Future.successful(Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, request.userAnswers)))[m
+[32m+[m
+[32m+[m[32m          }[m
+         )[m
+   }[m
+ }[m
+[1mdiff --git a/app/navigation/Navigator.scala b/app/navigation/Navigator.scala[m
+[1mindex 7e08c86..4f9277d 100644[m
+[1m--- a/app/navigation/Navigator.scala[m
+[1m+++ b/app/navigation/Navigator.scala[m
+[36m@@ -18,9 +18,9 @@[m [mpackage navigation[m
+ [m
+ import com.google.inject.{Inject, Singleton}[m
+ import controllers.routes[m
+[31m-import models.{CheckMode, Mode, NormalMode, UserAnswers}[m
+[31m-import pages._[m
+[31m-[m
+[32m+[m[32mimport derivable.DeriveNumberOfSeals[m
+[32m+[m[32mimport models.{CheckMode, Index, Mode, NormalMode, UserAnswers}[m
+[32m+[m[32mimport pages.{ConfirmRemoveSealPage, _}[m
+ import play.api.mvc.Call[m
+ [m
+ @Singleton[m
+[36m@@ -64,6 +64,10 @@[m [mclass Navigator @Inject()() {[m
+       ua =>[m
+         routes.UnloadingSummaryController.onPageLoad(ua.id)[m
+ [m
+[32m+[m[32m    case ConfirmRemoveSealPage =>[m
+[32m+[m[32m      ua =>[m
+[32m+[m[32m        routes.UnloadingSummaryController.onPageLoad(ua.id)[m
+[32m+[m
+     case _ =>[m
+       _ =>[m
+         routes.IndexController.onPageLoad()[m

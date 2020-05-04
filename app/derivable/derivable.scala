@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package derivable
 
-import play.api.libs.json.{Json, OFormat}
+import queries.Gettable
 
-case class Movement(messages: Seq[MovementMessage])
+trait Derivable[A, B] extends Gettable[A] {
 
-object Movement {
-  implicit val formats: OFormat[Movement] = Json.format[Movement]
-}
+  val derive: A => B
 
-case class MovementMessage(messageType: String, message: String)
-
-object MovementMessage {
-  implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
 }

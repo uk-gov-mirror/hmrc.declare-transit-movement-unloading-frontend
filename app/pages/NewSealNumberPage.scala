@@ -21,7 +21,5 @@ import play.api.libs.json.JsPath
 
 final case class NewSealNumberPage(index: Index) extends QuestionPage[String] {
 
-  override def path: JsPath = JsPath \ "seals" \ index.position \ toString
-
-  override def toString: String = "newSealNumber"
+  override def path: JsPath = JsPath \ "seals" \ index.position
 }

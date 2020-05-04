@@ -18,11 +18,13 @@ package controllers
 
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import handlers.ErrorHandler
 import models.MovementReferenceNumber
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
+import services.{ReferenceDataService, UnloadingPermissionService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewModels.CheckYourAnswersViewModel
@@ -35,8 +37,11 @@ class CheckYourAnswersController @Inject()(
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
+  unloadingPermissionService: UnloadingPermissionService,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
+  renderer: Renderer,
+  referenceDataService: ReferenceDataService,
+  errorHandler: ErrorHandler
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -47,15 +52,23 @@ class CheckYourAnswersController @Inject()(
 
   def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val viewModel: CheckYourAnswersViewModel = CheckYourAnswersViewModel(request.userAnswers)
+      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
+        case Some(unloadingPermission) => {
+          referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
+            transportCountry =>
+              val viewModel = CheckYourAnswersViewModel(request.userAnswers, unloadingPermission, transportCountry)
 
-      val answers: Seq[Section] = viewModel.sections
+              val answers: Seq[Section] = viewModel.sections
 
-      renderer
-        .render(
-          "check-your-answers.njk",
-          Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
-        )
-        .map(Ok(_))
+              renderer
+                .render(
+                  "check-your-answers.njk",
+                  Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
+                )
+                .map(Ok(_))
+          }
+        }
+        case _ => errorHandler.onClientError(request, BAD_REQUEST)
+      }
   }
 }

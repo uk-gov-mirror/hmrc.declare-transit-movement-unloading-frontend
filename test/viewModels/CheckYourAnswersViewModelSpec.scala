@@ -18,20 +18,30 @@ package viewModels
 import java.time.LocalDate
 
 import base.SpecBase
-import models.UserAnswers
-import pages.DateGoodsUnloadedPage
+import cats.data.NonEmptyList
+import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithEori, UnloadingPermission, UserAnswers}
+import org.scalatest.{FreeSpec, MustMatchers}
+import pages._
 import uk.gov.hmrc.viewmodels.Text.Literal
 
-class CheckYourAnswersViewModelSpec extends SpecBase {
+class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with SpecBase {
+
+  private val unloadingPermissionWithTransport = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = Some("YK67 XPF"),
+    transportCountry        = Some("United Kingdom"),
+    numberOfItems           = 1,
+    numberOfPackages        = 1,
+    grossMass               = "1000",
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
+  )
+
+  private val transportCountry = None
 
   "CheckYourAnswersViewModel" - {
-
-    "contain no sections if data doesn't exist" in {
-
-      val data = CheckYourAnswersViewModel(emptyUserAnswers)
-
-      data.sections mustBe Nil
-    }
 
     "contain date goods unloaded" in {
 
@@ -39,10 +49,62 @@ class CheckYourAnswersViewModelSpec extends SpecBase {
 
       val userAnswers: UserAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, date).success.value
 
-      val data = CheckYourAnswersViewModel(userAnswers)
+      val data = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
-      data.sections.length mustBe 1
+      data.sections.length mustBe 3
       data.sections.head.rows.head.value.content mustBe Literal("12 March 2020")
+    }
+
+    "contain vehicle registration details with new user answers" in {
+      val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "vehicle reference").success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows.head.value.content mustBe Literal("vehicle reference")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+    }
+
+    "contain transport country details from unloading permission" in {
+      val data = CheckYourAnswersViewModel(emptyUserAnswers, unloadingPermissionWithTransport, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(1).value.content mustBe Literal("United Kingdom")
+    }
+
+    "contain gross mass amount details from unloading permission" in {
+      val data = CheckYourAnswersViewModel(emptyUserAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows.head.value.content mustBe Literal("1000")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+    }
+
+    "contain gross mass details" in {
+      val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "500").success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows.head.value.content mustBe Literal("500")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
+
+    "contain item details" in {
+      val userAnswers = emptyUserAnswers
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(1).value.content mustBe Literal("Flowers")
+      data.sections(2).rows(1).actions mustBe Nil
+    }
+
+    "contain comments details" in {
+      val userAnswers = emptyUserAnswers.set(ChangesToReportPage, "Test comment").success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(2).value.content mustBe Literal("Test comment")
+      data.sections(2).rows(2).actions mustBe Nil
     }
   }
 }

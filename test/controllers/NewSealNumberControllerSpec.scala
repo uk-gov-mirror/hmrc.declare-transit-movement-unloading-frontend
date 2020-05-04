@@ -19,7 +19,7 @@ package controllers
 import base.SpecBase
 import forms.NewSealNumberFormProvider
 import matchers.JsonMatchers
-import models.{Index, NormalMode, UserAnswers}
+import models.{Index, MovementReferenceNumber, NormalMode, UserAnswers}
 import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -108,91 +108,141 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       application.stop()
     }
 
-    "must redirect to the next page when valid data is submitted" in {
+    "onSubmit" - {
+      "must redirect to the next page when valid data is submitted" in {
 
-      val mockSessionRepository = mock[SessionRepository]
+        val mockSessionRepository = mock[SessionRepository]
 
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+        when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
+        when(mockUnloadingPermissionService.convertSeals(any())(any(), any()))
+          .thenReturn(Future.successful(Some(emptyUserAnswers)))
+
+        val application =
+          applicationBuilder(userAnswers = Some(emptyUserAnswers))
+            .overrides(
+              bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
+              bind[SessionRepository].toInstance(mockSessionRepository)
+            )
+            .build()
+
+        val request =
+          FakeRequest(POST, newSealNumberRoute)
+            .withFormUrlEncodedBody(("value", "answer"))
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual onwardRoute.url
+
+        application.stop()
+      }
+
+      "must return a Bad Request and errors when invalid data is submitted" in {
+
+        when(mockRenderer.render(any(), any())(any()))
+          .thenReturn(Future.successful(Html("")))
+
+        when(mockUnloadingPermissionService.convertSeals(any())(any(), any()))
+          .thenReturn(Future.successful(Some(emptyUserAnswers)))
+
+        val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        val request        = FakeRequest(POST, newSealNumberRoute).withFormUrlEncodedBody(("value", ""))
+        val boundForm      = form.bind(Map("value" -> ""))
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+
+        val result = route(application, request).value
+
+        status(result) mustEqual BAD_REQUEST
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        val expectedJson = Json.obj(
+          "form" -> boundForm,
+          "mrn"  -> mrn,
+          "mode" -> NormalMode
+        )
+
+        templateCaptor.getValue mustEqual "newSealNumber.njk"
+        jsonCaptor.getValue must containJson(expectedJson)
+
+        application.stop()
+      }
+
+      "must redirect to Session Expired for a GET if no existing data is found" in {
+
+        val application = applicationBuilder(userAnswers = None).build()
+
+        val request = FakeRequest(GET, newSealNumberRoute)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+
+        redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+
+        application.stop()
+      }
+
+      "must redirect to Session Expired for a POST if no existing data is found" in {
+
+        val application = applicationBuilder(userAnswers = None).build()
+
+        val request =
+          FakeRequest(POST, newSealNumberRoute)
+            .withFormUrlEncodedBody(("value", "answer"))
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+
+        redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+
+        application.stop()
+      }
+
+      "must redirect to the correct page when seals already in the UserAnswers" in {
+        val userAnswers           = new UserAnswers(mrn, Json.obj("seals" -> Seq("Seals01")))
+        val mockSessionRepository = mock[SessionRepository]
+
+        when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+
+        val application =
+          applicationBuilder(userAnswers = Some(userAnswers))
+            .overrides(
+              bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
+              bind[SessionRepository].toInstance(mockSessionRepository)
+            )
+            .build()
+
+        val request =
+          FakeRequest(POST, routes.NewSealNumberController.onPageLoad(mrn, Index(1), NormalMode).url)
+            .withFormUrlEncodedBody(("value", "answer"))
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual onwardRoute.url
+
+        application.stop()
+      }
+
+      "redirect to error page when no UserAnswers returned from unloading permissions service" in {
+        val ua = UserAnswers(MovementReferenceNumber("41", "IT", "0211001000782"), Json.obj())
+        val application = applicationBuilder(Some(ua))
           .build()
 
-      val request =
-        FakeRequest(POST, newSealNumberRoute)
-          .withFormUrlEncodedBody(("value", "answer"))
+        val request =
+          FakeRequest(POST, routes.NewSealNumberController.onPageLoad(mrn, Index(0), NormalMode).url)
+            .withFormUrlEncodedBody(("value", "answer"))
 
-      val result = route(application, request).value
+        val result = route(application, request).value
 
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual onwardRoute.url
+        //todo: Test this
 
-      application.stop()
-    }
-
-    "must return a Bad Request and errors when invalid data is submitted" in {
-
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
-      val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-      val request        = FakeRequest(POST, newSealNumberRoute).withFormUrlEncodedBody(("value", ""))
-      val boundForm      = form.bind(Map("value" -> ""))
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
-
-      status(result) mustEqual BAD_REQUEST
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
-      )
-
-      templateCaptor.getValue mustEqual "newSealNumber.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must redirect to Session Expired for a GET if no existing data is found" in {
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val request = FakeRequest(GET, newSealNumberRoute)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
-    }
-
-    "must redirect to Session Expired for a POST if no existing data is found" in {
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val request =
-        FakeRequest(POST, newSealNumberRoute)
-          .withFormUrlEncodedBody(("value", "answer"))
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
+        application.stop()
+      }
     }
   }
 }
