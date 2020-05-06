@@ -46,7 +46,7 @@ class ConfirmationController @Inject()(
     implicit request =>
       val json = Json.obj("mrn" -> mrn, "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl)
 
-      sessionRepository.remove(mrn.toString)
+//      sessionRepository.remove(mrn.toString)
       renderer.render("confirmation.njk", json).map(Ok(_))
   }
 }
