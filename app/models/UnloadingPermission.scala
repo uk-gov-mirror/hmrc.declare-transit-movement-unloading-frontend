@@ -30,7 +30,7 @@ case class UnloadingPermission(
   grossMass: String, //TODO: Does this need to be BigDecimal
   traderAtDestination: TraderAtDestination,
   presentationOffice: String,
-  seals: Option[Seals], //TODO: Double check this is optional
+  seals: Option[Seals],
   goodsItems: NonEmptyList[GoodsItem]
 )
 
