@@ -58,30 +58,6 @@ object ResultsOfControl {
   val correctedValueLength = 27
 }
 
-sealed trait PointerToAttribute {
-  val pointer: String
-}
-
-object TransportIdentity extends PointerToAttribute {
-  val pointer = "18#1"
-}
-
-object TransportCountry extends PointerToAttribute {
-  val pointer = "18#2"
-}
-
-object NumberOfItems extends PointerToAttribute {
-  val pointer = "5"
-}
-
-object NumberOfPackages extends PointerToAttribute {
-  val pointer = "6"
-}
-
-object GrossMass extends PointerToAttribute {
-  val pointer = "35"
-}
-
 sealed trait ControlIndicator {
   val code: String
 }
