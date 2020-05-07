@@ -15,7 +15,6 @@
  */
 
 package models.messages
-import java.time.LocalDate
 
 import cats.data.NonEmptyList
 import models.{GoodsItem, Seals, TraderAtDestination}
@@ -30,7 +29,7 @@ case class UnloadingRemarks(movementReferenceNumber: String,
                             presentationOffice: String,
                             seals: Option[Seals], // If stateOfSeals is 1 or None, this is optional (otherwise mandatory)
                             goodsItems: NonEmptyList[GoodsItem],
-                            unloadingRemark: UnloadingRemark //TODO: Should we set this here
+                            unloadingRemark: Remarks //TODO: Should we set this here
 )
 
 object UnloadingRemarks {
@@ -40,19 +39,6 @@ object UnloadingRemarks {
   val numberOfItemsLength      = 5
   val numberOfPackagesLength   = 7
   val presentationOfficeLength = 8
-}
-
-case class UnloadingRemark(
-  stateOfSeals: Option[Int], //n1 State of seals ok flag 0 (NO) or 1 (YES) - Optional, must be included if  IE043 contains seals
-  unloadingRemark: Option[String],
-  conform: Int, //1 if no unloading remarks, 0 if unloading remarks are present OR any seals changed/updated OR any data changed
-  unloadingCompletion: Int, //0 if unloading of goods is not yet completed, 1 if goods are completely unloaded - This should always be 1
-  unloadingDate: LocalDate, // UnlDatREM67 date goods unloaded format: YYYYMMDD
-  resultOfControl: Seq[ResultsOfControl] // up to 9, if conform is 1 this can not be used
-)
-
-object UnloadingRemark {
-  val unloadingRemarkLength = 350
 }
 
 //TODO: Can have up to 9
