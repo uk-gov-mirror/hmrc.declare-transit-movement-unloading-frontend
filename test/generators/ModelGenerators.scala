@@ -16,6 +16,7 @@
 
 package generators
 
+import models.messages.{ControlIndicator, DifferentValuesFound, IndicatorValue, OtherThingsToReport}
 import models.reference.Country
 import models.{UnloadingPermission, _}
 import org.scalacheck.Arbitrary.arbitrary
@@ -146,6 +147,20 @@ trait ModelGenerators {
         code  <- Gen.pick(2, 'A' to 'Z')
         name  <- arbitrary[String]
       } yield Country(state, code.mkString, name)
+    }
+  }
+
+  implicit lazy val arbitraryDifferentValuesFound: Arbitrary[IndicatorValue] = {
+    Arbitrary {
+      Gen.oneOf(IndicatorValue.values)
+    }
+  }
+
+  implicit lazy val arbitraryControlIndicator: Arbitrary[ControlIndicator] = {
+    Arbitrary {
+      for {
+        indicator <- arbitrary[IndicatorValue]
+      } yield ControlIndicator(indicator)
     }
   }
 }

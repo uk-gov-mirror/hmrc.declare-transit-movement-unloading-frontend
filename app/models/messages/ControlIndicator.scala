@@ -29,6 +29,14 @@ sealed trait IndicatorValue {
   val value: String
 }
 
+object IndicatorValue {
+
+  val values: Seq[IndicatorValue] = Seq(
+    DifferentValuesFound,
+    OtherThingsToReport
+  )
+}
+
 object DifferentValuesFound extends IndicatorValue {
   val value = "DI"
 }
