@@ -18,12 +18,12 @@ package models
 import java.time.LocalDate
 
 import models.XMLWrites._
-import models.messages.{RemarksConform, RemarksNonConform}
+import models.messages.{RemarksConform, RemarksNonConform, ResultsOfControlOther}
 import org.scalatest.{FreeSpec, MustMatchers}
 import utils.Format
 
-import scala.xml.Node
 import scala.xml.Utility.trim
+import scala.xml.{Node, NodeSeq}
 
 class RemarksSpec extends FreeSpec with MustMatchers {
 
@@ -41,17 +41,65 @@ class RemarksSpec extends FreeSpec with MustMatchers {
   //TODO: Update to use Arbitrary
   "RemarksSpec" - {
 
-    "convert RemarksNonConform to xml node" in {
+    "convert RemarksNonConform to xml node" - {
 
-      val xml: Node =
-        <TRADESTRD>
-          <UnlRemREM53LNG>EN</UnlRemREM53LNG>
-          <ConREM65>0</ConREM65>
-          <UnlComREM66>1</UnlComREM66>
-          <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
-        </TRADESTRD>
+      "when resultOfControl is Nil" in {
 
-      remarks.toXml.map(trim) mustBe xml.map(trim)
+        val xml: NodeSeq =
+          <TRADESTRD>
+              <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+              <ConREM65>0</ConREM65>
+              <UnlComREM66>1</UnlComREM66>
+              <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
+            </TRADESTRD>
+
+        remarks.toXml.map(trim) mustBe xml.map(trim)
+      }
+
+      "when resultOfControl is single item" in {
+
+        val remarksNonConform = remarks.copy(resultOfControl = Seq(ResultsOfControlOther("things to report")))
+
+        val xml: NodeSeq =
+          <TRADESTRD>
+            <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+            <ConREM65>0</ConREM65>
+            <UnlComREM66>1</UnlComREM66>
+            <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
+          </TRADESTRD> +:
+            <RESOFCON534>
+              <DesTOC2>things to report</DesTOC2>
+              <DesTOC2LNG>EN</DesTOC2LNG>
+              <ConInd424>OT</ConInd424>
+            </RESOFCON534>
+
+        remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
+      }
+
+      "when resultOfControl is multiple items" in {
+
+        val remarksNonConform = remarks.copy(resultOfControl = Seq(ResultsOfControlOther("things to report"), ResultsOfControlOther("things to report 2")))
+
+        val xml: NodeSeq =
+          <TRADESTRD>
+            <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+            <ConREM65>0</ConREM65>
+            <UnlComREM66>1</UnlComREM66>
+            <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
+          </TRADESTRD> +:
+            <RESOFCON534>
+              <DesTOC2>things to report</DesTOC2>
+              <DesTOC2LNG>EN</DesTOC2LNG>
+              <ConInd424>OT</ConInd424>
+            </RESOFCON534> +:
+            <RESOFCON534>
+              <DesTOC2>things to report 2</DesTOC2>
+              <DesTOC2LNG>EN</DesTOC2LNG>
+              <ConInd424>OT</ConInd424>
+            </RESOFCON534>
+
+        remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
+      }
     }
 
     "convert RemarksConform to xml node" in {
