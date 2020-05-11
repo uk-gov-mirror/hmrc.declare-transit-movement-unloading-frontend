@@ -16,6 +16,8 @@
 
 package generators
 
+import java.time.LocalDate
+
 import models.messages._
 import models.reference.Country
 import models.{UnloadingPermission, _}
@@ -193,6 +195,39 @@ trait ModelGenerators {
   implicit lazy val arbitraryResultsOfControl: Arbitrary[ResultsOfControl] = {
     Arbitrary {
       Gen.oneOf(arbitrary[ResultsOfControlOther], arbitrary[ResultsOfControlDifferentValues])
+    }
+  }
+
+  implicit lazy val arbitraryRemarksConform: Arbitrary[RemarksConform] = {
+    Arbitrary {
+      for {
+        date <- arbitrary[LocalDate]
+      } yield RemarksConform(date)
+    }
+  }
+
+  implicit lazy val arbitraryRemarksConformWithSeals: Arbitrary[RemarksConformWithSeals] = {
+    Arbitrary {
+      for {
+        date <- arbitrary[LocalDate]
+      } yield RemarksConformWithSeals(date)
+    }
+  }
+
+  implicit lazy val arbitraryRemarksNonConform: Arbitrary[RemarksNonConform] = {
+    Arbitrary {
+      for {
+        stateOfSeals    <- Gen.option(choose(min = 0: Int, 1: Int))
+        date            <- arbitrary[LocalDate]
+        unloadingRemark <- Gen.option(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength))
+        resultOfControl <- listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)
+      } yield
+        RemarksNonConform(
+          stateOfSeals    = stateOfSeals,
+          unloadingRemark = unloadingRemark,
+          unloadingDate   = date,
+          resultOfControl = resultOfControl
+        )
     }
   }
 }

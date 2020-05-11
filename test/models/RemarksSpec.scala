@@ -15,106 +15,107 @@
  */
 
 package models
-import java.time.LocalDate
 
+import generators.{Generators, ModelGenerators}
 import models.XMLWrites._
-import models.messages.{RemarksConform, RemarksNonConform, ResultsOfControlOther}
+import models.messages._
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import utils.Format
 
 import scala.xml.Utility.trim
-import scala.xml.{Node, NodeSeq}
+import scala.xml.{Elem, Node, NodeSeq}
 
-class RemarksSpec extends FreeSpec with MustMatchers {
+class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks {
 
-  val remarks = RemarksNonConform(
-    stateOfSeals    = None,
-    unloadingRemark = None,
-    unloadingDate   = LocalDate.now(),
-    resultOfControl = Nil
-  )
+  import RemarksSpec._
 
-  val remarksConform = RemarksConform(
-    unloadingDate = LocalDate.now()
-  )
-
-  //TODO: Update to use Arbitrary
   "RemarksSpec" - {
 
-    "convert RemarksNonConform to xml node" - {
+    "must serialize RemarksConform to xml" in {
 
-      "when resultOfControl is Nil" in {
-
-        val xml: NodeSeq =
-          <TRADESTRD>
-              <UnlRemREM53LNG>EN</UnlRemREM53LNG>
-              <ConREM65>0</ConREM65>
+      forAll(arbitrary[RemarksConform]) {
+        remarksConform =>
+          val xml: Node =
+            <UNLREMREM>
+              <ConREM65>1</ConREM65>
               <UnlComREM66>1</UnlComREM66>
-              <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
-            </TRADESTRD>
+              <UnlDatREM67>{Format.dateFormatted(remarksConform.unloadingDate)}</UnlDatREM67>
+            </UNLREMREM>
 
-        remarks.toXml.map(trim) mustBe xml.map(trim)
-      }
-
-      "when resultOfControl is single item" in {
-
-        val remarksNonConform = remarks.copy(resultOfControl = Seq(ResultsOfControlOther("things to report")))
-
-        val xml: NodeSeq =
-          <TRADESTRD>
-            <UnlRemREM53LNG>EN</UnlRemREM53LNG>
-            <ConREM65>0</ConREM65>
-            <UnlComREM66>1</UnlComREM66>
-            <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
-          </TRADESTRD> +:
-            <RESOFCON534>
-              <DesTOC2>things to report</DesTOC2>
-              <DesTOC2LNG>EN</DesTOC2LNG>
-              <ConInd424>OT</ConInd424>
-            </RESOFCON534>
-
-        remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
-      }
-
-      "when resultOfControl is multiple items" in {
-
-        val remarksNonConform = remarks.copy(resultOfControl = Seq(ResultsOfControlOther("things to report"), ResultsOfControlOther("things to report 2")))
-
-        val xml: NodeSeq =
-          <TRADESTRD>
-            <UnlRemREM53LNG>EN</UnlRemREM53LNG>
-            <ConREM65>0</ConREM65>
-            <UnlComREM66>1</UnlComREM66>
-            <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
-          </TRADESTRD> +:
-            <RESOFCON534>
-              <DesTOC2>things to report</DesTOC2>
-              <DesTOC2LNG>EN</DesTOC2LNG>
-              <ConInd424>OT</ConInd424>
-            </RESOFCON534> +:
-            <RESOFCON534>
-              <DesTOC2>things to report 2</DesTOC2>
-              <DesTOC2LNG>EN</DesTOC2LNG>
-              <ConInd424>OT</ConInd424>
-            </RESOFCON534>
-
-        remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
+          remarksConform.toXml.map(trim) mustBe xml.map(trim)
       }
     }
 
-    "convert RemarksConform to xml node" in {
+    "must serialize RemarksConformWithSeals to xml" in {
 
-      val xml: Node =
-        <TRADESTRD>
-          <ConREM65>1</ConREM65>
-          <UnlComREM66>1</UnlComREM66>
-          <UnlDatREM67>{Format.dateFormatted(remarksConform.unloadingDate)}</UnlDatREM67>
-        </TRADESTRD>
+      forAll(arbitrary[RemarksConformWithSeals]) {
+        remarksConformWithSeals =>
+          val xml: Node =
+            <UNLREMREM>
+              <StaOfTheSeaOKREM19>1</StaOfTheSeaOKREM19>
+              <ConREM65>1</ConREM65>
+              <UnlComREM66>1</UnlComREM66>
+              <UnlDatREM67>{Format.dateFormatted(remarksConformWithSeals.unloadingDate)}</UnlDatREM67>
+            </UNLREMREM>
 
-      remarksConform.toXml.map(trim) mustBe xml.map(trim)
+          remarksConformWithSeals.toXml.map(trim) mustBe xml.map(trim)
+      }
+    }
+
+    "must serialize RemarksNonConform to xml" in {
+
+      forAll(arbitrary[RemarksNonConform]) {
+        remarksNonConform =>
+          val stateOfSeals: Option[Elem] = remarksNonConform.stateOfSeals.map {
+            int =>
+              <StaOfTheSeaOKREM19>{int}</StaOfTheSeaOKREM19>
+          }
+
+          val unloadingRemarks: Option[Elem] = remarksNonConform.unloadingRemark.map {
+            remarks =>
+              <UnlRemREM53>{remarks}</UnlRemREM53>
+          }
+
+          val resultsOfControl: Seq[Node] = remarksNonConform.resultOfControl.flatMap {
+            resultsOfControl =>
+              resultsOfControlNode(resultsOfControl)
+          }
+
+          val xml: NodeSeq =
+            <UNLREMREM>
+              {stateOfSeals.getOrElse(NodeSeq.Empty)}
+              {unloadingRemarks.getOrElse(NodeSeq.Empty)}
+              <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+              <ConREM65>0</ConREM65>
+              <UnlComREM66>1</UnlComREM66>
+              <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
+            </UNLREMREM> +: resultsOfControl
+
+          remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
+      }
 
     }
 
   }
 
+}
+
+object RemarksSpec {
+
+  def resultsOfControlNode(resultsOfControl: ResultsOfControl): Elem = resultsOfControl match {
+    case resultsOfControl: ResultsOfControlOther =>
+      <RESOFCON534>
+        <DesTOC2>{resultsOfControl.description}</DesTOC2>
+        <DesTOC2LNG>EN</DesTOC2LNG>
+        <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
+      </RESOFCON534>
+    case resultsOfControl: ResultsOfControlDifferentValues =>
+      <RESOFCON534>
+        <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
+        <PoiToTheAttTOC5>{resultsOfControl.pointerToAttribute.pointer.value}</PoiToTheAttTOC5>
+        <CorValTOC4>{resultsOfControl.correctedValue}</CorValTOC4>
+      </RESOFCON534>
+  }
 }

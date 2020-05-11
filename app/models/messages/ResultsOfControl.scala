@@ -17,18 +17,6 @@
 package models.messages
 import models.{LanguageCodeEnglish, XMLWrites}
 
-//TODO: Can have up to 9
-//IF UNLOADING RESULT, "Conform" = "YES" (NO ResultsOfControl)
-//THEN All data groups and attributes marked with "Cond 210" can not be used
-// (don't use ResultsOfControl) ELSE All data groups and attributes marked with "Cond 210" = "R" when relevant.
-//TODO: What do we put for description
-//case class ResultsOfControl(
-//  description: Option[String], // If errors are found at header level (control indicator is set to OT), this item is required
-//  controlIndicator: ControlIndicator,
-//  pointerToAttribute: Option[PointerToAttribute], // See PointerToAttribute for info on this
-//  correctedValue: Option[String] // an27
-//)
-
 sealed trait ResultsOfControl {
   val controlIndicator: ControlIndicator
 }
@@ -67,8 +55,3 @@ object ResultsOfControlDifferentValues {
     </RESOFCON534>)
   }
 }
-//TODO: Question - when setting results of control, the ControlIndicator can only be set to DI or OT.
-// WHat happens if seals are changed and a user reports something? What value do you send?
-// Don't send a new value, just include seals as is and flag stateOfSeals to 0
-//If errors are found at the HEADER level, then RoC-Control Indicator is set to: - DI (DIfferent values found) or
-//- OT (any OTher things to report)
