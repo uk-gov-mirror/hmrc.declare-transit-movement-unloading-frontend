@@ -31,12 +31,14 @@
 
           {{ csrf() | safe }}
 
+          {{ headingCaption(mrn) }}
+
           {{ govukRadios({
             classes: "govuk-radios--inline",
             name: 'value',
             fieldset: {
               legend: {
-                text: messages('confirmRemoveComments.title'),
+                text: messages('confirmRemoveComments.heading'),
                 isPageHeading: true,
                 classes: "govuk-fieldset__legend--xl"
               }
