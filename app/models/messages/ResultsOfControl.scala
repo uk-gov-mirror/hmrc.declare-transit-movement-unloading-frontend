@@ -33,6 +33,12 @@ sealed trait ResultsOfControl {
   val controlIndicator: ControlIndicator
 }
 
+object ResultsOfControl {
+
+  val descriptionLength    = 140
+  val correctedValueLength = 27
+}
+
 case class ResultsOfControlOther(description: String) extends ResultsOfControl {
   val controlIndicator = ControlIndicator(OtherThingsToReport)
 }
@@ -61,12 +67,6 @@ object ResultsOfControlDifferentValues {
     </RESOFCON534>)
   }
 }
-
-object ResultsOfControl {
-  val descriptionLength    = 140
-  val correctedValueLength = 27
-}
-
 //TODO: Question - when setting results of control, the ControlIndicator can only be set to DI or OT.
 // WHat happens if seals are changed and a user reports something? What value do you send?
 // Don't send a new value, just include seals as is and flag stateOfSeals to 0

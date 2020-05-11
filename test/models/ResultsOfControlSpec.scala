@@ -15,50 +15,45 @@
  */
 
 package models
-import models.messages._
-import org.scalatest.{FreeSpec, MustMatchers}
-
+import generators.{Generators, ModelGenerators}
 import models.XMLWrites._
-import scala.xml.Node
+import models.messages._
+import org.scalacheck.Arbitrary._
+import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+
 import scala.xml.Utility.trim
 
-class ResultsOfControlSpec extends FreeSpec with MustMatchers {
+class ResultsOfControlSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks {
 
-  val resultsOfControlOther = ResultsOfControlOther(
-    description = "test"
-  )
-
-  val resultsOfControlDifferentValues = ResultsOfControlDifferentValues(
-    pointerToAttribute = PointerToAttribute(TransportIdentity),
-    correctedValue     = "corrected value here"
-  )
-
-  //TODO: Arbitrarys
   "ResultsOfControlSpec" - {
 
-    "convert ResultsOfControlOther to xml node" in {
+    "must serialize ResultsOfControl to xml" in {
 
-      val xml: Node =
-        <RESOFCON534>
-          <DesTOC2>test</DesTOC2>
-          <DesTOC2LNG>EN</DesTOC2LNG>
-          <ConInd424>OT</ConInd424>
-        </RESOFCON534>
+      forAll(arbitrary[ResultsOfControl]) {
+        case resultsOfControl: ResultsOfControlOther => {
+          val xml = <RESOFCON534>
+                    <DesTOC2>{resultsOfControl.description}</DesTOC2>
+                    <DesTOC2LNG>EN</DesTOC2LNG>
+                    <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
+                  </RESOFCON534>
 
-      resultsOfControlOther.toXml.map(trim) mustBe xml.map(trim)
+          resultsOfControl.toXml.map(trim) mustBe xml.map(trim)
+        }
+        case resultsOfControl: ResultsOfControlDifferentValues => {
+          val xml = <RESOFCON534>
+                    <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
+                    <PoiToTheAttTOC5>{resultsOfControl.pointerToAttribute.pointer.value}</PoiToTheAttTOC5>
+                    <CorValTOC4>{resultsOfControl.correctedValue}</CorValTOC4>
+                  </RESOFCON534>
+
+          resultsOfControl.toXml.map(trim) mustBe xml.map(trim)
+        }
+
+      }
+
     }
 
-    "convert ResultsOfControlDifferentValues to xml node" in {
-
-      val xml: Node =
-        <RESOFCON534>
-          <ConInd424>DI</ConInd424>
-          <PoiToTheAttTOC5>18#1</PoiToTheAttTOC5>
-          <CorValTOC4>corrected value here</CorValTOC4>
-        </RESOFCON534>
-
-      resultsOfControlDifferentValues.toXml.map(trim) mustBe xml.map(trim)
-    }
   }
 
 }

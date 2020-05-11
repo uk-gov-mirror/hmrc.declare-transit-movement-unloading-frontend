@@ -16,7 +16,7 @@
 
 package generators
 
-import models.messages.{ControlIndicator, DifferentValuesFound, IndicatorValue, OtherThingsToReport}
+import models.messages._
 import models.reference.Country
 import models.{UnloadingPermission, _}
 import org.scalacheck.Arbitrary.arbitrary
@@ -161,6 +161,38 @@ trait ModelGenerators {
       for {
         indicator <- arbitrary[IndicatorValue]
       } yield ControlIndicator(indicator)
+    }
+  }
+
+  implicit lazy val arbitraryPointerToAttribute: Arbitrary[PointerToAttribute] = {
+    Arbitrary {
+      for {
+        pointer <- Gen.oneOf(PointerIdentity.implementations)
+      } yield PointerToAttribute(pointer)
+
+    }
+  }
+
+  implicit lazy val arbitraryResultsOfControlOther: Arbitrary[ResultsOfControlOther] = {
+    Arbitrary {
+      for {
+        description <- stringsWithMaxLength(ResultsOfControl.descriptionLength)
+      } yield ResultsOfControlOther(description)
+    }
+  }
+
+  implicit lazy val arbitraryResultsOfControlDifferentValues: Arbitrary[ResultsOfControlDifferentValues] = {
+    Arbitrary {
+      for {
+        pointerToAttribute <- arbitrary[PointerToAttribute]
+        correctedValue     <- stringsWithMaxLength(ResultsOfControl.correctedValueLength)
+      } yield ResultsOfControlDifferentValues(pointerToAttribute, correctedValue)
+    }
+  }
+
+  implicit lazy val arbitraryResultsOfControl: Arbitrary[ResultsOfControl] = {
+    Arbitrary {
+      Gen.oneOf(arbitrary[ResultsOfControlOther], arbitrary[ResultsOfControlDifferentValues])
     }
   }
 }
