@@ -18,8 +18,10 @@ package models
 
 import com.lucidchart.open.xtract.{__, XmlReader}
 import com.lucidchart.open.xtract.XmlReader._
-
 import cats.syntax.all._
+import models.messages.escapeXml
+
+import scala.xml.NodeSeq
 
 final case class SensitiveGoodsInformation(
   goodsCode: Option[Int],
@@ -32,4 +34,17 @@ object SensitiveGoodsInformation {
     (__ \ "SenGooCodSD22").read[Int].optional,
     (__ \ "SenQuaSD23").read[Int]
   ).mapN(apply)
+
+  implicit def writes: XMLWrites[SensitiveGoodsInformation] = XMLWrites[SensitiveGoodsInformation] {
+    sensitiveGoodsInformation =>
+      <SGICODSD2>
+        {
+          sensitiveGoodsInformation.goodsCode.fold(NodeSeq.Empty) {
+            goodsCode =>
+              <SenGooCodSD22>{goodsCode}</SenGooCodSD22>
+          }
+        }
+        <SenQuaSD23>{sensitiveGoodsInformation.quantity}</SenQuaSD23>
+      </SGICODSD2>
+  }
 }

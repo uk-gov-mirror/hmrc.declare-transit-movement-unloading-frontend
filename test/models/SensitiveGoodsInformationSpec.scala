@@ -18,12 +18,13 @@ package models
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.NodeSeq
+import models.XMLWrites._
 
-class SensitiveGoodsInformationSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks {
+class SensitiveGoodsInformationSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
   "SensitiveGoodsInformation" - {
 
@@ -47,6 +48,26 @@ class SensitiveGoodsInformationSpec extends FreeSpec with MustMatchers with Gene
 
           XmlReader.of[SensitiveGoodsInformation].read(result) mustBe
             ParseSuccess(SensitiveGoodsInformation(sensitiveGoodsInformation.goodsCode, sensitiveGoodsInformation.quantity))
+      }
+
+    }
+
+    "must serialize SensitiveGoodsInformation to xml" in {
+      forAll(arbitrary[SensitiveGoodsInformation]) {
+        sensitiveGoodsInformation =>
+          val goodsCode = sensitiveGoodsInformation.goodsCode.fold(NodeSeq.Empty) {
+            code =>
+              <SenGooCodSD22>{code}</SenGooCodSD22>
+          }
+
+          val result = {
+            <SGICODSD2>
+              {goodsCode}
+              <SenQuaSD23>{sensitiveGoodsInformation.quantity}</SenQuaSD23>
+            </SGICODSD2>
+          }
+
+          sensitiveGoodsInformation.toXml mustEqual result
       }
 
     }
