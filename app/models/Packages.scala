@@ -15,11 +15,13 @@
  */
 
 package models
+import models.messages.escapeXml
 
 import com.lucidchart.open.xtract.{__, XmlReader}
 import com.lucidchart.open.xtract.XmlReader._
-
 import cats.syntax.all._
+
+import scala.xml.NodeSeq
 
 case class Packages(
   marksAndNumberPackage: Option[String],
@@ -39,4 +41,26 @@ object Packages {
     (__ \ "NumOfPacGS24").read[Int].optional,
     (__ \ "NumOfPieGS25").read[Int].optional
   ).mapN(apply)
+
+  implicit def writes: XMLWrites[Packages] = XMLWrites[Packages] {
+    packages =>
+      <PACGS2>
+          {
+            packages.marksAndNumberPackage.fold(NodeSeq.Empty) {
+              marksAndNumberPackage =>
+                <MarNumOfPacGS21>{escapeXml(marksAndNumberPackage)}</MarNumOfPacGS21>
+                <MarNumOfPacGS21LNG>{LanguageCodeEnglish.code}</MarNumOfPacGS21LNG>
+          } ++
+          packages.numberOfPackages.fold(NodeSeq.Empty) {
+            numberOfPackages =>
+              <NumOfPacGS24>{numberOfPackages}</NumOfPacGS24>
+          } ++
+          packages.numberOfPieces.fold(NodeSeq.Empty) {
+            numberOfPieces =>
+              <NumOfPieGS25>{numberOfPieces}</NumOfPieGS25>
+          }
+        }
+        <KinOfPacGS23>{escapeXml(packages.kindOfPackage)}</KinOfPacGS23>
+      </PACGS2>
+  }
 }

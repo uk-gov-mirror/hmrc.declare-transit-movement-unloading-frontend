@@ -40,7 +40,7 @@ class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks 
 
     "must serialize Meta to xml" in {
       forAll(arbitrary[Meta]) {
-        (meta) =>
+        meta =>
           val senderIdentificationCodeQualifier = meta.senderIdentificationCodeQualifier.fold(NodeSeq.Empty)(
             senderIdentification => <SenIdeCodQuaMES4>{senderIdentification}</SenIdeCodQuaMES4>
           )

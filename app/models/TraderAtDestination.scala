@@ -69,7 +69,7 @@ object TraderAtDestinationWithEori {
           } ++
           trader.streetAndNumber.fold(NodeSeq.Empty) {
             streetAndNumber =>
-              <StrAndNumTRD22>{escapeXml(streetAndNumber)}</StrAndNumTRD22>
+              <StrAndNumTRD22>{streetAndNumber}</StrAndNumTRD22>
           } ++
           trader.postCode.fold(NodeSeq.Empty) {
             postCode =>
@@ -77,11 +77,11 @@ object TraderAtDestinationWithEori {
           } ++
           trader.city.fold(NodeSeq.Empty) {
             city =>
-              <CitTRD24>{escapeXml(city)}</CitTRD24>
+              <CitTRD24>{city}</CitTRD24>
           } ++
           trader.countryCode.fold(NodeSeq.Empty) {
             countryCode =>
-              <CouTRD25>{escapeXml(countryCode)}</CouTRD25>
+              <CouTRD25>{countryCode}</CouTRD25>
           }
         }
         <NADLNGRD>{LanguageCodeEnglish.code}</NADLNGRD>
@@ -119,7 +119,7 @@ object TraderAtDestinationWithoutEori {
   implicit def writes: XMLWrites[TraderAtDestinationWithoutEori] = XMLWrites[TraderAtDestinationWithoutEori] {
     trader =>
       <TRADESTRD>
-        <NamTRD7>{trader.name}</NamTRD7>
+        <NamTRD7>{escapeXml(trader.name)}</NamTRD7>
         <StrAndNumTRD22>{trader.streetAndNumber}</StrAndNumTRD22>
         <PosCodTRD23>{trader.postCode}</PosCodTRD23>
         <CitTRD24>{trader.city}</CitTRD24>
