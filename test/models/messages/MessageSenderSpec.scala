@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package models
-import models.messages.{escapeXml, InterchangeControlReference}
+package models.messages
+
+import generators.MessagesModelGenerators
+import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import models.XMLWrites._
 
 import scala.xml.NodeSeq
 
-class InterchangeControlReferenceSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
+class MessageSenderSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with StreamlinedXmlEquality with MessagesModelGenerators {
 
-  "InterchangeControlReference" - {
+  "MessageSender" - {
+
     "must convert to xml and convert to correct format" in {
-      forAll(arbitrary[String], arbitrary[Int]) {
-        (date, index) =>
-          val expectedResult: NodeSeq = <IntConRefMES11>{s"UF${escapeXml(date)}$index"}</IntConRefMES11>
+      forAll(arbitrary[MessageSender]) {
+        messageSender =>
+          val expectedResult: NodeSeq =
+            <MesSenMES3>{escapeXml(s"${messageSender.environment}-${messageSender.eori}")}</MesSenMES3>
 
-          val interchangeControlReference = InterchangeControlReference(date, index)
-          val result                      = interchangeControlReference.toXml
-
-          result mustEqual expectedResult
+          messageSender.toXml mustEqual expectedResult
       }
     }
   }

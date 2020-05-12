@@ -18,8 +18,10 @@ package generators
 
 import java.time.{LocalDate, LocalTime}
 
-import models.messages._
+import models.{MovementReferenceNumber, UnloadingPermission}
+import models.messages.{Header, _}
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
 
 trait MessagesModelGenerators extends Generators {
@@ -66,6 +68,19 @@ trait MessagesModelGenerators extends Generators {
           None,
           None
         )
+    }
+  }
+
+  implicit lazy val arbitraryHeader: Arbitrary[Header] = {
+    Arbitrary {
+      for {
+        movementReferenceNumber <- stringsWithMaxLength(UnloadingPermission.movementReferenceNumberLength)
+        transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
+        transportCountry        <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportCountryLength))
+        numberOfItems           <- choose(min = 1: Int, 2: Int)
+        numberOfPackages        <- choose(min = 1: Int, 2: Int)
+        grossMass               <- stringsWithMaxLength(2: Int)
+      } yield Header(movementReferenceNumber, transportIdentity, transportCountry, numberOfItems, numberOfPackages, grossMass)
     }
   }
 }

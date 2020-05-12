@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package models
+package models.messages
 
 import generators.MessagesModelGenerators
 import models.XMLWrites._
-import models.messages.Meta
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -29,7 +28,7 @@ import scala.xml.NodeSeq
 class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality {
 
   //format off
-  "Meta" - {
+  "MetaSpec" - {
 
     val syntaxIdentifier     = "UNOC"
     val syntaxVersionNumber  = "3"
@@ -39,7 +38,7 @@ class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks 
     val testIndicator        = "0"
     val messageCode          = "GB044A"
 
-    "must create valid xml" in {
+    "must serialize Meta to xml" in {
       forAll(arbitrary[Meta]) {
         (meta) =>
           val senderIdentificationCodeQualifier = meta.senderIdentificationCodeQualifier.fold(NodeSeq.Empty)(

@@ -142,10 +142,6 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
     }
   }
 
-  implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
-    datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
-  }
-
   implicit lazy val arbitraryLocalTime: Arbitrary[LocalTime] = Arbitrary {
     dateTimesBetween(
       LocalDateTime.of(1900, 1, 1, 0, 0, 0),
