@@ -117,6 +117,10 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
     }
   }
 
+  implicit lazy val arbitraryLocalDate: Arbitrary[LocalDate] = Arbitrary {
+    datesBetween(LocalDate.of(1900, 1, 1), LocalDate.of(2100, 1, 1))
+  }
+
   def listWithMaxLength[A](maxLength: Int)(implicit a: Arbitrary[A]): Gen[List[A]] =
     for {
       length <- choose(1, maxLength)
