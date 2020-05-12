@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package utils
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalTime}
+package models.messages
 
-object Format {
+import models.XMLWrites
 
-  val dateFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("yyyyMMdd")
-  def dateFormatted(date: LocalDate): String = date.format(dateFormatter)
+case class InterchangeControlReference(date: String, index: Int)
 
-  val timeFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("HHmm")
-  def timeFormatted(time: LocalTime): String = time.format(timeFormatter)
+object InterchangeControlReference {
+
+  private val prefix = "UF"
+
+  implicit val writes: XMLWrites[InterchangeControlReference] =
+    XMLWrites {
+      a =>
+        <IntConRefMES11>{escapeXml(s"$prefix${a.date}${a.index}")}</IntConRefMES11>
+    }
+
 }
