@@ -107,12 +107,12 @@ object ItemsSection {
     val grossMassRow: Seq[Row]          = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMass)
 
     val totalNumberOfItemsAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfItemsPage)
-    val totalNumberOfItemsRow: Seq[Row] = SummaryRow.rowInt(totalNumberOfItemsAnswer)(Some(unloadingPermission.numberOfItems))(unloadingSummaryRow.totalNumberOfItems)
+    val totalNumberOfItemsRow: Seq[Row] =
+      SummaryRow.rowInt(totalNumberOfItemsAnswer)(Some(unloadingPermission.numberOfItems))(unloadingSummaryRow.totalNumberOfItems)
 
-    val totalNumberOfPackagesAnswer: Option[String] = Option(userAnswers.get(TotalNumberOfPackagesPage).toString)
+    val totalNumberOfPackagesAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfPackagesPage)
     val totalNumberOfPackagesRow: Seq[Row] =
-      SummaryRow.row(Option(totalNumberOfPackagesAnswer.toString))(Some(unloadingPermission.numberOfPackages.toString))(
-        unloadingSummaryRow.totalNumberOfPackages)
+      SummaryRow.rowInt(totalNumberOfPackagesAnswer)(Some(unloadingPermission.numberOfPackages))(unloadingSummaryRow.totalNumberOfPackages)
 
     val itemsRow: NonEmptyList[Row]    = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
