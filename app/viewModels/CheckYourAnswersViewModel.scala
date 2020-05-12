@@ -31,6 +31,25 @@ case class CheckYourAnswersViewModel(sections: Seq[Section])
 
 object CheckYourAnswersViewModel {
 
+  def sealsSection(userAnswers: UserAnswers)(implicit messages: Messages): Section = {
+    val checkYourAnswersRow = new CheckYourAnswersHelper(userAnswers)
+
+    val rowCanSealsBeRead: Option[Row] = checkYourAnswersRow.canSealsBeRead
+    val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
+
+
+    Section(msg"checkYourAnswers.seals.subHeading", (rowCanSealsBeRead ++ rowAreAnySealsBroken).toSeq)
+  }
+
+  def goodsUnloaded(userAnswers: UserAnswers)(implicit messages: Messages): Section = {
+    val checkYourAnswersRow = new CheckYourAnswersHelper(userAnswers)
+    val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
+    Section(rowGoodsUnloaded.toSeq)
+  }
+
+  def items(userAnswers: UserAnswers)
+
+
   def apply(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
     implicit messages: Messages): CheckYourAnswersViewModel = {
 
@@ -76,10 +95,9 @@ object CheckYourAnswersViewModel {
 
     CheckYourAnswersViewModel(
       Seq(
-        Section(rowGoodsUnloaded.toSeq),
-        Section(msg"checkYourAnswers.seals.subHeading", (rowCanSealsBeRead ++ rowAreAnySealsBroken).toSeq),
-        Section(
-          msg"checkYourAnswers.subHeading",
+        goodsUnloaded(userAnswers),
+        sealsSection(userAnswers),
+        Section(msg"checkYourAnswers.subHeading",
           buildRows(
             seals.toSeq ++ transportIdentity ++ transportCountry ++ grossMass ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow,
             userAnswers.id
