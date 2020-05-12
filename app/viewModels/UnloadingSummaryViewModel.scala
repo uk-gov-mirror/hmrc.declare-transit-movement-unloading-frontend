@@ -110,10 +110,15 @@ object ItemsSection {
     val totalNumberOfItemsRow: Seq[Row] =
       SummaryRow.row(Option(totalNumberOfItemsAnswer.toString))(Some(unloadingPermission.numberOfItems.toString))(unloadingSummaryRow.totalNumberOfItems)
 
+    val totalNumberOfPackagesAnswer: Option[String] = Option(userAnswers.get(TotalNumberOfPackagesPage).toString)
+    val totalNumberOfPackagesRow: Seq[Row] =
+      SummaryRow.row(Option(totalNumberOfPackagesAnswer.toString))(Some(unloadingPermission.numberOfPackages.toString))(
+        unloadingSummaryRow.totalNumberOfPackages)
+
     val itemsRow: NonEmptyList[Row]    = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
     val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.comments)
 
-    Seq(Section(msg"changeItems.title", grossMassRow ++ totalNumberOfItemsRow ++ itemsRow.toList ++ commentsRow))
+    Seq(Section(msg"changeItems.title", grossMassRow ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow))
   }
 }
