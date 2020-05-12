@@ -106,9 +106,8 @@ object ItemsSection {
     val grossMassAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(GrossMassAmountPage)
     val grossMassRow: Seq[Row]          = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMass)
 
-    val totalNumberOfItemsAnswer: Option[String] = Option(userAnswers.get(TotalNumberOfItemsPage).toString)
-    val totalNumberOfItemsRow: Seq[Row] =
-      SummaryRow.row(Option(totalNumberOfItemsAnswer.toString))(Some(unloadingPermission.numberOfItems.toString))(unloadingSummaryRow.totalNumberOfItems)
+    val totalNumberOfItemsAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfItemsPage)
+    val totalNumberOfItemsRow: Seq[Row] = SummaryRow.rowInt(totalNumberOfItemsAnswer)(Some(unloadingPermission.numberOfItems))(unloadingSummaryRow.totalNumberOfItems)
 
     val totalNumberOfPackagesAnswer: Option[String] = Option(userAnswers.get(TotalNumberOfPackagesPage).toString)
     val totalNumberOfPackagesRow: Seq[Row] =
