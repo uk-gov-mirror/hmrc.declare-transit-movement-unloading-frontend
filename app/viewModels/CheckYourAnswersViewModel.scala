@@ -37,37 +37,19 @@ object CheckYourAnswersViewModel {
     val rowCanSealsBeRead: Option[Row] = checkYourAnswersRow.canSealsBeRead
     val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
 
-
     Section(msg"checkYourAnswers.seals.subHeading", (rowCanSealsBeRead ++ rowAreAnySealsBroken).toSeq)
   }
 
-  def goodsUnloaded(userAnswers: UserAnswers)(implicit messages: Messages): Section = {
+  def goodsUnloadedSection(userAnswers: UserAnswers)(implicit messages: Messages): Section = {
     val checkYourAnswersRow = new CheckYourAnswersHelper(userAnswers)
     val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
     Section(rowGoodsUnloaded.toSeq)
   }
 
-  def items(userAnswers: UserAnswers)
-
-
-  def apply(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
-    implicit messages: Messages): CheckYourAnswersViewModel = {
-
-    val checkYourAnswersRow           = new CheckYourAnswersHelper(userAnswers)
-    val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
-    val unloadingSummaryRow           = new UnloadingSummaryRow(userAnswers)
-
-    val rowCanSealsBeRead: Option[Row]    = checkYourAnswersRow.canSealsBeRead
-    val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
-
-    val seals: Option[Row] = (userAnswers.get(SealsQuery), unloadingPermission.seals) match {
-      case (Some(userAnswersSeals), _)            => checkYourAnswersRow.seals(userAnswersSeals)
-      case (None, Some(unloadingPermissionSeals)) => checkYourAnswersRow.seals(unloadingPermissionSeals.SealId)
-      case (_, _)                                 => None
-    }
-
+  def itemsSection(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country],
+                   unloadingSummaryRow: UnloadingSummaryRow)(implicit messages: Messages): Section = {
     val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
-    val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
+    val transportIdentity: Seq[Row] = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
 
     val transportCountryDescription: Option[String] = summaryTransportCountry match {
       case Some(country) => Some(country.description)
@@ -75,10 +57,10 @@ object CheckYourAnswersViewModel {
     }
 
     val countryAnswer: Option[String] = SummaryRow.userAnswerCountry(userAnswers)(VehicleRegistrationCountryPage)
-    val transportCountry: Seq[Row]    = SummaryRow.row(countryAnswer)(transportCountryDescription)(unloadingSummaryRow.registeredCountryCYA)
+    val transportCountryRow: Seq[Row]    = SummaryRow.row(countryAnswer)(transportCountryDescription)(unloadingSummaryRow.registeredCountryCYA)
 
     val grossMassAnswer: Option[String] = userAnswers.get(GrossMassAmountPage)
-    val grossMass: Seq[Row]             = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMassCYA)
+    val grossMassRow: Seq[Row]             = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMassCYA)
 
     val itemsRow: NonEmptyList[Row] = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
 
@@ -93,16 +75,30 @@ object CheckYourAnswersViewModel {
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
     val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.commentsCYA)
 
+    Section(msg"checkYourAnswers.subHeading",
+      transportIdentity ++ transportCountryRow ++ grossMassRow ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow)
+  }
+
+  def apply(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
+    implicit messages: Messages): CheckYourAnswersViewModel = {
+
+    val checkYourAnswersRow           = new CheckYourAnswersHelper(userAnswers)
+    //val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
+    val unloadingSummaryRow           = new UnloadingSummaryRow(userAnswers)
+
+    //val rowCanSealsBeRead: Option[Row]    = checkYourAnswersRow.canSealsBeRead
+    //val rowAreAnySealsBroken: Option[Row] = checkYourAnswersRow.areAnySealsBroken
+//    val seals: Option[Row] = (userAnswers.get(SealsQuery), unloadingPermission.seals) match {
+//      case (Some(userAnswersSeals), _)            => checkYourAnswersRow.seals(userAnswersSeals)
+//      case (None, Some(unloadingPermissionSeals)) => checkYourAnswersRow.seals(unloadingPermissionSeals.SealId)
+//      case (_, _)                                 => None
+//    }
+
     CheckYourAnswersViewModel(
       Seq(
-        goodsUnloaded(userAnswers),
+        goodsUnloadedSection(userAnswers),
         sealsSection(userAnswers),
-        Section(msg"checkYourAnswers.subHeading",
-          buildRows(
-            seals.toSeq ++ transportIdentity ++ transportCountry ++ grossMass ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow,
-            userAnswers.id
-          )
-        )
+        itemsSection(userAnswers, unloadingPermission, summaryTransportCountry, unloadingSummaryRow)
       ))
   }
 
