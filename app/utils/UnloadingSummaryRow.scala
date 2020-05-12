@@ -158,7 +158,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.TotalNumberOfItemsController.onPageLoad(mrn, CheckMode).url,
+            href               = controllers.routes.TotalNumberOfPackagesController.onPageLoad(mrn, CheckMode).url,
             visuallyHiddenText = Some(msg"changeItems.totalNumberOfPackages.change.hidden"),
             attributes         = Map("id" -> s"""change-total-number-of-packages""")
           )
