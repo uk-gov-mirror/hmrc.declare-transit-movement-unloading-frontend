@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package models
+package models.messages
+
 import generators.{Generators, ModelGenerators}
 import models.XMLWrites._
-import models.messages.ControlIndicator
 import org.scalacheck.Arbitrary._
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
