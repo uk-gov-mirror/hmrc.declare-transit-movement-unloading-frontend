@@ -16,9 +16,9 @@
 
 package models
 
-import com.lucidchart.open.xtract.{XmlReader, __}
 import cats.syntax.all._
-import models.messages.{Header, escapeXml}
+import com.lucidchart.open.xtract.{__, XmlReader}
+import models.messages.escapeXml
 
 import scala.xml.NodeSeq
 
@@ -26,8 +26,8 @@ sealed trait TraderAtDestination
 
 object TraderAtDestination {
 
-  implicit lazy val xmlReader: XmlReader[TraderAtDestination] = TraderAtDestinationWithEori.xmlReader.or(TraderAtDestinationWithoutEori.xmlReader)
-
+  implicit lazy val xmlReader: XmlReader[TraderAtDestination] =
+    TraderAtDestinationWithEori.xmlReader.or(TraderAtDestinationWithoutEori.xmlReader)
 }
 
 final case class TraderAtDestinationWithEori(
@@ -59,28 +59,29 @@ object TraderAtDestinationWithEori {
     val countryCodeLength     = 2
   }
 
-  //TODO: Is PosCodTRD23 misssing?
   implicit def writes: XMLWrites[TraderAtDestinationWithEori] = XMLWrites[TraderAtDestinationWithEori] {
     trader =>
       <TRADESTRD>
         {
           trader.name.fold(NodeSeq.Empty) {
-            name =>  <NamTRD7>{escapeXml(name)}</NamTRD7>
-          }
-        }
-        {
+            name =>
+              <NamTRD7>{escapeXml(name)}</NamTRD7>
+          } ++
           trader.streetAndNumber.fold(NodeSeq.Empty) {
-            streetAndNumber =>  <StrAndNumTRD22>{escapeXml(streetAndNumber)}</StrAndNumTRD22>
-          }
-        }
-        {
+            streetAndNumber =>
+              <StrAndNumTRD22>{escapeXml(streetAndNumber)}</StrAndNumTRD22>
+          } ++
+          trader.postCode.fold(NodeSeq.Empty) {
+            postCode =>
+              <PosCodTRD23>{postCode}</PosCodTRD23>
+          } ++
           trader.city.fold(NodeSeq.Empty) {
-            city =>  <CitTRD24>{escapeXml(city)}</CitTRD24>
-          }
-        }
-        {
+            city =>
+              <CitTRD24>{escapeXml(city)}</CitTRD24>
+          } ++
           trader.countryCode.fold(NodeSeq.Empty) {
-            countryCode =>  <CouTRD25>{escapeXml(countryCode)}</CouTRD25>
+            countryCode =>
+              <CouTRD25>{escapeXml(countryCode)}</CouTRD25>
           }
         }
         <NADLNGRD>{LanguageCodeEnglish.code}</NADLNGRD>
@@ -113,6 +114,18 @@ object TraderAtDestinationWithoutEori {
     val postCodeLength        = 9
     val cityLength            = 35
     val countryCodeLength     = 2
+  }
+
+  implicit def writes: XMLWrites[TraderAtDestinationWithoutEori] = XMLWrites[TraderAtDestinationWithoutEori] {
+    trader =>
+      <TRADESTRD>
+        <NamTRD7>{trader.name}</NamTRD7>
+        <StrAndNumTRD22>{trader.streetAndNumber}</StrAndNumTRD22>
+        <PosCodTRD23>{trader.postCode}</PosCodTRD23>
+        <CitTRD24>{trader.city}</CitTRD24>
+        <CouTRD25>{trader.countryCode}</CouTRD25>
+        <NADLNGRD>{LanguageCodeEnglish.code}</NADLNGRD>
+      </TRADESTRD>
   }
 
 }
