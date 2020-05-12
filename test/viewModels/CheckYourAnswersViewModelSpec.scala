@@ -89,15 +89,25 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
       data.sections(2).rows(1).actions mustBe Nil
     }
 
-//    "contain number of items details" in {
-//      val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 10).success.value
-//      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
-//
-//      data.sections.length mustBe 3
-//      data.sections(2).rows.head.value mustBe Literal(10)
-//      data.sections(2).rows.head.actions.isEmpty mustBe false
-//      data.sections(2).rows(1).actions mustBe Nil
-//    }
+    "contain number of items details" in {
+      val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 10).success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(1).value.content mustBe Literal("10")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
+
+    "contain number of packages details" in {
+      val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 11).success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(2).value.content mustBe Literal("11")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
 
     "contain item details" in {
       val userAnswers = emptyUserAnswers

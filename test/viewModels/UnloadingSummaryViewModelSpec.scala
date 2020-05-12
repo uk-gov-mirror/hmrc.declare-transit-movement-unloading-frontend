@@ -16,10 +16,12 @@
 
 package viewModels
 import base.SpecBase
-import models.Seals
+import models.{Seals, UnloadingPermission}
 import org.scalatest.{FreeSpec, MustMatchers}
+import pages.{GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage}
+import uk.gov.hmrc.viewmodels.Text.Literal
 
-class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with SpecBase {
+class UnloadingSummaryViewModelSpec(implicit unloadingPermission: UnloadingPermission) extends FreeSpec with MustMatchers with SpecBase {
 
   private val transportCountry = None
 
@@ -101,13 +103,35 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
 
       "display total mass with single item" in {
 
-        val data = UnloadingSummaryViewModel(emptyUserAnswers, transportCountry)(unloadingPermission)
+        val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "100").success.value
+        val data        = UnloadingSummaryViewModel(userAnswers, transportCountry)
 
+        data.sections(2).rows(1).value.content mustBe Literal("99")
         data.sections.length mustBe 1
         data.sections.head.sectionTitle mustBe defined
         data.sections.head.rows.length mustBe 4
         data.sections.head.rows.head.actions.isEmpty mustBe false
         data.sections.head.rows(3).actions.isEmpty mustBe true
+      }
+
+      "display total number of items" in {
+        val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 10).success.value
+        val data        = UnloadingSummaryViewModel(userAnswers, transportCountry)
+
+        data.sections.length mustBe 3
+        data.sections(2).rows(1).value.content mustBe Literal("10")
+        data.sections(2).rows.head.actions.isEmpty mustBe false
+        data.sections(2).rows(1).actions mustBe Nil
+      }
+
+      "contain number of packages details" in {
+        val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 11).success.value
+        val data        = UnloadingSummaryViewModel(userAnswers, transportCountry)
+
+        data.sections.length mustBe 3
+        data.sections(2).rows(2).value.content mustBe Literal("11")
+        data.sections(2).rows.head.actions.isEmpty mustBe false
+        data.sections(2).rows(1).actions mustBe Nil
       }
 
     }
