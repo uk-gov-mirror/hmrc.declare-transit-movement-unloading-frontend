@@ -35,7 +35,12 @@ class ItemsSectionSpec extends SpecBase {
         data.head.rows.head.value.content mustBe Literal("1000")
         data.head.rows(1).value.content mustBe Literal("Flowers")
       }
+      "Correct number of items when no changes have been made" in {
 
+        val numberOfItems      = unloadingPermission.copy(grossMass = "1000", numberOfItems = 10)
+        val data: Seq[Section] = ItemsSection(emptyUserAnswers)(numberOfItems, new UnloadingSummaryRow(emptyUserAnswers))
+        data.head.rows(1).value mustBe 10
+      }
       "Correct Gross mass when change has been made" in {
         val grossMassAmount = unloadingPermission.copy(grossMass = "1000")
 

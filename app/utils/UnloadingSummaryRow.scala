@@ -134,7 +134,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
       )
   }
 
-  val totalNumberOfItems: Int => Row = {
+  val totalNumberOfItems: String => Row = {
     value =>
       Row(
         key   = Key(msg"changeItems.totalNumberOfItems.label"),

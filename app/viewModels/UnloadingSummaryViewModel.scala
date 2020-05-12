@@ -106,11 +106,14 @@ object ItemsSection {
     val grossMassAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(GrossMassAmountPage)
     val grossMassRow: Seq[Row]          = SummaryRow.row(grossMassAnswer)(Some(unloadingPermission.grossMass))(unloadingSummaryRow.grossMass)
 
-    val itemsRow: NonEmptyList[Row] = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
+    val totalNumberOfItemsAnswer: Option[String] = Option(userAnswers.get(TotalNumberOfItemsPage).toString)
+    val totalNumberOfItemsRow: Seq[Row] =
+      SummaryRow.row(Option(totalNumberOfItemsAnswer.toString))(Some(unloadingPermission.numberOfItems.toString))(unloadingSummaryRow.totalNumberOfItems)
 
+    val itemsRow: NonEmptyList[Row]    = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
     val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.comments)
 
-    Seq(Section(msg"changeItems.title", grossMassRow ++ itemsRow.toList ++ commentsRow))
+    Seq(Section(msg"changeItems.title", grossMassRow ++ totalNumberOfItemsRow ++ itemsRow.toList ++ commentsRow))
   }
 }

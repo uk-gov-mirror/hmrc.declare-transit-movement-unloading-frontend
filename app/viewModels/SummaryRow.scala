@@ -30,10 +30,16 @@ object SummaryRow {
   type GoodsItemRow  = Index => Option[String] => GoodsItem => ((Index, String) => Row) => Row
 
   type UserAnswerString  = UserAnswers => QuestionPage[String] => Option[String]
+  type UserAnswerInt     = UserAnswers => QuestionPage[Int] => Option[Int]
   type UserAnswerCountry = UserAnswers => QuestionPage[Country] => Option[String]
   type UserAnswerSeals   = UserAnswers => NewSealNumberPage.type => Option[String]
 
   val userAnswerString: UserAnswerString = {
+    ua => page =>
+      ua.get(page)
+  }
+
+  val userAnswerInt: UserAnswerInt = {
     ua => page =>
       ua.get(page)
   }
