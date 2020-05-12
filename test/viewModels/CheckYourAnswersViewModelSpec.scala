@@ -94,7 +94,7 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
       val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
       data.sections.length mustBe 3
-      data.sections(2).rows(1).value.content mustBe Literal("Flowers")
+      data.sections(2).rows(3).value.content mustBe Literal("Flowers")
       data.sections(2).rows(1).actions mustBe Nil
     }
 
@@ -103,7 +103,7 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
       val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
       data.sections.length mustBe 3
-      data.sections(2).rows(2).value.content mustBe Literal("Test comment")
+      data.sections(2).rows(4).value.content mustBe Literal("Test comment")
       data.sections(2).rows(2).actions mustBe Nil
     }
   }

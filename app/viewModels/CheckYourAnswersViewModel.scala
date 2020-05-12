@@ -63,6 +63,14 @@ object CheckYourAnswersViewModel {
 
     val itemsRow: NonEmptyList[Row] = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
 
+    val totalNumberOfItemsAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfItemsPage)
+    val totalNumberOfItemsRow: Seq[Row] =
+      SummaryRow.rowInt(totalNumberOfItemsAnswer)(Some(unloadingPermission.numberOfItems))(unloadingSummaryRow.totalNumberOfItemsCYA)
+
+    val totalNumberOfPackagesAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfPackagesPage)
+    val totalNumberOfPackagesRow: Seq[Row] =
+      SummaryRow.rowInt(totalNumberOfPackagesAnswer)(Some(unloadingPermission.numberOfPackages))(unloadingSummaryRow.totalNumberOfPackagesCYA)
+
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
     val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.commentsCYA)
 
@@ -70,8 +78,13 @@ object CheckYourAnswersViewModel {
       Seq(
         Section(rowGoodsUnloaded.toSeq),
         Section(msg"checkYourAnswers.seals.subHeading", (rowCanSealsBeRead ++ rowAreAnySealsBroken).toSeq),
-        Section(msg"checkYourAnswers.subHeading",
-                buildRows(seals.toSeq ++ transportIdentity ++ transportCountry ++ grossMass ++ itemsRow.toList ++ commentsRow, userAnswers.id))
+        Section(
+          msg"checkYourAnswers.subHeading",
+          buildRows(
+            seals.toSeq ++ transportIdentity ++ transportCountry ++ grossMass ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow,
+            userAnswers.id
+          )
+        )
       ))
   }
 
