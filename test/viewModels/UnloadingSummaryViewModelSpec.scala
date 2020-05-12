@@ -41,7 +41,7 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
 
         data.sections.length mustBe 1
         data.sections.head.sectionTitle mustBe defined
-        data.sections.head.rows.length mustBe 2
+        data.sections.head.rows.length mustBe 4
       }
 
       "display seals with transport details" in {
@@ -56,7 +56,7 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
         data.sections(0).sectionTitle mustBe defined
         data.sections(0).rows.length mustBe 2
         data.sections(1).sectionTitle mustBe defined
-        data.sections(1).rows.length mustBe 2
+        data.sections(1).rows.length mustBe 4
       }
     }
 
@@ -105,9 +105,9 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
 
         data.sections.length mustBe 1
         data.sections.head.sectionTitle mustBe defined
-        data.sections.head.rows.length mustBe 2
+        data.sections.head.rows.length mustBe 4
         data.sections.head.rows.head.actions.isEmpty mustBe false
-        data.sections.head.rows(1).actions.isEmpty mustBe true
+        data.sections.head.rows(3).actions.isEmpty mustBe true
       }
 
     }
