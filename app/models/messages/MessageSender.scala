@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package utils
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalTime}
+package models.messages
 
-object Format {
+import models.XMLWrites
 
-  val dateFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("yyyyMMdd")
-  def dateFormatted(date: LocalDate): String = date.format(dateFormatter)
+case class MessageSender(environment: String, eori: String)
 
-  val timeFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("HHmm")
-  def timeFormatted(time: LocalTime): String = time.format(timeFormatter)
+object MessageSender {
+
+  implicit val writes: XMLWrites[MessageSender] =
+    XMLWrites(
+      a => <MesSenMES3>{escapeXml(s"${a.environment}-${a.eori}")}</MesSenMES3>
+    )
 }
