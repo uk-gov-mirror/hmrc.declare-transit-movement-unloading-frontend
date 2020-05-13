@@ -63,7 +63,7 @@ class CheckYourAnswersController @Inject()(
               renderer
                 .render(
                   "check-your-answers.njk",
-                  Json.obj("sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
+                  Json.obj("mrn" -> Json.toJson(mrn), "sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
                 )
                 .map(Ok(_))
           }
