@@ -45,16 +45,13 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
 
     "contain date goods unloaded" in {
 
-      val date = LocalDate.of(2020: Int, 3: Int, 12: Int)
-
+      val date                     = LocalDate.of(2020: Int, 3: Int, 12: Int)
       val userAnswers: UserAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, date).success.value
-
-      val data = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+      val data                     = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
       data.sections.length mustBe 3
       data.sections.head.rows.head.value.content mustBe Literal("12 March 2020")
     }
-
     "contain vehicle registration details with new user answers" in {
       val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "vehicle reference").success.value
       val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
@@ -63,14 +60,12 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
       data.sections(2).rows.head.value.content mustBe Literal("vehicle reference")
       data.sections(2).rows.head.actions.isEmpty mustBe false
     }
-
     "contain transport country details from unloading permission" in {
       val data = CheckYourAnswersViewModel(emptyUserAnswers, unloadingPermissionWithTransport, transportCountry)
 
       data.sections.length mustBe 3
       data.sections(2).rows(1).value.content mustBe Literal("United Kingdom")
     }
-
     "contain gross mass amount details from unloading permission" in {
       val data = CheckYourAnswersViewModel(emptyUserAnswers, unloadingPermission, transportCountry)
 
@@ -78,7 +73,6 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
       data.sections(2).rows.head.value.content mustBe Literal("1000")
       data.sections(2).rows.head.actions.isEmpty mustBe false
     }
-
     "contain gross mass details" in {
       val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "500").success.value
       val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
@@ -88,22 +82,54 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
       data.sections(2).rows.head.actions.isEmpty mustBe false
       data.sections(2).rows(1).actions mustBe Nil
     }
+    "contain number of items details" in {
+      val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 10).success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
+      data.sections.length mustBe 3
+      data.sections(2).rows(1).value.content mustBe Literal("10")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
+    "contain number of items details with details from unloading permsission" in {
+      val data = CheckYourAnswersViewModel(emptyUserAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(1).value.content mustBe Literal("1")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
+    "contain number of packages details with detaials from unloading permsission" in {
+      val data = CheckYourAnswersViewModel(emptyUserAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(2).value.content mustBe Literal("1")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
+    "contain number of packages details" in {
+      val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 11).success.value
+      val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
+
+      data.sections.length mustBe 3
+      data.sections(2).rows(2).value.content mustBe Literal("11")
+      data.sections(2).rows.head.actions.isEmpty mustBe false
+      data.sections(2).rows(1).actions mustBe Nil
+    }
     "contain item details" in {
       val userAnswers = emptyUserAnswers
       val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
       data.sections.length mustBe 3
-      data.sections(2).rows(1).value.content mustBe Literal("Flowers")
+      data.sections(2).rows(3).value.content mustBe Literal("Flowers")
       data.sections(2).rows(1).actions mustBe Nil
     }
-
     "contain comments details" in {
       val userAnswers = emptyUserAnswers.set(ChangesToReportPage, "Test comment").success.value
       val data        = CheckYourAnswersViewModel(userAnswers, unloadingPermission, transportCountry)
 
       data.sections.length mustBe 3
-      data.sections(2).rows(2).value.content mustBe Literal("Test comment")
+      data.sections(2).rows(4).value.content mustBe Literal("Test comment")
       data.sections(2).rows(2).actions mustBe Nil
     }
   }

@@ -33,7 +33,13 @@ class ItemsSectionSpec extends SpecBase {
         val grossMassAmount    = unloadingPermission.copy(grossMass = "1000")
         val data: Seq[Section] = ItemsSection(emptyUserAnswers)(grossMassAmount, new UnloadingSummaryRow(emptyUserAnswers))
         data.head.rows.head.value.content mustBe Literal("1000")
-        data.head.rows(1).value.content mustBe Literal("Flowers")
+        data.head.rows(3).value.content mustBe Literal("Flowers")
+      }
+      "Correct number of items when no changes have been made" in {
+
+        val numberOfItems      = unloadingPermission.copy(grossMass = "1000", numberOfItems = 10)
+        val data: Seq[Section] = ItemsSection(emptyUserAnswers)(numberOfItems, new UnloadingSummaryRow(emptyUserAnswers))
+        data.head.rows(1).value.content mustBe Literal("10")
       }
 
       "Correct Gross mass when change has been made" in {
@@ -46,7 +52,7 @@ class ItemsSectionSpec extends SpecBase {
 
         val data: Seq[Section] = ItemsSection(updatedAnswers)(grossMassAmount, new UnloadingSummaryRow(emptyUserAnswers))
         data.head.rows.head.value.content mustBe Literal("2000")
-        data.head.rows(1).value.content mustBe Literal("Flowers")
+        data.head.rows(3).value.content mustBe Literal("Flowers")
       }
 
       "Correct Comments when change has been made" in {
@@ -56,7 +62,7 @@ class ItemsSectionSpec extends SpecBase {
           .value
 
         val data: Seq[Section] = ItemsSection(updatedAnswers)(unloadingPermission, new UnloadingSummaryRow(emptyUserAnswers))
-        data.head.rows(2).value.content mustBe Literal("Test")
+        data.head.rows(4).value.content mustBe Literal("Test")
       }
 
     }

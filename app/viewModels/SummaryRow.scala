@@ -23,17 +23,24 @@ import uk.gov.hmrc.viewmodels.SummaryList.Row
 
 object SummaryRow {
 
-  type StandardRow   = Option[String] => Option[String] => (String => Row) => Seq[Row]
-  type RowWithIndex  = Index => Option[String] => String => ((Index, String) => Row) => Row
-  type SealRows      = Seq[String] => UserAnswers => ((Index, String) => Row) => Seq[Row]
-  type GoodsItemRows = NonEmptyList[GoodsItem] => UserAnswers => ((Index, String) => Row) => NonEmptyList[Row]
-  type GoodsItemRow  = Index => Option[String] => GoodsItem => ((Index, String) => Row) => Row
+  type StandardRow    = Option[String] => Option[String] => (String => Row) => Seq[Row]
+  type StandardRowInt = Option[Int] => Option[Int] => (Int => Row) => Seq[Row]
+  type RowWithIndex   = Index => Option[String] => String => ((Index, String) => Row) => Row
+  type SealRows       = Seq[String] => UserAnswers => ((Index, String) => Row) => Seq[Row]
+  type GoodsItemRows  = NonEmptyList[GoodsItem] => UserAnswers => ((Index, String) => Row) => NonEmptyList[Row]
+  type GoodsItemRow   = Index => Option[String] => GoodsItem => ((Index, String) => Row) => Row
 
   type UserAnswerString  = UserAnswers => QuestionPage[String] => Option[String]
+  type UserAnswerInt     = UserAnswers => QuestionPage[Int] => Option[Int]
   type UserAnswerCountry = UserAnswers => QuestionPage[Country] => Option[String]
   type UserAnswerSeals   = UserAnswers => NewSealNumberPage.type => Option[String]
 
   val userAnswerString: UserAnswerString = {
+    ua => page =>
+      ua.get(page)
+  }
+
+  val userAnswerInt: UserAnswerInt = {
     ua => page =>
       ua.get(page)
   }
@@ -52,6 +59,17 @@ object SummaryRow {
   }
 
   val row: StandardRow =
+    userAnswer =>
+      summaryValue =>
+        buildRow => {
+          (userAnswer, summaryValue) match {
+            case (Some(x), _)    => Seq(buildRow(x))
+            case (None, Some(x)) => Seq(buildRow(x))
+            case (_, _)          => Nil
+          }
+    }
+
+  val rowInt: StandardRowInt =
     userAnswer =>
       summaryValue =>
         buildRow => {

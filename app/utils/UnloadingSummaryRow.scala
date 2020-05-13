@@ -134,10 +134,60 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
       )
   }
 
+  val totalNumberOfItems: Int => Row = {
+    value =>
+      Row(
+        key   = Key(msg"changeItems.totalNumberOfItems.label"),
+        value = Value(lit"$value"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.routes.TotalNumberOfItemsController.onPageLoad(mrn, CheckMode).url,
+            visuallyHiddenText = Some(msg"changeItems.totalNumberOfItems.change.hidden"),
+            attributes         = Map("id" -> s"""change-total-number-of-items""")
+          )
+        )
+      )
+  }
+
+  val totalNumberOfPackages: Int => Row = {
+    value =>
+      Row(
+        key   = Key(msg"changeItems.totalNumberOfPackages.label"),
+        value = Value(lit"$value"),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = controllers.routes.TotalNumberOfPackagesController.onPageLoad(mrn, CheckMode).url,
+            visuallyHiddenText = Some(msg"changeItems.totalNumberOfPackages.change.hidden"),
+            attributes         = Map("id" -> s"""change-total-number-of-packages""")
+          )
+        )
+      )
+  }
+
   val grossMassCYA: String => Row = {
     value =>
       Row(
         key     = Key(msg"changeItems.grossMass.label"),
+        value   = Value(lit"$value"),
+        actions = Nil
+      )
+  }
+
+  val totalNumberOfItemsCYA: Int => Row = {
+    value =>
+      Row(
+        key     = Key(msg"changeItems.totalNumberOfItems.label"),
+        value   = Value(lit"$value"),
+        actions = Nil
+      )
+  }
+
+  val totalNumberOfPackagesCYA: Int => Row = {
+    value =>
+      Row(
+        key     = Key(msg"changeItems.totalNumberOfPackages.label"),
         value   = Value(lit"$value"),
         actions = Nil
       )
