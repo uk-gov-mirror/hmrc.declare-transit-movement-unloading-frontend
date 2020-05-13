@@ -19,6 +19,9 @@ package models
 import cats.syntax.all._
 import com.lucidchart.open.xtract.XmlReader._
 import com.lucidchart.open.xtract.{__, XmlReader}
+import models.messages.escapeXml
+
+import scala.xml.NodeSeq
 
 case class Seals(numberOfSeals: Int, SealId: Seq[String])
 
@@ -31,5 +34,21 @@ object Seals {
     (__ \ "SeaNumSLI2").read[Int],
     (__ \ "SEAIDSID" \ "SeaIdeSID1").read(seq[String])
   ).mapN(apply)
+
+  implicit def writes: XMLWrites[Seals] = XMLWrites[Seals] {
+    seals =>
+      <SEAINFSLI>
+        <SeaNumSLI2>{seals.numberOfSeals}</SeaNumSLI2>
+        {
+          seals.SealId.map {
+            id =>
+              <SEAIDSID>
+                <SeaIdeSID1>{id}</SeaIdeSID1>
+                <SeaIdeSID1LNG>{LanguageCodeEnglish.code}</SeaIdeSID1LNG>
+              </SEAIDSID>
+          }
+        }
+      </SEAINFSLI>
+  }
 
 }

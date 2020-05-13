@@ -15,15 +15,69 @@
  */
 
 package models
+import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import generators.Generators
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
+import scala.xml.Elem
+import scala.xml.Utility.trim
+import models.XMLWrites._
+
 class SealsSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
-  "XMLSpec" - {
+  "SealsSpec" - {
 
-    ""
+    "must serialise seals from Xml" in {
+
+      forAll(arbitrary[Seals]) {
+
+        seals =>
+          val sealsNodes: Seq[Elem] = seals.SealId.map {
+            sealId =>
+              <SEAIDSID>
+                <SeaIdeSID1>{sealId}</SeaIdeSID1>
+                <SeaIdeSID1LNG>EN</SeaIdeSID1LNG>
+              </SEAIDSID>
+          }
+
+          val expectedResult = {
+            <SEAINFSLI>
+              <SeaNumSLI2>{seals.numberOfSeals}</SeaNumSLI2>
+              {sealsNodes}
+            </SEAINFSLI>
+          }
+
+          XmlReader.of[Seals].read(trim(expectedResult)) mustBe
+            ParseSuccess(Seals(seals.numberOfSeals, seals.SealId))
+      }
+
+    }
+
+    "must serialise seals to Xml" in {
+
+      forAll(arbitrary[Seals]) {
+
+        seals =>
+          val sealsNodes: Seq[Elem] = seals.SealId.map {
+            sealId =>
+              <SEAIDSID>
+                <SeaIdeSID1>{sealId}</SeaIdeSID1>
+                <SeaIdeSID1LNG>EN</SeaIdeSID1LNG>
+              </SEAIDSID>
+          }
+
+          val expectedResult = {
+            <SEAINFSLI>
+              <SeaNumSLI2>{seals.numberOfSeals}</SeaNumSLI2>
+              {sealsNodes}
+            </SEAINFSLI>
+          }
+          
+          seals.toXml mustEqual expectedResult
+      }
+    }
 
   }
 
