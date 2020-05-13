@@ -15,32 +15,19 @@
  */
 
 package models.messages
+
 import models.XMLWrites
 
-case class ControlIndicator(indicator: IndicatorValue)
+case class InterchangeControlReference(date: String, index: Int)
 
-object ControlIndicator {
-  implicit val writes: XMLWrites[ControlIndicator] = {
-    XMLWrites(controlIndicator => <ConInd424>{controlIndicator.indicator.value}</ConInd424>)
-  }
-}
+object InterchangeControlReference {
 
-sealed trait IndicatorValue {
-  val value: String
-}
+  private val prefix = "UF"
 
-object IndicatorValue {
+  implicit val writes: XMLWrites[InterchangeControlReference] =
+    XMLWrites {
+      a =>
+        <IntConRefMES11>{escapeXml(s"$prefix${a.date}${a.index}")}</IntConRefMES11>
+    }
 
-  val values: Seq[IndicatorValue] = Seq(
-    DifferentValuesFound,
-    OtherThingsToReport
-  )
-}
-
-object DifferentValuesFound extends IndicatorValue {
-  val value = "DI"
-}
-
-object OtherThingsToReport extends IndicatorValue {
-  val value = "OT"
 }

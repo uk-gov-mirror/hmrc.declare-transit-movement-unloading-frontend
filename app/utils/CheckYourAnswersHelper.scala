@@ -30,6 +30,36 @@ import utils.CheckYourAnswersHelper._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
+  def totalNumberOfPackages: Option[Row] = userAnswers.get(TotalNumberOfPackagesPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"totalNumberOfPackages.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.toString)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.TotalNumberOfPackagesController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"totalNumberOfPackages.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
+  def totalNumberOfItems: Option[Row] = userAnswers.get(TotalNumberOfItemsPage) map {
+    answer =>
+      Row(
+        key   = Key(msg"totalNumberOfItems.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+        value = Value(Literal(answer.toString)),
+        actions = List(
+          Action(
+            content            = msg"site.edit",
+            href               = routes.TotalNumberOfItemsController.onPageLoad(userAnswers.id, CheckMode).url,
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"totalNumberOfItems.checkYourAnswersLabel"))
+          )
+        )
+      )
+  }
+
   def changesToReport: Option[Row] = userAnswers.get(ChangesToReportPage) map {
     answer =>
       Row(

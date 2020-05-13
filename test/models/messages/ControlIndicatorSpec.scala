@@ -14,29 +14,29 @@
  * limitations under the License.
  */
 
-package models
+package models.messages
+
+import generators.{Generators, ModelGenerators}
 import models.XMLWrites._
-import models.messages.{ControlIndicator, DifferentValuesFound, OtherThingsToReport}
+import org.scalacheck.Arbitrary._
 import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.Node
 import scala.xml.Utility.trim
 
-class ControlIndicatorSpec extends FreeSpec with MustMatchers {
+class ControlIndicatorSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks {
 
   "ControlIndicatorSpec" - {
-    "must convert to xml node" - {
+    "must serialize ControlIndicator to xml" in {
 
-      "for DifferentValuesFound" in {
-        val xml: Node = <ConInd424>DI</ConInd424>
-        ControlIndicator(DifferentValuesFound).toXml.map(trim) mustBe xml.map(trim)
-      }
-
-      "for OtherThingsToReport" in {
-        val xml: Node = <ConInd424>OT</ConInd424>
-        ControlIndicator(OtherThingsToReport).toXml.map(trim) mustBe xml.map(trim)
+      forAll(arbitrary[ControlIndicator]) {
+        controlIndicator =>
+          val xml: Node = <ConInd424>{controlIndicator.indicator.value}</ConInd424>
+          controlIndicator.toXml.map(trim) mustBe xml.map(trim)
       }
     }
+
   }
 
 }

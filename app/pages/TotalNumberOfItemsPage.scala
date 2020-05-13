@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package utils
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalTime}
+package pages
 
-object Format {
+import play.api.libs.json.JsPath
 
-  val dateFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("yyyyMMdd")
-  def dateFormatted(date: LocalDate): String = date.format(dateFormatter)
+case object TotalNumberOfItemsPage extends QuestionPage[Int] {
 
-  val timeFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("HHmm")
-  def timeFormatted(time: LocalTime): String = time.format(timeFormatter)
+  override def path: JsPath = JsPath \ toString
+
+  override def toString: String = "totalNumberOfItems"
 }

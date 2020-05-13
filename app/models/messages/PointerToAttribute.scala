@@ -29,6 +29,17 @@ sealed trait PointerIdentity {
   val value: String
 }
 
+object PointerIdentity {
+
+  val implementations: Seq[PointerIdentity] = Seq(
+    TransportIdentity,
+    TransportCountry,
+    NumberOfItems,
+    NumberOfPackages,
+    GrossMass
+  )
+}
+
 object TransportIdentity extends PointerIdentity {
   val value = "18#1"
 }

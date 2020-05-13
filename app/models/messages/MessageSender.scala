@@ -15,32 +15,15 @@
  */
 
 package models.messages
+
 import models.XMLWrites
 
-case class ControlIndicator(indicator: IndicatorValue)
+case class MessageSender(environment: String, eori: String)
 
-object ControlIndicator {
-  implicit val writes: XMLWrites[ControlIndicator] = {
-    XMLWrites(controlIndicator => <ConInd424>{controlIndicator.indicator.value}</ConInd424>)
-  }
-}
+object MessageSender {
 
-sealed trait IndicatorValue {
-  val value: String
-}
-
-object IndicatorValue {
-
-  val values: Seq[IndicatorValue] = Seq(
-    DifferentValuesFound,
-    OtherThingsToReport
-  )
-}
-
-object DifferentValuesFound extends IndicatorValue {
-  val value = "DI"
-}
-
-object OtherThingsToReport extends IndicatorValue {
-  val value = "OT"
+  implicit val writes: XMLWrites[MessageSender] =
+    XMLWrites(
+      a => <MesSenMES3>{escapeXml(s"${a.environment}-${a.eori}")}</MesSenMES3>
+    )
 }

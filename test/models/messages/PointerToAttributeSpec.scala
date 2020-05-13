@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package models
+package models.messages
+
 import models.XMLWrites._
-import models.messages._
 import org.scalatest.{FreeSpec, MustMatchers}
 
 import scala.xml.Node

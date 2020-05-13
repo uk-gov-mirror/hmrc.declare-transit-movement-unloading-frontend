@@ -14,15 +14,13 @@
  * limitations under the License.
  */
 
-package utils
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalTime}
+package models
+import play.twirl.api.utils.StringEscapeUtils
 
-object Format {
+package object messages {
 
-  val dateFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("yyyyMMdd")
-  def dateFormatted(date: LocalDate): String = date.format(dateFormatter)
+  def escapeXml(xml: String): String = StringEscapeUtils.escapeXml11(xml)
 
-  val timeFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("HHmm")
-  def timeFormatted(time: LocalTime): String = time.format(timeFormatter)
+  def booleanToInt(flag: Boolean): Int = if (flag) 1 else 0
+
 }

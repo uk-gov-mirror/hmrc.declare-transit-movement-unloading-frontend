@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package utils
-import java.time.format.DateTimeFormatter
-import java.time.{LocalDate, LocalTime}
+package forms
 
-object Format {
+import forms.mappings.Mappings
+import javax.inject.Inject
+import play.api.data.Form
 
-  val dateFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("yyyyMMdd")
-  def dateFormatted(date: LocalDate): String = date.format(dateFormatter)
+class TotalNumberOfItemsFormProvider @Inject() extends Mappings {
 
-  val timeFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("HHmm")
-  def timeFormatted(time: LocalTime): String = time.format(timeFormatter)
+  def apply(): Form[Int] =
+    Form(
+      "value" -> int("totalNumberOfItems.error.required", "totalNumberOfItems.error.wholeNumber", "totalNumberOfItems.error.nonNumeric")
+        .verifying(inRange(1, Int.MaxValue, "totalNumberOfItems.error.outOfRange"))
+    )
 }

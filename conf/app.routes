@@ -76,3 +76,13 @@ POST       /:mrn/change-confirm-remove-comments                  controllers.Con
 
 GET        /technical-difficulties                       controllers.TechnicalDifficultiesController.onPageLoad()
 
+
+GET        /:mrn/total-number-of-items                  controllers.TotalNumberOfItemsController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/total-number-of-items                  controllers.TotalNumberOfItemsController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-total-number-of-items           controllers.TotalNumberOfItemsController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-total-number-of-items           controllers.TotalNumberOfItemsController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+
+GET        /:mrn/total-number-of-packages                  controllers.TotalNumberOfPackagesController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+POST       /:mrn/total-number-of-packages                    controllers.TotalNumberOfPackagesController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)
+GET        /:mrn/change-total-number-of-packages                          controllers.TotalNumberOfPackagesController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)
+POST       /:mrn/change-total-number-of-packages                          controllers.TotalNumberOfPackagesController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)

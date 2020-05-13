@@ -14,33 +14,18 @@
  * limitations under the License.
  */
 
-package models.messages
-import models.XMLWrites
+package pages
 
-case class ControlIndicator(indicator: IndicatorValue)
+import pages.behaviours.PageBehaviours
 
-object ControlIndicator {
-  implicit val writes: XMLWrites[ControlIndicator] = {
-    XMLWrites(controlIndicator => <ConInd424>{controlIndicator.indicator.value}</ConInd424>)
+class TotalNumberOfPackagesPageSpec extends PageBehaviours {
+
+  "TotalNumberOfPackagesPage" - {
+
+    beRetrievable[Int](TotalNumberOfPackagesPage)
+
+    beSettable[Int](TotalNumberOfPackagesPage)
+
+    beRemovable[Int](TotalNumberOfPackagesPage)
   }
-}
-
-sealed trait IndicatorValue {
-  val value: String
-}
-
-object IndicatorValue {
-
-  val values: Seq[IndicatorValue] = Seq(
-    DifferentValuesFound,
-    OtherThingsToReport
-  )
-}
-
-object DifferentValuesFound extends IndicatorValue {
-  val value = "DI"
-}
-
-object OtherThingsToReport extends IndicatorValue {
-  val value = "OT"
 }
