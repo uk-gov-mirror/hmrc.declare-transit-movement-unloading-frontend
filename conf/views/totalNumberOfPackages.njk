@@ -31,6 +31,8 @@
 
           {{ csrf() | safe }}
 
+          {{ headingCaption(mrn) }}
+
           {{ govukInput({
             label: {
               text: messages('totalNumberOfPackages.title'),
