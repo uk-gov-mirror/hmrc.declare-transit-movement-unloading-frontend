@@ -19,6 +19,8 @@ package models
 import com.lucidchart.open.xtract.{__, XmlReader}
 import cats.syntax.all._
 
+import scala.xml.NodeSeq
+
 final case class ProducedDocument(
   documentType: String,
   reference: Option[String],
@@ -36,4 +38,25 @@ object ProducedDocument {
     (__ \ "DocRefDC23").read[String].optional,
     (__ \ "ComOfInfDC25").read[String].optional
   ).mapN(apply)
+
+  implicit def writes: XMLWrites[ProducedDocument] = XMLWrites[ProducedDocument] {
+    producedDocument =>
+      <PRODOCDC2>
+        <DocTypDC21>{producedDocument.documentType}</DocTypDC21>
+        {
+          producedDocument.reference.fold(NodeSeq.Empty) {
+            reference =>
+              <DocRefDC23>{reference}</DocRefDC23>
+              <DocRefDCLNG>{LanguageCodeEnglish.code}</DocRefDCLNG>
+          } ++
+          producedDocument.complementOfInformation.fold(NodeSeq.Empty) {
+            complementOfInformation =>
+              <ComOfInfDC25>{complementOfInformation}</ComOfInfDC25>
+              <ComOfInfDC25LNG>{LanguageCodeEnglish.code}</ComOfInfDC25LNG>
+          }
+        }
+
+      </PRODOCDC2>
+  }
+
 }
