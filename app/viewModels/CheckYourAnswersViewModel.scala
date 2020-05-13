@@ -31,7 +31,16 @@ case class CheckYourAnswersViewModel(sections: Seq[Section])
 
 object CheckYourAnswersViewModel {
 
-  def sealsSection(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit messages: Messages): Section = {
+  def apply(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
+    implicit messages: Messages): CheckYourAnswersViewModel =
+    CheckYourAnswersViewModel(
+      Seq(
+        goodsUnloadedSection(userAnswers),
+        sealsSection(userAnswers, unloadingPermission),
+        itemsSection(userAnswers, unloadingPermission, summaryTransportCountry)
+      ))
+
+  private def sealsSection(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit messages: Messages): Section = {
     val checkYourAnswersRow = new CheckYourAnswersHelper(userAnswers)
 
     val rowCanSealsBeRead: Option[Row]    = checkYourAnswersRow.canSealsBeRead
@@ -46,16 +55,16 @@ object CheckYourAnswersViewModel {
     Section(msg"checkYourAnswers.seals.subHeading", seals.toSeq ++ rowCanSealsBeRead ++ rowAreAnySealsBroken)
   }
 
-  def goodsUnloadedSection(userAnswers: UserAnswers)(implicit messages: Messages): Section = {
+  private def goodsUnloadedSection(userAnswers: UserAnswers)(implicit messages: Messages): Section = {
     val checkYourAnswersRow           = new CheckYourAnswersHelper(userAnswers)
     val rowGoodsUnloaded: Option[Row] = checkYourAnswersRow.dateGoodsUnloaded
     Section(rowGoodsUnloaded.toSeq)
   }
 
-  def itemsSection(userAnswers: UserAnswers,
-                   unloadingPermission: UnloadingPermission,
-                   summaryTransportCountry: Option[Country],
-                   unloadingSummaryRow: UnloadingSummaryRow)(implicit messages: Messages): Section = {
+  private def itemsSection(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
+    implicit messages: Messages): Section = {
+
+    val unloadingSummaryRow                     = new UnloadingSummaryRow(userAnswers)
     val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
     val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
 
@@ -88,19 +97,6 @@ object CheckYourAnswersViewModel {
       buildRows(transportIdentity ++ transportCountryRow ++ grossMassRow ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow,
                 userAnswers.id)
     )
-  }
-
-  def apply(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
-    implicit messages: Messages): CheckYourAnswersViewModel = {
-
-    val unloadingSummaryRow = new UnloadingSummaryRow(userAnswers)
-
-    CheckYourAnswersViewModel(
-      Seq(
-        goodsUnloadedSection(userAnswers),
-        sealsSection(userAnswers, unloadingPermission),
-        itemsSection(userAnswers, unloadingPermission, summaryTransportCountry, unloadingSummaryRow)
-      ))
   }
 
   private def buildRows(rows: Seq[Row], mrn: MovementReferenceNumber): Seq[Row] = rows match {

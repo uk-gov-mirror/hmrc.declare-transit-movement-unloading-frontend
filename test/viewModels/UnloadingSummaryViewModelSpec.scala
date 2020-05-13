@@ -16,8 +16,7 @@
 
 package viewModels
 import base.SpecBase
-import cats.data.NonEmptyList
-import models.{Seals, UnloadingPermission}
+import models.Seals
 import org.scalatest.{FreeSpec, MustMatchers}
 import pages.{GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
