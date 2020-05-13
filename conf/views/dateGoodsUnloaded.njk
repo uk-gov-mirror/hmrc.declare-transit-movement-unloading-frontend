@@ -29,9 +29,11 @@
 
         <form action="{{ routes.controllers.DateGoodsUnloadedController.onSubmit(mrn, mode).url }}" method="post">
 
-          {{ csrf() | safe }}
+        {{ csrf() | safe }}
 
-          {{ govukDateInput({
+        {{ headingCaption(mrn) }}
+
+         {{ govukDateInput({
             fieldset: {
               legend: {
                 text: messages('dateGoodsUnloaded.title'),
