@@ -74,7 +74,7 @@ class SealsSpec extends FreeSpec with MustMatchers with Generators with ScalaChe
               {sealsNodes}
             </SEAINFSLI>
           }
-          
+
           seals.toXml mustEqual expectedResult
       }
     }
