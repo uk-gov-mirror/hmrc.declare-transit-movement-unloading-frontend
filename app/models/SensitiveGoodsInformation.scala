@@ -16,10 +16,9 @@
 
 package models
 
-import com.lucidchart.open.xtract.{__, XmlReader}
-import com.lucidchart.open.xtract.XmlReader._
 import cats.syntax.all._
-import models.messages.escapeXml
+import com.lucidchart.open.xtract.XmlReader._
+import com.lucidchart.open.xtract.{__, XmlReader}
 
 import scala.xml.NodeSeq
 

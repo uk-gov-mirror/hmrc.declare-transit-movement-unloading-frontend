@@ -22,6 +22,9 @@ import com.lucidchart.open.xtract.XmlReader._
 import cats.syntax.all._
 import xml.NonEmptyListOps
 
+import scala.xml.{Elem, NodeSeq}
+import models.XMLWrites._
+
 final case class GoodsItem(
   itemNumber: Int,
   commodityCode: Option[String],
@@ -55,4 +58,42 @@ object GoodsItem {
     (__ \ "PACGS2").read[Packages], //todo should this be a nonEmptySeq
     (__ \ "SGICODSD2").read(seq[SensitiveGoodsInformation])
   ).mapN(apply)
+
+  implicit def writes: XMLWrites[GoodsItem] = XMLWrites[GoodsItem] {
+    goodsItem =>
+      val commodityCode = goodsItem.commodityCode.fold(NodeSeq.Empty) {
+        commodityCode =>
+          <ComCodTarCodGDS10>{commodityCode}</ComCodTarCodGDS10>
+      }
+
+      val grossMass = goodsItem.grossMass.fold(NodeSeq.Empty) {
+        grossMass =>
+          <GroMasGDS46>{grossMass}</GroMasGDS46>
+      }
+
+      val netMass = goodsItem.netMass.fold(NodeSeq.Empty) {
+        netMass =>
+          <NetMasGDS48>{netMass}</NetMasGDS48>
+      }
+
+      val containers: Seq[Elem] = goodsItem.containers.map {
+        containerId =>
+          <CONNR2>
+            <ConNumNR21>{containerId}</ConNumNR21>
+          </CONNR2>
+      }
+
+      <GOOITEGDS>
+        <IteNumGDS7>{goodsItem.itemNumber}</IteNumGDS7>
+        {commodityCode}
+        <GooDesGDS23>{goodsItem.description}</GooDesGDS23>
+        <GooDesGDS23LNG>EN</GooDesGDS23LNG>
+        {grossMass}
+        {netMass}
+        {goodsItem.producedDocuments.map(x => x.toXml)}
+        {containers}
+        {goodsItem.packages.toXml}
+        {goodsItem.sensitiveGoodsInformation.map(x => x.toXml)}
+      </GOOITEGDS>
+  }
 }

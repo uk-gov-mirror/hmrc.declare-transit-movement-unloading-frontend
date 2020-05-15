@@ -19,13 +19,14 @@ import cats.data.NonEmptyList
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.{Elem, NodeSeq}
 import scala.xml.Utility.trim
+import models.XMLWrites._
 
-class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks {
+class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
   import GoodsItemSpec._
 
@@ -92,6 +93,55 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
                 goodsItem.sensitiveGoodsInformation
               )
             )
+      }
+    }
+
+    "must serialize GoodsItem to Xml" in {
+
+      forAll(arbitrary[GoodsItem]) {
+
+        goodsItem =>
+          val commodityCode = goodsItem.commodityCode.map {
+            code =>
+              <ComCodTarCodGDS10>{code}</ComCodTarCodGDS10>
+          }
+
+          val grossMass: Option[Elem] = goodsItem.grossMass.map {
+            grossMass =>
+              <GroMasGDS46>{grossMass}</GroMasGDS46>
+          }
+
+          val netMass: Option[Elem] = goodsItem.netMass.map {
+            netMass =>
+              <NetMasGDS48>{netMass}</NetMasGDS48>
+          }
+
+          val containers: Seq[Elem] = goodsItem.containers.map {
+            value =>
+              <CONNR2><ConNumNR21>{value}</ConNumNR21></CONNR2>
+          }
+
+          val expectedResult = {
+            <GOOITEGDS>
+              <IteNumGDS7>
+                {goodsItem.itemNumber}
+              </IteNumGDS7>
+              {commodityCode.getOrElse(NodeSeq.Empty)}
+              <GooDesGDS23>
+                {goodsItem.description}
+              </GooDesGDS23>
+              <GooDesGDS23LNG>EN</GooDesGDS23LNG>
+              {grossMass.getOrElse(NodeSeq.Empty)}
+              {netMass.getOrElse(NodeSeq.Empty)}
+              {goodsItem.producedDocuments.map(x => x.toXml)}
+              {containers}
+              {goodsItem.packages.toXml}
+              {goodsItem.sensitiveGoodsInformation.map(x => x.toXml)}
+            </GOOITEGDS>
+          }
+
+          //TODO: Strip off trim
+          goodsItem.toXml.map(trim) mustBe expectedResult.map(trim)
       }
     }
   }
