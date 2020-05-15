@@ -18,8 +18,8 @@ package generators
 
 import java.time.{LocalDate, LocalTime}
 
-import models.{MovementReferenceNumber, UnloadingPermission}
-import models.messages.{Header, _}
+import models.{GoodsItem, MovementReferenceNumber, Seals, TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
+import models.messages.{Header, UnloadingRemarksRequest, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
@@ -81,6 +81,20 @@ trait MessagesModelGenerators extends Generators {
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- stringsWithMaxLength(2: Int)
       } yield Header(movementReferenceNumber, transportIdentity, transportCountry, numberOfItems, numberOfPackages, grossMass)
+    }
+  }
+
+  implicit lazy val arbitraryUnloadingRemarksRequest: Arbitrary[UnloadingRemarksRequest] = {
+    Arbitrary {
+      for {
+        meta               <- arbitrary[Meta]
+        header             <- arbitrary[Header]
+        traderDestination  <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
+        presentationOffice <- stringsWithMaxLength(8: Int)
+        remarks            <- Gen.oneOf(arbitrary[RemarksConform], arbitrary[RemarksConformWithSeals], arbitrary[RemarksNonConform])
+        seals              <- Gen.option(arbitrary[Seals])
+        goodsItems         <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
+      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice, remarks, seals, goodsItems)
     }
   }
 }
