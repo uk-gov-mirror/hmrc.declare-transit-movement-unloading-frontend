@@ -54,6 +54,5 @@ object GoodsItem {
     //TODO: If the above isn't available a Some(Vector()) is returned
     (__ \ "PACGS2").read[Packages], //todo should this be a nonEmptySeq
     (__ \ "SGICODSD2").read(seq[SensitiveGoodsInformation])
-    //TODO: Are SensitiveGoodsInformation needed, do we need to do anything if we receive them in UnloadingPermission
   ).mapN(apply)
 }

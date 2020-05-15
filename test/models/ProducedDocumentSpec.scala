@@ -19,17 +19,18 @@ package models
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.NodeSeq
 import scala.xml.Utility.trim
+import models.XMLWrites._
 
-class ProducedDocumentSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks {
+class ProducedDocumentSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
   "ProducedDocument" - {
 
-    "must serialise packages from Xml" in {
+    "must serialise ProducedDocument from Xml" in {
 
       forAll(arbitrary[ProducedDocument]) {
         producedDocument =>
@@ -48,18 +49,51 @@ class ProducedDocumentSpec extends FreeSpec with MustMatchers with Generators wi
           }
 
           val expectedResult = {
-            <SGICODSD2>
+            <PRODOCDC2>
               <DocTypDC21>
                 {producedDocument.documentType}
               </DocTypDC21>
               {reference.getOrElse(NodeSeq.Empty)}
               {complementOfInformation.getOrElse(NodeSeq.Empty)}
-            </SGICODSD2>
+            </PRODOCDC2>
           }
 
           XmlReader.of[ProducedDocument].read(trim(expectedResult)) mustBe
             ParseSuccess(ProducedDocument(producedDocument.documentType, producedDocument.reference, producedDocument.complementOfInformation))
       }
     }
+
+    "must serialise ProducedDocument to Xml" in {
+
+      forAll(arbitrary[ProducedDocument]) {
+        producedDocument =>
+          val reference = producedDocument.reference.map {
+            ref =>
+              <DocRefDC23>{ref}</DocRefDC23>
+                <DocRefDCLNG>EN</DocRefDCLNG>
+          }
+
+          val complementOfInformation = producedDocument.complementOfInformation.map {
+            information =>
+              <ComOfInfDC25>{information}</ComOfInfDC25>
+                <ComOfInfDC25LNG>EN</ComOfInfDC25LNG>
+          }
+
+          val expectedResult = {
+            <PRODOCDC2>
+              <DocTypDC21>
+                {producedDocument.documentType}
+              </DocTypDC21>
+              {reference.getOrElse(NodeSeq.Empty)}
+              {complementOfInformation.getOrElse(NodeSeq.Empty)}
+            </PRODOCDC2>
+          }
+
+          producedDocument.toXml mustEqual expectedResult
+      }
+
+    }
+
   }
+
 }

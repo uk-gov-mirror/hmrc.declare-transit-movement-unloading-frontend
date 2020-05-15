@@ -17,15 +17,17 @@
 package models
 
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
-import generators.{Generators, ModelGenerators}
-import org.scalatest.{FreeSpec, MustMatchers}
+import generators.Generators
+import models.XMLWrites._
+import models.messages.escapeXml
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.xml.Utility.trim
 import scala.xml.{Node, NodeSeq}
+import scala.xml.Utility.trim
 
-class PackagesSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks {
+class PackagesSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
   "Packages" - {
 
@@ -71,6 +73,42 @@ class PackagesSpec extends FreeSpec with MustMatchers with Generators with Scala
 
           XmlReader.of[Packages].read(trim(expectedResult)) mustBe
             ParseSuccess(Packages(packages.marksAndNumberPackage, packages.kindOfPackage, packages.numberOfPackages, packages.numberOfPieces))
+      }
+    }
+
+    "must serialise packages to Xml" in {
+
+      forAll(arbitrary[Packages]) {
+        packages =>
+          val marksAndNumberPackage = packages.marksAndNumberPackage
+            .map {
+              marksAndNumber =>
+                <MarNumOfPacGS21>{escapeXml(marksAndNumber)}</MarNumOfPacGS21>
+                  <MarNumOfPacGS21LNG>EN</MarNumOfPacGS21LNG>
+            }
+
+          val numberOfPackage = packages.numberOfPackages
+            .map {
+              number =>
+                <NumOfPacGS24>{number}</NumOfPacGS24>
+            }
+
+          val numberOfPieces = packages.numberOfPieces
+            .map {
+              number =>
+                <NumOfPieGS25>{number}</NumOfPieGS25>
+            }
+
+          val expectedResult: Node = {
+            <PACGS2>
+              {marksAndNumberPackage.getOrElse(NodeSeq.Empty)}
+              {numberOfPackage.getOrElse(NodeSeq.Empty)}
+              {numberOfPieces.getOrElse(NodeSeq.Empty)}
+              <KinOfPacGS23>{packages.kindOfPackage}</KinOfPacGS23>
+            </PACGS2>
+          }
+
+          packages.toXml.map(trim) mustBe expectedResult.map(trim)
       }
     }
   }
