@@ -21,9 +21,9 @@ import java.time.LocalDate
 import models.messages._
 import models.reference.Country
 import models.{UnloadingPermission, _}
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalacheck.Gen.choose
+import org.scalacheck.Arbitrary.{arbitrary, _}
 import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.Gen.choose
 
 trait ModelGenerators {
 
@@ -41,7 +41,7 @@ trait ModelGenerators {
   implicit lazy val arbitrarySensitiveGoodsInformation: Arbitrary[SensitiveGoodsInformation] =
     Arbitrary {
       for {
-        goodsCode <- Gen.option(Gen.choose(0: Int, 1000: Int))
+        goodsCode <- Gen.option(Gen.choose(0: Int, 99: Int))
         quantity  <- Gen.choose(1: Int, 1000: Int)
       } yield SensitiveGoodsInformation(goodsCode, quantity)
     }
@@ -73,8 +73,8 @@ trait ModelGenerators {
         streetAndNumber <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.streetAndNumberLength))
         postCode        <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.postCodeLength))
         city            <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.cityLength))
-        countryCode     <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.countryCodeLength))
-      } yield TraderAtDestinationWithEori(eori, name, streetAndNumber, postCode, city, countryCode)
+        countryCode     <- Gen.option(Gen.pick(2, 'A' to 'Z'))
+      } yield TraderAtDestinationWithEori(eori, name, streetAndNumber, postCode, city, countryCode.map(_.mkString))
     }
 
   implicit lazy val arbitraryTraderWithoutEori: Arbitrary[TraderAtDestinationWithoutEori] =
@@ -84,8 +84,8 @@ trait ModelGenerators {
         streetAndNumber <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.streetAndNumberLength)
         postCode        <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.postCodeLength)
         city            <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.cityLength)
-        countryCode     <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.countryCodeLength)
-      } yield TraderAtDestinationWithoutEori(name, streetAndNumber, postCode, city, countryCode)
+        countryCode     <- Gen.pick(2, 'A' to 'Z')
+      } yield TraderAtDestinationWithoutEori(name, streetAndNumber, postCode, city, countryCode.mkString)
     }
 
   //TODO: Check spec and add correct max sizes as constants
@@ -94,7 +94,7 @@ trait ModelGenerators {
       for {
         movementReferenceNumber <- stringsWithMaxLength(UnloadingPermission.movementReferenceNumberLength)
         transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
-        transportCountry        <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportCountryLength))
+        transportCountry        <- Gen.option(Gen.pick(2, 'A' to 'Z'))
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- stringsWithMaxLength(2: Int)
@@ -106,7 +106,7 @@ trait ModelGenerators {
         UnloadingPermission(
           movementReferenceNumber,
           transportIdentity,
-          transportCountry,
+          transportCountry.map(_.mkString),
           numberOfItems,
           numberOfPackages,
           grossMass,
@@ -121,8 +121,8 @@ trait ModelGenerators {
   implicit lazy val arbitrarySeals: Arbitrary[Seals] =
     Arbitrary {
       for {
-        numberOfSeals <- choose(min = 1: Int, 3: Int)
-        sealId        <- listWithMaxLength[String](3: Int)
+        numberOfSeals <- choose(min = 1: Int, Seals.maxSeals: Int)
+        sealId        <- listWithMaxSize(numberOfSeals, stringsWithMaxLength(Seals.sealIdLength))
       } yield Seals(numberOfSeals, sealId)
     }
 
@@ -133,13 +133,24 @@ trait ModelGenerators {
         itemNumber                <- choose(min = 1: Int, 100: Int)
         commodityCode             <- Gen.option(stringsWithMaxLength(GoodsItem.commodityCodeLength: Int))
         description               <- stringsWithMaxLength(Packages.kindOfPackageLength)
-        grossMass                 <- Gen.option(stringsWithMaxLength(11: Int)) //todo does this need to be a bigDecimal
-        netMass                   <- Gen.option(stringsWithMaxLength(11: Int)) //todo does this need to be a bigDecimal
+        grossMass                 <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //BigDecimal.RoundingMode.DOWN
+        netMass                   <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //todo does this need to be a bigDecimal
         producedDocuments         <- nonEmptyListWithMaxSize(GoodsItem.maxDocuments: Int, arbitrary[ProducedDocument])
-        containers                <- listWithMaxLength[String](GoodsItem.maxContainers: Int)
+        containers                <- listWithMaxSize(GoodsItem.maxContainers, stringsWithMaxLength(GoodsItem.containerLength))
         packages                  <- arbitrary[Packages] //todo should this be a nonEmptySeq
         sensitiveGoodsInformation <- listWithMaxLength[SensitiveGoodsInformation](GoodsItem.maxSensitiveGoods: Int)
-      } yield GoodsItem(itemNumber, commodityCode, description, grossMass, netMass, producedDocuments, containers, packages, sensitiveGoodsInformation)
+      } yield
+        GoodsItem(
+          itemNumber,
+          commodityCode,
+          description,
+          grossMass.map(_.toString),
+          netMass.map(_.toString),
+          producedDocuments,
+          containers,
+          packages,
+          sensitiveGoodsInformation
+        )
     }
 
   implicit lazy val arbitraryCountry: Arbitrary[Country] = {

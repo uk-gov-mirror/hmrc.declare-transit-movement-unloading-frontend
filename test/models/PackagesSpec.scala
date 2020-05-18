@@ -102,9 +102,9 @@ class PackagesSpec extends FreeSpec with MustMatchers with Generators with Scala
           val expectedResult: Node = {
             <PACGS2>
               {marksAndNumberPackage.getOrElse(NodeSeq.Empty)}
+              <KinOfPacGS23>{packages.kindOfPackage}</KinOfPacGS23>
               {numberOfPackage.getOrElse(NodeSeq.Empty)}
               {numberOfPieces.getOrElse(NodeSeq.Empty)}
-              <KinOfPacGS23>{packages.kindOfPackage}</KinOfPacGS23>
             </PACGS2>
           }
 

@@ -18,8 +18,8 @@ package generators
 
 import java.time.{LocalDate, LocalTime}
 
-import models.{GoodsItem, MovementReferenceNumber, Seals, TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
 import models.messages.{Header, UnloadingRemarksRequest, _}
+import models.{GoodsItem, Seals, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
@@ -30,7 +30,7 @@ trait MessagesModelGenerators extends Generators {
     Arbitrary {
       for {
         environment <- Gen.oneOf(Seq("LOCAL", "QA", "STAGING", "PRODUCTION"))
-        eori        <- arbitrary[String]
+        eori        <- stringsWithMaxLength(4: Int)
       } yield MessageSender(environment, eori)
     }
   }
@@ -38,8 +38,8 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryInterchangeControlReference: Arbitrary[InterchangeControlReference] = {
     Arbitrary {
       for {
-        dateTime <- arbitrary[String]
-        index    <- arbitrary[Int]
+        dateTime <- stringsWithMaxLength(4: Int)
+        index    <- choose(min = 1: Int, 1000: Int)
       } yield InterchangeControlReference(dateTime, index)
     }
   }
@@ -76,11 +76,11 @@ trait MessagesModelGenerators extends Generators {
       for {
         movementReferenceNumber <- stringsWithMaxLength(UnloadingPermission.movementReferenceNumberLength)
         transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
-        transportCountry        <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportCountryLength))
+        transportCountry        <- Gen.option(Gen.pick(UnloadingPermission.transportCountryLength, 'A' to 'Z'))
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
-        grossMass               <- stringsWithMaxLength(2: Int)
-      } yield Header(movementReferenceNumber, transportIdentity, transportCountry, numberOfItems, numberOfPackages, grossMass)
+        grossMass               <- Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))
+      } yield Header(movementReferenceNumber, transportIdentity, transportCountry.map(_.mkString), numberOfItems, numberOfPackages, grossMass.toString)
     }
   }
 
@@ -90,11 +90,11 @@ trait MessagesModelGenerators extends Generators {
         meta               <- arbitrary[Meta]
         header             <- arbitrary[Header]
         traderDestination  <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
-        presentationOffice <- stringsWithMaxLength(8: Int)
+        presentationOffice <- Gen.pick(UnloadingRemarksRequest.presentationOfficeLength, 'A' to 'Z')
         remarks            <- Gen.oneOf(arbitrary[RemarksConform], arbitrary[RemarksConformWithSeals], arbitrary[RemarksNonConform])
         seals              <- Gen.option(arbitrary[Seals])
         goodsItems         <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
-      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice, remarks, seals, goodsItems)
+      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, seals, goodsItems)
     }
   }
 }

@@ -41,6 +41,7 @@ object GoodsItem {
 
   val commodityCodeLength = 22
   val descriptionLength   = 280
+  val containerLength     = 17
   val maxDocuments        = 99
   val maxContainers       = 99
   val maxPackages         = 99
