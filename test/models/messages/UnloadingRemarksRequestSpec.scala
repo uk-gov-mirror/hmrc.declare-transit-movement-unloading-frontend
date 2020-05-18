@@ -43,8 +43,9 @@ class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with Messag
               </CUSOFFPREOFFRES>
               {unloadingRemarkNode(unloadingRemarksRequest.unloadingRemark)}
               {unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty)}
+              {unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten}
             </CC044A>
-          //TODO: Add goods items
+
           unloadingRemarksRequest.toXml.map(trim) mustBe expectedResult.map(trim)
       }
 

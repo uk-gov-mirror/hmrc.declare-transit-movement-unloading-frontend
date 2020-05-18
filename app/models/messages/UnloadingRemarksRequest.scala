@@ -52,7 +52,8 @@ object UnloadingRemarksRequest {
             <RefNumRES1>{unloadingRemarksRequest.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES> ++
           unloadingRemarkNode(unloadingRemarksRequest.unloadingRemark) ++
-          unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty)
+          unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty) ++
+          unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten
       }
 
       Elem(parentNode.prefix, parentNode.label, parentNode.attributes, parentNode.scope, parentNode.child.isEmpty, parentNode.child ++ childNodes: _*)

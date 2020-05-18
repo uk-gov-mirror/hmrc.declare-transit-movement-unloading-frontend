@@ -133,7 +133,7 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
               <GooDesGDS23LNG>EN</GooDesGDS23LNG>
               {grossMass.getOrElse(NodeSeq.Empty)}
               {netMass.getOrElse(NodeSeq.Empty)}
-              {goodsItem.producedDocuments.map(x => x.toXml)}
+              {goodsItem.producedDocuments.toList.map(x => x.toXml)}
               {containers}
               {goodsItem.packages.toXml}
               {goodsItem.sensitiveGoodsInformation.map(x => x.toXml)}
