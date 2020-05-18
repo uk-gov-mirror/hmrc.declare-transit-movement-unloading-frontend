@@ -19,9 +19,6 @@ package models
 import cats.syntax.all._
 import com.lucidchart.open.xtract.XmlReader._
 import com.lucidchart.open.xtract.{__, XmlReader}
-import models.messages.escapeXml
-
-import scala.xml.NodeSeq
 
 case class Seals(numberOfSeals: Int, SealId: Seq[String])
 

@@ -45,22 +45,25 @@ object Packages {
   implicit def writes: XMLWrites[Packages] = XMLWrites[Packages] {
     packages =>
       <PACGS2>
-          {
-            packages.marksAndNumberPackage.fold(NodeSeq.Empty) {
-              marksAndNumberPackage =>
-                <MarNumOfPacGS21>{escapeXml(marksAndNumberPackage)}</MarNumOfPacGS21>
-                <MarNumOfPacGS21LNG>{LanguageCodeEnglish.code}</MarNumOfPacGS21LNG>
-          } ++
-          packages.numberOfPackages.fold(NodeSeq.Empty) {
-            numberOfPackages =>
-              <NumOfPacGS24>{numberOfPackages}</NumOfPacGS24>
-          } ++
+        {
+        packages.marksAndNumberPackage.fold(NodeSeq.Empty) {
+          marksAndNumberPackage =>
+            <MarNumOfPacGS21>{escapeXml(marksAndNumberPackage)}</MarNumOfPacGS21>
+              <MarNumOfPacGS21LNG>{LanguageCodeEnglish.code}</MarNumOfPacGS21LNG>
+        }
+        }
+        <KinOfPacGS23>{escapeXml(packages.kindOfPackage)}</KinOfPacGS23>
+        {
+        packages.numberOfPackages.fold(NodeSeq.Empty) {
+          numberOfPackages =>
+            <NumOfPacGS24>{numberOfPackages}</NumOfPacGS24>
+        } ++
           packages.numberOfPieces.fold(NodeSeq.Empty) {
             numberOfPieces =>
               <NumOfPieGS25>{numberOfPieces}</NumOfPieGS25>
           }
         }
-        <KinOfPacGS23>{escapeXml(packages.kindOfPackage)}</KinOfPacGS23>
+
       </PACGS2>
   }
 }
