@@ -46,9 +46,6 @@ class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with Messag
               {unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten}
             </CC044A>
 
-          println("***********")
-          println(unloadingRemarksRequest.toXml.map(trim))
-
           unloadingRemarksRequest.toXml.map(trim) mustBe expectedResult.map(trim)
       }
 
