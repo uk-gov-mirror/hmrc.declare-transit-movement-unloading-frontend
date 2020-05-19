@@ -18,7 +18,7 @@ package services
 import derivable.DeriveNumberOfSeals
 import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
-import pages.{DateGoodsUnloadedPage, NewSealNumberPage}
+import pages.{ChangesToReportPage, DateGoodsUnloadedPage, NewSealNumberPage}
 
 class RemarksServiceImpl extends RemarksService {
 
@@ -35,14 +35,26 @@ class RemarksServiceImpl extends RemarksService {
               Right(
                 RemarksNonConform(
                   stateOfSeals    = Some(0),
-                  unloadingRemark = None,
+                  unloadingRemark = userAnswers.get(ChangesToReportPage),
                   unloadingDate   = date,
                   resultOfControl = Nil
                 ))
             } else {
-              Right(RemarksConformWithSeals(date))
+              userAnswers
+                .get(ChangesToReportPage)
+                .map {
+                  unloadingRemarks =>
+                    Right(
+                      RemarksNonConform(
+                        stateOfSeals    = Some(1),
+                        unloadingRemark = Some(unloadingRemarks),
+                        unloadingDate   = date,
+                        resultOfControl = Nil
+                      )
+                    )
+                }
+                .getOrElse(Right(RemarksConformWithSeals(date)))
             }
-
           }
           case None => {
             userAnswers.get(DeriveNumberOfSeals) match {
@@ -50,12 +62,27 @@ class RemarksServiceImpl extends RemarksService {
                 Right(
                   RemarksNonConform(
                     stateOfSeals    = None,
-                    unloadingRemark = None,
+                    unloadingRemark = userAnswers.get(ChangesToReportPage),
                     unloadingDate   = date,
                     resultOfControl = Nil
                   )
                 )
-              case None => Right(RemarksConform(date))
+              case None => {
+                userAnswers
+                  .get(ChangesToReportPage)
+                  .map {
+                    unloadingRemarks =>
+                      Right(
+                        RemarksNonConform(
+                          stateOfSeals    = None,
+                          unloadingRemark = Some(unloadingRemarks),
+                          unloadingDate   = date,
+                          resultOfControl = Nil
+                        )
+                      )
+                  }
+                  .getOrElse(Right(RemarksConform(date)))
+              }
             }
 
           }
