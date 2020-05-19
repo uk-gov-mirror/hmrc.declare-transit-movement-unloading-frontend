@@ -17,11 +17,10 @@
 package config
 
 import com.google.inject.AbstractModule
-import connectors.{UnloadingConnector, UnloadingConnectorImpl, UnloadingConnectorTemporary}
+import connectors.{UnloadingConnector, UnloadingConnectorTemporary}
 import controllers.actions._
 import repositories.{DefaultSessionRepository, SessionRepository}
-import services.{ReferenceDataService, ReferenceDataServiceImpl, UnloadingPermissionService, UnloadingPermissionServiceImpl}
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import services._
 
 class Module extends AbstractModule {
 
@@ -41,6 +40,8 @@ class Module extends AbstractModule {
     bind(classOf[UnloadingConnector]).to(classOf[UnloadingConnectorTemporary]).asEagerSingleton()
 
     bind(classOf[UnloadingPermissionService]).to(classOf[UnloadingPermissionServiceImpl]).asEagerSingleton()
+
+    bind(classOf[RemarksService]).to(classOf[RemarksServiceImpl]).asEagerSingleton()
 
     bind(classOf[ReferenceDataService]).to(classOf[ReferenceDataServiceImpl]).asEagerSingleton()
   }

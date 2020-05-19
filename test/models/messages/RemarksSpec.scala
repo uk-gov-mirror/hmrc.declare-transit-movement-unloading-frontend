@@ -32,67 +32,71 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
 
   "RemarksSpec" - {
 
-    "must serialize RemarksConform to xml" in {
+    "must serialize" - {
 
-      forAll(arbitrary[RemarksConform]) {
-        remarksConform =>
-          val xml: Node =
-            <UNLREMREM>
-              <ConREM65>1</ConREM65>
-              <UnlComREM66>1</UnlComREM66>
-              <UnlDatREM67>{Format.dateFormatted(remarksConform.unloadingDate)}</UnlDatREM67>
-            </UNLREMREM>
+      "RemarksConform to xml" in {
 
-          remarksConform.toXml.map(trim) mustBe xml.map(trim)
+        forAll(arbitrary[RemarksConform]) {
+          remarksConform =>
+            val xml: Node =
+              <UNLREMREM>
+                <ConREM65>1</ConREM65>
+                <UnlComREM66>1</UnlComREM66>
+                <UnlDatREM67>{Format.dateFormatted(remarksConform.unloadingDate)}</UnlDatREM67>
+              </UNLREMREM>
+
+            remarksConform.toXml.map(trim) mustBe xml.map(trim)
+        }
       }
-    }
 
-    "must serialize RemarksConformWithSeals to xml" in {
+      "RemarksConformWithSeals to xml" in {
 
-      forAll(arbitrary[RemarksConformWithSeals]) {
-        remarksConformWithSeals =>
-          val xml: Node =
-            <UNLREMREM>
-              <StaOfTheSeaOKREM19>1</StaOfTheSeaOKREM19>
-              <ConREM65>1</ConREM65>
-              <UnlComREM66>1</UnlComREM66>
-              <UnlDatREM67>{Format.dateFormatted(remarksConformWithSeals.unloadingDate)}</UnlDatREM67>
-            </UNLREMREM>
+        forAll(arbitrary[RemarksConformWithSeals]) {
+          remarksConformWithSeals =>
+            val xml: Node =
+              <UNLREMREM>
+                <StaOfTheSeaOKREM19>1</StaOfTheSeaOKREM19>
+                <ConREM65>1</ConREM65>
+                <UnlComREM66>1</UnlComREM66>
+                <UnlDatREM67>{Format.dateFormatted(remarksConformWithSeals.unloadingDate)}</UnlDatREM67>
+              </UNLREMREM>
 
-          remarksConformWithSeals.toXml.map(trim) mustBe xml.map(trim)
+            remarksConformWithSeals.toXml.map(trim) mustBe xml.map(trim)
+        }
       }
-    }
 
-    "must serialize RemarksNonConform to xml" in {
+      "RemarksNonConform to xml" in {
 
-      forAll(arbitrary[RemarksNonConform]) {
-        remarksNonConform =>
-          val stateOfSeals: Option[Elem] = remarksNonConform.stateOfSeals.map {
-            int =>
-              <StaOfTheSeaOKREM19>{int}</StaOfTheSeaOKREM19>
-          }
+        forAll(arbitrary[RemarksNonConform]) {
+          remarksNonConform =>
+            val stateOfSeals: Option[Elem] = remarksNonConform.stateOfSeals.map {
+              int =>
+                <StaOfTheSeaOKREM19>{int}</StaOfTheSeaOKREM19>
+            }
 
-          val unloadingRemarks: Option[Elem] = remarksNonConform.unloadingRemark.map {
-            remarks =>
-              <UnlRemREM53>{remarks}</UnlRemREM53>
-          }
+            val unloadingRemarks: Option[Elem] = remarksNonConform.unloadingRemark.map {
+              remarks =>
+                <UnlRemREM53>{remarks}</UnlRemREM53>
+            }
 
-          val resultsOfControl: Seq[Node] = remarksNonConform.resultOfControl.flatMap {
-            resultsOfControl =>
-              resultsOfControlNode(resultsOfControl)
-          }
+            val resultsOfControl: Seq[Node] = remarksNonConform.resultOfControl.flatMap {
+              resultsOfControl =>
+                resultsOfControlNode(resultsOfControl)
+            }
 
-          val xml: NodeSeq =
-            <UNLREMREM>
-              {stateOfSeals.getOrElse(NodeSeq.Empty)}
-              {unloadingRemarks.getOrElse(NodeSeq.Empty)}
-              <UnlRemREM53LNG>EN</UnlRemREM53LNG>
-              <ConREM65>0</ConREM65>
-              <UnlComREM66>1</UnlComREM66>
-              <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
-            </UNLREMREM> +: resultsOfControl
+            val xml: NodeSeq =
+              <UNLREMREM>
+                {stateOfSeals.getOrElse(NodeSeq.Empty)}
+                {unloadingRemarks.getOrElse(NodeSeq.Empty)}
+                <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+                <ConREM65>0</ConREM65>
+                <UnlComREM66>1</UnlComREM66>
+                <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
+              </UNLREMREM> +: resultsOfControl
 
-          remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
+            remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
+        }
+
       }
 
     }
