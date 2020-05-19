@@ -15,6 +15,8 @@
  */
 
 package services
+import java.time.LocalDate
+
 import derivable.DeriveNumberOfSeals
 import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
@@ -22,75 +24,85 @@ import pages.{ChangesToReportPage, DateGoodsUnloadedPage, NewSealNumberPage}
 
 class RemarksServiceImpl extends RemarksService {
 
-  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Either[RemarksFailure, Remarks] =
-    userAnswers.get(DateGoodsUnloadedPage) match {
-      case Some(date) =>
-        unloadingPermission.seals match {
-          case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
+  type Response = Either[RemarksFailure, Remarks]
 
-            val numberOfSeals = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
-            val listOfSeals   = List.range(0, numberOfSeals).map(Index(_))
+  private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
+    case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
 
-            if (haveSealsChanged(unloadingPermissionSeals, listOfSeals, userAnswers)) {
+      val numberOfSeals = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
+      val listOfSeals   = List.range(0, numberOfSeals).map(Index(_))
+
+      if (haveSealsChanged(unloadingPermissionSeals, listOfSeals, userAnswers)) {
+        Right(
+          RemarksNonConform(
+            stateOfSeals    = Some(0),
+            unloadingRemark = userAnswers.get(ChangesToReportPage),
+            unloadingDate   = unloadingDate,
+            resultOfControl = Nil
+          ))
+      } else {
+        userAnswers
+          .get(ChangesToReportPage)
+          .map {
+            unloadingRemarks =>
               Right(
                 RemarksNonConform(
-                  stateOfSeals    = Some(0),
-                  unloadingRemark = userAnswers.get(ChangesToReportPage),
-                  unloadingDate   = date,
+                  stateOfSeals    = Some(1),
+                  unloadingRemark = Some(unloadingRemarks),
+                  unloadingDate   = unloadingDate,
                   resultOfControl = Nil
-                ))
-            } else {
-              userAnswers
-                .get(ChangesToReportPage)
-                .map {
-                  unloadingRemarks =>
-                    Right(
-                      RemarksNonConform(
-                        stateOfSeals    = Some(1),
-                        unloadingRemark = Some(unloadingRemarks),
-                        unloadingDate   = date,
-                        resultOfControl = Nil
-                      )
-                    )
-                }
-                .getOrElse(Right(RemarksConformWithSeals(date)))
-            }
+                )
+              )
           }
-          case None => {
-            userAnswers.get(DeriveNumberOfSeals) match {
-              case Some(_) =>
+          .getOrElse(Right(RemarksConformWithSeals(unloadingDate)))
+      }
+    }
+  }
+
+  private def unloadingPermissionDoesNotContainSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
+    case None => {
+      userAnswers.get(DeriveNumberOfSeals) match {
+        case Some(_) =>
+          Right(
+            RemarksNonConform(
+              stateOfSeals    = None,
+              unloadingRemark = userAnswers.get(ChangesToReportPage),
+              unloadingDate   = unloadingDate,
+              resultOfControl = Nil
+            )
+          )
+        case None => {
+          userAnswers
+            .get(ChangesToReportPage)
+            .map {
+              unloadingRemarks =>
                 Right(
                   RemarksNonConform(
                     stateOfSeals    = None,
-                    unloadingRemark = userAnswers.get(ChangesToReportPage),
-                    unloadingDate   = date,
+                    unloadingRemark = Some(unloadingRemarks),
+                    unloadingDate   = unloadingDate,
                     resultOfControl = Nil
                   )
                 )
-              case None => {
-                userAnswers
-                  .get(ChangesToReportPage)
-                  .map {
-                    unloadingRemarks =>
-                      Right(
-                        RemarksNonConform(
-                          stateOfSeals    = None,
-                          unloadingRemark = Some(unloadingRemarks),
-                          unloadingDate   = date,
-                          resultOfControl = Nil
-                        )
-                      )
-                  }
-                  .getOrElse(Right(RemarksConform(date)))
-              }
             }
-
-          }
-
+            .getOrElse(Right(RemarksConform(unloadingDate)))
         }
+      }
 
-      case None =>
-        Left(FailedToFindUnloadingDate)
+    }
+  }
+
+  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Response =
+    userAnswers.get(DateGoodsUnloadedPage) match {
+
+      case Some(date) =>
+        implicit val unloadingDate: LocalDate = date
+
+        val allPfs = Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers)).reduce(_ orElse _)
+
+        allPfs.apply(unloadingPermission.seals)
+
+      case None => Left(FailedToFindUnloadingDate)
     }
 
   //TODO: Can this be improved to be more readable
