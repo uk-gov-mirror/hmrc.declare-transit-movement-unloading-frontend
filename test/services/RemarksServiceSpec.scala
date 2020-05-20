@@ -23,7 +23,7 @@ import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import pages.{ChangesToReportPage, DateGoodsUnloadedPage, NewSealNumberPage}
+import pages._
 
 class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropertyChecks {
 
@@ -36,8 +36,8 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
   "RemarksServiceSpec" - {
     /*
       (still to do) SHOULD
-      - handle unloading remarks
       - handle values being changed
+      - handle Can all the seal numbers be read/are any of the seals broken
      */
 
     "must handle" - {
@@ -97,7 +97,61 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
       "when seals" - {
 
-        "exist and user hasn't changed anything" in {
+        "cannot be read" in {
+          forAll(arbitrary[UserAnswers], arbitrary[UnloadingPermission]) {
+            (userAnswers, unloadingPermission) =>
+              val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
+
+              val userAnswersUpdated = userAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(CanSealsBeReadPage, false)
+                .success
+                .value
+                .set(AreAnySealsBrokenPage, false)
+                .success
+                .value
+
+              service.build(userAnswersUpdated, unloadingPermissionWithSeals) mustBe Right(
+                RemarksNonConform(
+                  stateOfSeals    = Some(0),
+                  unloadingRemark = userAnswersUpdated.get(ChangesToReportPage),
+                  unloadingDate   = dateGoodsUnloaded,
+                  resultOfControl = Nil
+                )
+              )
+          }
+        }
+
+        "are broken" in {
+          forAll(arbitrary[UserAnswers], arbitrary[UnloadingPermission]) {
+            (userAnswers, unloadingPermission) =>
+              val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
+
+              val userAnswersUpdated = userAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(CanSealsBeReadPage, true)
+                .success
+                .value
+                .set(AreAnySealsBrokenPage, true)
+                .success
+                .value
+
+              service.build(userAnswersUpdated, unloadingPermissionWithSeals) mustBe Right(
+                RemarksNonConform(
+                  stateOfSeals    = Some(0),
+                  unloadingRemark = userAnswersUpdated.get(ChangesToReportPage),
+                  unloadingDate   = dateGoodsUnloaded,
+                  resultOfControl = Nil
+                )
+              )
+          }
+        }
+
+        "don't exist in unloading permission and user hasn't changed anything" in {
 
           val unloadingPermissionObject = arbitrary[UnloadingPermission]
 

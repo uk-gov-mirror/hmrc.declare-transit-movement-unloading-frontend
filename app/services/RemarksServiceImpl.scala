@@ -20,7 +20,7 @@ import java.time.LocalDate
 import derivable.DeriveNumberOfSeals
 import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
-import pages.{ChangesToReportPage, DateGoodsUnloadedPage, NewSealNumberPage}
+import pages._
 
 class RemarksServiceImpl extends RemarksService {
 
@@ -32,7 +32,9 @@ class RemarksServiceImpl extends RemarksService {
       val numberOfSeals = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
       val listOfSeals   = List.range(0, numberOfSeals).map(Index(_))
 
-      if (haveSealsChanged(unloadingPermissionSeals, listOfSeals, userAnswers)) {
+      if (haveSealsChanged(unloadingPermissionSeals, listOfSeals, userAnswers) ||
+          sealsUnreadable(userAnswers.get(CanSealsBeReadPage)) ||
+          sealsBroken(userAnswers.get(AreAnySealsBrokenPage))) {
         Right(
           RemarksNonConform(
             stateOfSeals    = Some(0),
@@ -105,6 +107,12 @@ class RemarksServiceImpl extends RemarksService {
       case None => Left(FailedToFindUnloadingDate)
     }
 
+  private def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
+    !canSealsBeReadPage.getOrElse(true)
+
+  private def sealsBroken(areAnySealsBrokenPage: Option[Boolean]): Boolean =
+    areAnySealsBrokenPage.getOrElse(false)
+
   //TODO: Can this be improved to be more readable
   private def haveSealsChanged(originalSeals: Seq[String], updatedSeals: List[Index], userAnswers: UserAnswers) = {
 
@@ -124,6 +132,5 @@ class RemarksServiceImpl extends RemarksService {
 }
 
 trait RemarksService {
-
   def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Either[RemarksFailure, Remarks]
 }
