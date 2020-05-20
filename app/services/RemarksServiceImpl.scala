@@ -24,15 +24,25 @@ import pages._
 
 class RemarksServiceImpl extends RemarksService {
 
-  type Response = Either[RemarksFailure, Remarks]
+  import RemarksServiceImpl._
+
+  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Response =
+    userAnswers.get(DateGoodsUnloadedPage) match {
+
+      case Some(date) =>
+        implicit val unloadingDate: LocalDate = date
+
+        Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers))
+          .reduce(_ orElse _)
+          .apply(unloadingPermission.seals)
+
+      case None => Left(FailedToFindUnloadingDate)
+    }
 
   private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
     case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
 
-      val numberOfSeals = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
-      val listOfSeals   = List.range(0, numberOfSeals).map(Index(_))
-
-      if (haveSealsChanged(unloadingPermissionSeals, listOfSeals, userAnswers) ||
+      if (haveSealsChanged(unloadingPermissionSeals, userAnswers) ||
           sealsUnreadable(userAnswers.get(CanSealsBeReadPage)) ||
           sealsBroken(userAnswers.get(AreAnySealsBrokenPage))) {
         Right(
@@ -43,20 +53,18 @@ class RemarksServiceImpl extends RemarksService {
             resultOfControl = Nil
           ))
       } else {
-        userAnswers
-          .get(ChangesToReportPage)
-          .map {
-            unloadingRemarks =>
-              Right(
-                RemarksNonConform(
-                  stateOfSeals    = Some(1),
-                  unloadingRemark = Some(unloadingRemarks),
-                  unloadingDate   = unloadingDate,
-                  resultOfControl = Nil
-                )
+        userAnswers.get(ChangesToReportPage) match {
+          case Some(unloadingRemarks) =>
+            Right(
+              RemarksNonConform(
+                stateOfSeals    = Some(1),
+                unloadingRemark = Some(unloadingRemarks),
+                unloadingDate   = unloadingDate,
+                resultOfControl = Nil
               )
-          }
-          .getOrElse(Right(RemarksConformWithSeals(unloadingDate)))
+            )
+          case None => Right(RemarksConformWithSeals(unloadingDate))
+        }
       }
     }
   }
@@ -74,38 +82,27 @@ class RemarksServiceImpl extends RemarksService {
             )
           )
         case None => {
-          userAnswers
-            .get(ChangesToReportPage)
-            .map {
-              unloadingRemarks =>
-                Right(
-                  RemarksNonConform(
-                    stateOfSeals    = None,
-                    unloadingRemark = Some(unloadingRemarks),
-                    unloadingDate   = unloadingDate,
-                    resultOfControl = Nil
-                  )
+          userAnswers.get(ChangesToReportPage) match {
+            case Some(unloadingRemarks) =>
+              Right(
+                RemarksNonConform(
+                  stateOfSeals    = None,
+                  unloadingRemark = Some(unloadingRemarks),
+                  unloadingDate   = unloadingDate,
+                  resultOfControl = Nil
                 )
-            }
-            .getOrElse(Right(RemarksConform(unloadingDate)))
+              )
+            case None => Right(RemarksConform(unloadingDate))
+          }
         }
       }
-
     }
   }
+}
 
-  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Response =
-    userAnswers.get(DateGoodsUnloadedPage) match {
+object RemarksServiceImpl {
 
-      case Some(date) =>
-        implicit val unloadingDate: LocalDate = date
-
-        val allPfs = Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers)).reduce(_ orElse _)
-
-        allPfs.apply(unloadingPermission.seals)
-
-      case None => Left(FailedToFindUnloadingDate)
-    }
+  type Response = Either[RemarksFailure, Remarks]
 
   private def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
     !canSealsBeReadPage.getOrElse(true)
@@ -114,10 +111,13 @@ class RemarksServiceImpl extends RemarksService {
     areAnySealsBrokenPage.getOrElse(false)
 
   //TODO: Can this be improved to be more readable
-  private def haveSealsChanged(originalSeals: Seq[String], updatedSeals: List[Index], userAnswers: UserAnswers) = {
+  private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean = {
+
+    val sealCount = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
+    val indexes   = List.range(0, sealCount).map(Index(_))
 
     val filtered: Seq[(String, Index)] = originalSeals
-      .zip(updatedSeals)
+      .zip(indexes)
       .filter(
         x => {
           userAnswers.get(NewSealNumberPage(x._2)) match {
