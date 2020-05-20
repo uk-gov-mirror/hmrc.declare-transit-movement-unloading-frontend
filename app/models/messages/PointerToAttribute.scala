@@ -17,6 +17,7 @@
 package models.messages
 import models.XMLWrites
 
+//TODO: Can we get rid of PointerToAttribute (use PointerIdentity)
 case class PointerToAttribute(pointer: PointerIdentity)
 
 object PointerToAttribute {

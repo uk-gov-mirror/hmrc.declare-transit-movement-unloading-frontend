@@ -42,6 +42,7 @@ class Module extends AbstractModule {
     bind(classOf[UnloadingPermissionService]).to(classOf[UnloadingPermissionServiceImpl]).asEagerSingleton()
 
     bind(classOf[RemarksService]).to(classOf[RemarksServiceImpl]).asEagerSingleton()
+    bind(classOf[ResultOfControlService]).to(classOf[ResultOfControlServiceImpl]).asEagerSingleton()
 
     bind(classOf[ReferenceDataService]).to(classOf[ReferenceDataServiceImpl]).asEagerSingleton()
   }

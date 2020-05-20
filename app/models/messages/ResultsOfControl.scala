@@ -17,7 +17,7 @@
 package models.messages
 import models.{LanguageCodeEnglish, XMLWrites}
 
-sealed trait ResultsOfControl {
+sealed trait ResultsOfControl extends Product with Serializable {
   val controlIndicator: ControlIndicator
 }
 
