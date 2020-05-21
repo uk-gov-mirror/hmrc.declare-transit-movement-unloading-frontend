@@ -81,7 +81,7 @@ class ChangesToReportControllerSpec extends SpecBase with MockitoSugar with Nunj
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(ChangesToReportPage, "answer").success.value
+      val userAnswers    = UserAnswers(mrn, mrn).set(ChangesToReportPage, "answer").success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, changesToReportRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

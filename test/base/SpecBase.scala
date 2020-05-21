@@ -52,7 +52,7 @@ trait SpecBase
 
   val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
 
-  def emptyUserAnswers = UserAnswers(mrn, Json.obj())
+  def emptyUserAnswers = UserAnswers(mrn, mrn, Json.obj())
 
   def injector: Injector = app.injector
 

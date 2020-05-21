@@ -103,7 +103,7 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
         Future.successful(countries)
       )
 
-      val userAnswers = UserAnswers(mrn).set(VehicleRegistrationCountryPage, country).success.value
+      val userAnswers = UserAnswers(mrn, mrn).set(VehicleRegistrationCountryPage, country).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers))
         .overrides {
           bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)

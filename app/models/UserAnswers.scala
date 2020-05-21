@@ -27,6 +27,7 @@ import scala.util.{Failure, Success, Try}
 
 final case class UserAnswers(
   id: MovementReferenceNumber,
+  mrn: MovementReferenceNumber,
   data: JsObject             = Json.obj(),
   lastUpdated: LocalDateTime = LocalDateTime.now
 ) {
@@ -81,6 +82,7 @@ object UserAnswers {
 
     (
       (__ \ "_id").read[MovementReferenceNumber] and
+        (__ \ "mrn").read[MovementReferenceNumber] and
         (__ \ "data").read[JsObject] and
         (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead)
     )(UserAnswers.apply _)
@@ -92,6 +94,7 @@ object UserAnswers {
 
     (
       (__ \ "_id").write[MovementReferenceNumber] and
+        (__ \ "_mrn").write[MovementReferenceNumber] and
         (__ \ "data").write[JsObject] and
         (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite)
     )(unlift(UserAnswers.unapply))

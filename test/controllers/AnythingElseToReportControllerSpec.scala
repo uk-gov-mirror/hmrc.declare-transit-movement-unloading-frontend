@@ -82,7 +82,7 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(AnythingElseToReportPage, true).success.value
+      val userAnswers    = UserAnswers(mrn, mrn).set(AnythingElseToReportPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, anythingElseToReportRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

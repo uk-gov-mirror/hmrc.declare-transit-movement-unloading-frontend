@@ -18,30 +18,54 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.{MovementReferenceNumber, NormalMode}
+import models.{MovementReferenceNumber, NormalMode, UserAnswers}
+import navigation.Navigator
+import pages.UnloadingGuidancePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.MrnQuery
 import renderer.Renderer
+import repositories.SessionRepository
+import services.UnloadingPermissionServiceImpl
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingGuidanceController @Inject()(
   override val messagesApi: MessagesApi,
+  sessionRepository: SessionRepository,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
-  requireData: DataRequiredAction,
+  navigator: Navigator,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
+  renderer: Renderer,
+  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
+  def onPageLoad(arrivalId: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      val json = Json.obj("mrn" -> mrn, "mode" -> NormalMode)
+      unloadingPermissionServiceImpl.getUnloadingPermission(arrivalId) flatMap {
+        case Some(unloadingPermission) =>
+          val mrn = MovementReferenceNumber(unloadingPermission.movementReferenceNumber).get
+          val nextPageUrl: String = request.userAnswers match {
+            case Some(userAnswers) if (userAnswers.mrn != null) => navigator.nextPage(UnloadingGuidancePage, NormalMode, userAnswers).url
+            case _ =>
+              for {
+                updatedAnswers <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn, mrn)).set(MrnQuery, mrn))
+                _              <- sessionRepository.set(updatedAnswers)
+              } yield navigator.nextPage(UnloadingGuidancePage, NormalMode, updatedAnswers).url
 
-      renderer.render("unloadingGuidance.njk", json).map(Ok(_))
+              //todo: obtain nextPageUrl from the future
+              ""
+          }
+
+          val json = Json.obj("arrivalId" -> arrivalId, "mrn" -> mrn, "nextPageUrl" -> nextPageUrl, "mode" -> NormalMode)
+          renderer.render("unloadingGuidance.njk", json).map(Ok(_))
+
+        case _ => Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
+      }
   }
 }

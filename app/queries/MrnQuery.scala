@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package queries
 
-import play.api.libs.json.{Json, OFormat}
+import models.MovementReferenceNumber
+import pages.QuestionPage
+import play.api.libs.json.JsPath
 
-case class Movement(messages: Seq[MovementMessage])
-
-object Movement {
-  implicit val formats: OFormat[Movement] = Json.format[Movement]
-}
-//todo: tidy this up
-case class MovementMessage(messageType: String, message: String, mrn: MovementReferenceNumber = MovementReferenceNumber("19IT02110010007827").get)
-
-object MovementMessage {
-  implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
+final case object MrnQuery extends QuestionPage[MovementReferenceNumber] {
+  override def path: JsPath = JsPath \ "movementReferenceNumber"
 }

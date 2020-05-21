@@ -94,7 +94,7 @@ class DateGoodsUnloadedController @Inject()(
           },
           value =>
             for {
-              updatedAnswers      <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn)).set(DateGoodsUnloadedPage, value))
+              updatedAnswers      <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn, mrn)).set(DateGoodsUnloadedPage, value))
               _                   <- sessionRepository.set(updatedAnswers)
               unloadingPermission <- unloadingPermissionService.getUnloadingPermission(mrn)
             } yield {

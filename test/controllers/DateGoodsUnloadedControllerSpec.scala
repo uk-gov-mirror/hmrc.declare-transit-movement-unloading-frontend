@@ -98,7 +98,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
+      val userAnswers    = UserAnswers(mrn, mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])

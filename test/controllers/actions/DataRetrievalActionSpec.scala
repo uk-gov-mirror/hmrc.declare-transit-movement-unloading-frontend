@@ -98,7 +98,7 @@ class DataRetrievalActionSpec
 
       "when there are existing answers for this MRN" in {
 
-        when(sessionRepository.get(any())) thenReturn Future.successful(Some(UserAnswers(mrn)))
+        when(sessionRepository.get(any())) thenReturn Future.successful(Some(UserAnswers(mrn, mrn)))
 
         harness(mrn, {
           request =>

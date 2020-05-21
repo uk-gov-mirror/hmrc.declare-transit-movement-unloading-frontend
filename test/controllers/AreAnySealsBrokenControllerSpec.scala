@@ -82,7 +82,7 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(AreAnySealsBrokenPage, true).success.value
+      val userAnswers    = UserAnswers(mrn, mrn).set(AreAnySealsBrokenPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, areAnySealsBrokenRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
