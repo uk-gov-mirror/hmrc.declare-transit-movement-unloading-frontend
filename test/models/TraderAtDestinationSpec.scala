@@ -24,6 +24,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import models.XMLWrites._
 
 import scala.xml.NodeSeq
+import models.messages.escapeXml
 
 class TraderDestinationSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality {
 
@@ -71,7 +72,7 @@ class TraderDestinationSpec extends FreeSpec with MustMatchers with ScalaCheckPr
         trader =>
           val expectedResult =
             <TRADESTRD>
-              <NamTRD7>{trader.name}</NamTRD7>
+              <NamTRD7>{escapeXml(trader.name)}</NamTRD7>
               <StrAndNumTRD22>{trader.streetAndNumber}</StrAndNumTRD22>
               <PosCodTRD23>{trader.postCode}</PosCodTRD23>
               <CitTRD24>{trader.city}</CitTRD24>
