@@ -21,6 +21,7 @@ import derivable.DeriveNumberOfSeals
 import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
 import pages._
+import queries.SealsQuery
 
 class RemarksServiceImpl extends RemarksService {
 
@@ -111,15 +112,9 @@ object RemarksServiceImpl {
     areAnySealsBrokenPage.getOrElse(false)
 
   private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean =
-    userAnswers.get(DeriveNumberOfSeals).exists {
-      sealCount =>
-        List
-          .range(0, sealCount)
-          .map {
-            index =>
-              userAnswers.get(NewSealNumberPage(Index(index))).getOrElse("")
-          }
-          .sorted != originalSeals.sorted
+    userAnswers.get(SealsQuery).exists {
+      userSeals =>
+        userSeals.sorted != originalSeals.sorted
     }
 
 }
