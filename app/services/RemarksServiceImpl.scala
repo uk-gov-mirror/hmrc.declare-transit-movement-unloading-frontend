@@ -111,6 +111,7 @@ object RemarksServiceImpl {
     areAnySealsBrokenPage.getOrElse(false)
 
   //TODO: Can this be improved to be more readable
+  //TODO: This should handle if users have reordered seals
   private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean = {
 
     val sealCount = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
@@ -121,8 +122,11 @@ object RemarksServiceImpl {
       .filter(
         x => {
           userAnswers.get(NewSealNumberPage(x._2)) match {
-            case Some(userAnswersValue) => x._1 != userAnswersValue
-            case None                   => false
+            case Some(userAnswersValue) => {
+
+              x._1 != userAnswersValue
+            }
+            case None => false
           }
         }
       )

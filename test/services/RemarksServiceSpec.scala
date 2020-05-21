@@ -93,6 +93,32 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
           )
         }
 
+        "with same seal values in unloading permission and user answers" in {
+
+          val unloadingPermissionObject = arbitrary[UnloadingPermission]
+
+          val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
+
+          val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(1, Seq("seal 1", "seal 2", "seal 3"))))
+
+          val userAnswersUpdated =
+            emptyUserAnswers
+              .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+              .success
+              .value
+              .set(NewSealNumberPage(Index(0)), "seal 1")
+              .success
+              .value
+              .set(NewSealNumberPage(Index(1)), "seal 2")
+              .success
+              .value
+              .set(NewSealNumberPage(Index(2)), "seal 3")
+              .success
+              .value
+
+          service.build(userAnswersUpdated, unloadingPermissionWithSeals) mustBe Right(RemarksConformWithSeals(dateGoodsUnloaded))
+        }
+
       }
 
       "when seals" - {
@@ -231,7 +257,9 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
                   )
                 )
           }
+
         }
+
       }
     }
   }
