@@ -106,10 +106,10 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
               .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
               .success
               .value
-              .set(NewSealNumberPage(Index(0)), "seal 1")
+              .set(NewSealNumberPage(Index(0)), "seal 2")
               .success
               .value
-              .set(NewSealNumberPage(Index(1)), "seal 2")
+              .set(NewSealNumberPage(Index(1)), "seal 1")
               .success
               .value
               .set(NewSealNumberPage(Index(2)), "seal 3")

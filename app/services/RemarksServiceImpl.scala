@@ -110,29 +110,18 @@ object RemarksServiceImpl {
   private def sealsBroken(areAnySealsBrokenPage: Option[Boolean]): Boolean =
     areAnySealsBrokenPage.getOrElse(false)
 
-  //TODO: Can this be improved to be more readable
-  //TODO: This should handle if users have reordered seals
-  private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean = {
-
-    val sealCount = userAnswers.get(DeriveNumberOfSeals).getOrElse(0)
-    val indexes   = List.range(0, sealCount).map(Index(_))
-
-    val filtered: Seq[(String, Index)] = originalSeals
-      .zip(indexes)
-      .filter(
-        x => {
-          userAnswers.get(NewSealNumberPage(x._2)) match {
-            case Some(userAnswersValue) => {
-
-              x._1 != userAnswersValue
-            }
-            case None => false
+  private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean =
+    userAnswers.get(DeriveNumberOfSeals).exists {
+      sealCount =>
+        List
+          .range(0, sealCount)
+          .map {
+            index =>
+              userAnswers.get(NewSealNumberPage(Index(index))).getOrElse("")
           }
-        }
-      )
+          .sorted != originalSeals.sorted
+    }
 
-    filtered.nonEmpty
-  }
 }
 
 trait RemarksService {
