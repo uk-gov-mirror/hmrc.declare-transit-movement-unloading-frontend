@@ -17,13 +17,14 @@
 package services
 import java.time.LocalDate
 
+import com.google.inject.Inject
 import derivable.DeriveNumberOfSeals
 import models.messages._
-import models.{Index, Seals, UnloadingPermission, UserAnswers}
+import models.{Seals, UnloadingPermission, UserAnswers}
 import pages._
 import queries.SealsQuery
 
-class RemarksServiceImpl extends RemarksService {
+class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlService) extends RemarksService {
 
   import RemarksServiceImpl._
 
@@ -33,6 +34,8 @@ class RemarksServiceImpl extends RemarksService {
       case Some(date) =>
         implicit val unloadingDate: LocalDate = date
 
+        implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
+
         Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers))
           .reduce(_ orElse _)
           .apply(unloadingPermission.seals)
@@ -40,7 +43,8 @@ class RemarksServiceImpl extends RemarksService {
       case None => Left(FailedToFindUnloadingDate)
     }
 
-  private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
+  private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate,
+                                                                         resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
     case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
 
       if (haveSealsChanged(unloadingPermissionSeals, userAnswers) ||
@@ -51,7 +55,7 @@ class RemarksServiceImpl extends RemarksService {
             stateOfSeals    = Some(0),
             unloadingRemark = userAnswers.get(ChangesToReportPage),
             unloadingDate   = unloadingDate,
-            resultOfControl = Nil
+            resultOfControl = resultsOfControl
           ))
       } else {
         userAnswers.get(ChangesToReportPage) match {
@@ -61,16 +65,32 @@ class RemarksServiceImpl extends RemarksService {
                 stateOfSeals    = Some(1),
                 unloadingRemark = Some(unloadingRemarks),
                 unloadingDate   = unloadingDate,
-                resultOfControl = Nil
+                resultOfControl = resultsOfControl
               )
             )
-          case None => Right(RemarksConformWithSeals(unloadingDate))
+          case None => {
+
+            if (resultsOfControl.isEmpty) {
+              Right(RemarksConformWithSeals(unloadingDate))
+            } else {
+              Right(
+                RemarksNonConform(
+                  stateOfSeals    = Some(1),
+                  unloadingRemark = None,
+                  unloadingDate   = unloadingDate,
+                  resultOfControl = resultsOfControl
+                ))
+            }
+
+          }
         }
       }
     }
+
   }
 
-  private def unloadingPermissionDoesNotContainSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
+  private def unloadingPermissionDoesNotContainSeals(
+    userAnswers: UserAnswers)(implicit unloadingDate: LocalDate, resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
     case None => {
       userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) =>
@@ -79,7 +99,7 @@ class RemarksServiceImpl extends RemarksService {
               stateOfSeals    = None,
               unloadingRemark = userAnswers.get(ChangesToReportPage),
               unloadingDate   = unloadingDate,
-              resultOfControl = Nil
+              resultOfControl = resultsOfControl
             )
           )
         case None => {
@@ -90,10 +110,21 @@ class RemarksServiceImpl extends RemarksService {
                   stateOfSeals    = None,
                   unloadingRemark = Some(unloadingRemarks),
                   unloadingDate   = unloadingDate,
-                  resultOfControl = Nil
+                  resultOfControl = resultsOfControl
                 )
               )
-            case None => Right(RemarksConform(unloadingDate))
+            case None =>
+              if (resultsOfControl.isEmpty) {
+                Right(RemarksConform(unloadingDate))
+              } else {
+                Right(
+                  RemarksNonConform(
+                    stateOfSeals    = None,
+                    unloadingRemark = None,
+                    unloadingDate   = unloadingDate,
+                    resultOfControl = resultsOfControl
+                  ))
+              }
           }
         }
       }
