@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
+import models.requests.OptionalDataRequest
 import models.{MovementReferenceNumber, NormalMode, UserAnswers}
 import navigation.Navigator
 import pages.UnloadingGuidancePage
@@ -50,22 +51,21 @@ class UnloadingGuidanceController @Inject()(
       unloadingPermissionServiceImpl.getUnloadingPermission(arrivalId) flatMap {
         case Some(unloadingPermission) =>
           val mrn = MovementReferenceNumber(unloadingPermission.movementReferenceNumber).get
-          val nextPageUrl: String = request.userAnswers match {
-            case Some(userAnswers) if (userAnswers.mrn != null) => navigator.nextPage(UnloadingGuidancePage, NormalMode, userAnswers).url
+          request.userAnswers match {
+            case Some(userAnswers) if (userAnswers.mrn != null) =>
+              renderPage(arrivalId, mrn, navigator.nextPage(UnloadingGuidancePage, NormalMode, userAnswers).url).map(Ok(_))
             case _ =>
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(mrn, mrn)).set(MrnQuery, mrn))
                 _              <- sessionRepository.set(updatedAnswers)
-              } yield navigator.nextPage(UnloadingGuidancePage, NormalMode, updatedAnswers).url
-
-              //todo: obtain nextPageUrl from the future
-              ""
+              } yield renderPage(arrivalId, mrn, navigator.nextPage(UnloadingGuidancePage, NormalMode, updatedAnswers).url).map(Ok(_))
           }
-
-          val json = Json.obj("arrivalId" -> arrivalId, "mrn" -> mrn, "nextPageUrl" -> nextPageUrl, "mode" -> NormalMode)
-          renderer.render("unloadingGuidance.njk", json).map(Ok(_))
-
         case _ => Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
       }
+  }
+
+  private def renderPage(arrivalId: MovementReferenceNumber, mrn: MovementReferenceNumber, nextPageUrl: String)(implicit request: OptionalDataRequest[_]) = {
+    val json = Json.obj("arrivalId" -> arrivalId, "mrn" -> mrn, "nextPageUrl" -> nextPageUrl, "mode" -> NormalMode)
+    renderer.render("unloadingGuidance.njk", json)
   }
 }

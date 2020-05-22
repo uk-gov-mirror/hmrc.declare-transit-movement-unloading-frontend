@@ -94,7 +94,7 @@ object UserAnswers {
 
     (
       (__ \ "_id").write[MovementReferenceNumber] and
-        (__ \ "_mrn").write[MovementReferenceNumber] and
+        (__ \ "mrn").write[MovementReferenceNumber] and
         (__ \ "data").write[JsObject] and
         (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite)
     )(unlift(UserAnswers.unapply))

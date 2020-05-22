@@ -51,15 +51,11 @@ class DateGoodsUnloadedController @Inject()(
 
   private def form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn)).async {
+  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
     implicit request =>
-      val preparedForm = request.userAnswers match {
-        case Some(userAnswers) =>
-          userAnswers.get(DateGoodsUnloadedPage) match {
-            case Some(value) => form.fill(value)
-            case None        => form
-          }
-        case _ => form
+      val preparedForm = request.userAnswers.get(DateGoodsUnloadedPage) match {
+        case Some(value) => form.fill(value)
+        case None        => form
       }
 
       val viewModel = DateInput.localDate(preparedForm("value"))
@@ -67,7 +63,7 @@ class DateGoodsUnloadedController @Inject()(
       val json = Json.obj(
         "form" -> preparedForm,
         "mode" -> mode,
-        "mrn"  -> mrn,
+        "mrn"  -> request.userAnswers.mrn,
         "date" -> viewModel
       )
 
