@@ -47,6 +47,8 @@ class Module extends AbstractModule {
     bind(classOf[ReferenceDataService]).to(classOf[ReferenceDataServiceImpl]).asEagerSingleton()
 
     bind(classOf[DateTimeService]).to(classOf[DateTimeServiceImpl]).asEagerSingleton()
+
+    bind(classOf[MetaService]).to(classOf[MetaServiceImpl]).asEagerSingleton()
   }
 
 }

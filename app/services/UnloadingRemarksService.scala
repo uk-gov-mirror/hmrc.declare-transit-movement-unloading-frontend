@@ -16,14 +16,43 @@
 
 package services
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import models.{UnloadingPermission, UserAnswers}
+import play.api.Logger
 import play.api.http.Status._
+import repositories.InterchangeControlReferenceIdRepository
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class UnloadingRemarksService @Inject()(remarksService: RemarksService) {
+class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
+                                        metaService: MetaService,
+                                        remarksService: RemarksService,
+                                        interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository)(implicit ec: ExecutionContext) {
 
-  def submit(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission) =
-    Future.successful(ACCEPTED)
+  def submit(eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission) =
+    interchangeControlReferenceIdRepository
+      .nextInterchangeControlReferenceId()
+      .flatMap {
+        interchangeControlReference =>
+          {
+            val meta = metaService.build(eori, interchangeControlReference)
+            // set RemarksService
+            // populate UnloadingRemarksRequest
+            // set Meta (internal data) - consider Meta.apply
+            // set Header (from unloading permission)
+            // set trader (from unloading permission)
+            // set presentationOffice (from unloading permission)
+            // set unloadingRemarks
+            // set seals (either useranswers or unloading permission)
+            // set goods items (from unloading permission)
+            Future.successful(ACCEPTED)
+
+          }
+      }
+      .recover {
+        case ex =>
+          Logger.error(s"${ex.getMessage}")
+          None
+      }
 
 }
