@@ -16,12 +16,14 @@
 
 package services
 import com.google.inject.Inject
+import models.{UnloadingPermission, UserAnswers}
 import play.api.http.Status._
 
 import scala.concurrent.Future
 
-class UnloadingRemarksService @Inject()(unloadingPermission: UnloadingPermissionService) {
+class UnloadingRemarksService @Inject()(remarksService: RemarksService) {
 
-  def submit() = Future.successful(ACCEPTED)
+  def submit(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission) =
+    Future.successful(ACCEPTED)
 
 }

@@ -16,19 +16,26 @@
 
 package services
 import base.SpecBase
+import generators.Generators
+import models.UnloadingPermission
+import org.scalacheck.Arbitrary.arbitrary
 import play.api.http.Status._
 
-class UnloadingRemarksServiceSpec extends SpecBase {
+class UnloadingRemarksServiceSpec extends SpecBase with Generators {
 
-  val mockUnloadingPermission = mock[UnloadingPermissionService]
+  val mockRemarksService = mock[RemarksService]
 
   "UnloadingRemarksServiceSpec" - {
 
     "should return 202 for successful submission" in {
 
-      val service = new UnloadingRemarksService(mockUnloadingPermission)
+      val service = new UnloadingRemarksService(mockRemarksService)
 
-      service.submit().futureValue mustBe ACCEPTED
+      val unloadingPermissionObject = arbitrary[UnloadingPermission]
+
+      val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
+
+      service.submit(emptyUserAnswers, unloadingPermission).futureValue mustBe ACCEPTED
     }
 
     "should return None is submission failed" ignore {}
