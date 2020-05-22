@@ -30,7 +30,7 @@ class Navigator @Inject()() {
 
     case UnloadingGuidancePage =>
       ua =>
-        routes.UnloadingGuidanceController.onPageLoad(ua.id)
+        routes.DateGoodsUnloadedController.onPageLoad(ua.id, NormalMode)
 
     case DateGoodsUnloadedPage =>
       ua =>
