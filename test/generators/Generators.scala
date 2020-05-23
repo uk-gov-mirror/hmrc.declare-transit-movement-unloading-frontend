@@ -158,4 +158,11 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       LocalDateTime.of(2100, 1, 1, 0, 0, 0)
     ).map(_.toLocalTime)
   }
+
+  implicit lazy val arbitraryLocalDateTime: Arbitrary[LocalDateTime] = Arbitrary {
+    dateTimesBetween(
+      LocalDateTime.of(1900, 1, 1, 0, 0, 0),
+      LocalDateTime.of(2100, 1, 1, 0, 0, 0)
+    )
+  }
 }

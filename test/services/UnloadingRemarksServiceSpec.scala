@@ -15,48 +15,118 @@
  */
 
 package services
+import java.time.{LocalDate, ZoneOffset}
+
 import base.SpecBase
-import generators.Generators
+import generators.MessagesModelGenerators
 import models.UnloadingPermission
-import models.messages.InterchangeControlReference
+import models.messages._
+import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary
+import pages.DateGoodsUnloadedPage
+import play.api.Application
 import play.api.http.Status._
 import play.api.inject.bind
 import repositories.InterchangeControlReferenceIdRepository
-import org.mockito.Mockito.when
+import services.UnloadingRemarksRequestServiceSpec.header
 
 import scala.concurrent.Future
 
-class UnloadingRemarksServiceSpec extends SpecBase with Generators {
+class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators {
 
-  val mockRemarksService = mock[RemarksService]
+  private val mockRemarksService = mock[RemarksService]
 
-  val mockMetaService = mock[MetaService]
+  private val mockMetaService = mock[MetaService]
 
-  val mockInterchangeControlReferenceIdRepository = mock[InterchangeControlReferenceIdRepository]
+  private val mockUnloadingRemarksRequestService = mock[UnloadingRemarksRequestService]
 
-  override lazy val app = applicationBuilder(Some(emptyUserAnswers))
+  private val mockInterchangeControlReferenceIdRepository = mock[InterchangeControlReferenceIdRepository]
+
+  override lazy val app: Application = applicationBuilder(Some(emptyUserAnswers))
     .overrides(bind[RemarksService].toInstance(mockRemarksService))
     .overrides(bind[MetaService].toInstance(mockMetaService))
+    .overrides(bind[UnloadingRemarksRequestService].toInstance(mockUnloadingRemarksRequestService))
     .overrides(bind[InterchangeControlReferenceIdRepository].toInstance(mockInterchangeControlReferenceIdRepository))
     .build()
 
-  val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+  private val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
 
   "UnloadingRemarksServiceSpec" - {
 
     "should return 202 for successful submission" in {
 
-
-      //TODO: Need to mock MetaService.build
-      when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
-        .thenReturn(Future.successful(InterchangeControlReference("date", 1)))
+      val localDate = LocalDate.now(ZoneOffset.UTC)
 
       val unloadingPermissionObject = arbitrary[UnloadingPermission]
 
       val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
 
-      arrivalNotificationService.submit("eori", emptyUserAnswers, unloadingPermission).futureValue mustBe ACCEPTED
+      val metaObject = arbitrary[Meta]
+
+      val meta: Meta = metaObject.sample.get
+
+      val unloadingRemarks = RemarksConform(localDate)
+
+      val userAnswersUpdated =
+        emptyUserAnswers
+          .set(DateGoodsUnloadedPage, localDate)
+          .success
+          .value
+
+      when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+        .thenReturn(Future.successful(InterchangeControlReference("dsfsf", 1)))
+
+      when(mockMetaService.build("eori", InterchangeControlReference("date", 1)))
+        .thenReturn(meta)
+
+      when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
+        .thenReturn(Right(unloadingRemarks))
+
+      when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
+        .thenReturn(
+          UnloadingRemarksRequest(
+            meta,
+            header(unloadingPermission),
+            unloadingPermission.traderAtDestination,
+            unloadingPermission.presentationOffice,
+            unloadingRemarks,
+            seals = None,
+            unloadingPermission.goodsItems
+          )
+        )
+
+      arrivalNotificationService.submit("eori", userAnswersUpdated, unloadingPermission).futureValue mustBe ACCEPTED
+
+      reset(mockInterchangeControlReferenceIdRepository)
+      reset(mockMetaService)
+      reset(mockRemarksService)
+      reset(mockUnloadingRemarksRequestService)
+    }
+
+    "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
+
+      val unloadingPermissionObject = arbitrary[UnloadingPermission]
+
+      val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
+
+      val metaObject = arbitrary[Meta]
+
+      val meta: Meta = metaObject.sample.get
+
+      when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+        .thenReturn(Future.successful(InterchangeControlReference("date", 1)))
+
+      when(mockMetaService.build("eori", InterchangeControlReference("date", 1)))
+        .thenReturn(meta)
+
+      when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
+        .thenReturn(Left(FailedToFindUnloadingDate))
+
+      arrivalNotificationService.submit("eori", emptyUserAnswers, unloadingPermission).futureValue mustBe None
+
+      reset(mockInterchangeControlReferenceIdRepository)
+      reset(mockMetaService)
+      reset(mockRemarksService)
     }
 
     "should return None when failed to generate InterchangeControlReference" in {
@@ -68,6 +138,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with Generators {
       val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
 
       arrivalNotificationService.submit("eori", emptyUserAnswers, unloadingPermission).futureValue mustBe None
+
+      reset(mockInterchangeControlReferenceIdRepository)
     }
 
   }

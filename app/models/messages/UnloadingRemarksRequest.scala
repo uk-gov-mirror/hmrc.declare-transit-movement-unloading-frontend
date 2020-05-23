@@ -27,8 +27,8 @@ case class UnloadingRemarksRequest(
   header: Header,
   traderAtDestination: TraderAtDestination,
   presentationOffice: String,
-  unloadingRemark: Remarks, //TODO: Should we set this here
-  seals: Option[Seals], // If stateOfSeals is 1 or None, this is optional (otherwise mandatory)
+  unloadingRemark: Remarks,
+  seals: Option[Seals],
   goodsItems: NonEmptyList[GoodsItem]
 )
 

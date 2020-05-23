@@ -151,5 +151,6 @@ object RemarksServiceImpl {
 }
 
 trait RemarksService {
+  //TODO: Is it better to return a Future or Either?
   def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Either[RemarksFailure, Remarks]
 }

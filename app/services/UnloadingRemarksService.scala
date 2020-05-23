@@ -17,6 +17,7 @@
 package services
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import models.messages.{Meta, UnloadingRemarksRequest}
 import models.{UnloadingPermission, UserAnswers}
 import play.api.Logger
 import play.api.http.Status._
@@ -27,6 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
                                         metaService: MetaService,
                                         remarksService: RemarksService,
+                                        unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository)(implicit ec: ExecutionContext) {
 
   def submit(eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission) =
@@ -35,7 +37,19 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
       .flatMap {
         interchangeControlReference =>
           {
-            val meta = metaService.build(eori, interchangeControlReference)
+            val meta: Meta = metaService.build(eori, interchangeControlReference)
+
+            remarksService.build(userAnswers, unloadingPermission) match {
+              case Right(unloadingRemarks) => {
+                val unloadingRemarksRequest: UnloadingRemarksRequest =
+                  unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
+                Future.successful(ACCEPTED)
+              }
+              case Left(failure) => {
+                Logger.error(s"failed to build UnloadingRemarks $failure")
+                Future.successful(None)
+              }
+            }
             // set RemarksService
             // populate UnloadingRemarksRequest
             // set Meta (internal data) - consider Meta.apply
@@ -45,13 +59,12 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
             // set unloadingRemarks
             // set seals (either useranswers or unloading permission)
             // set goods items (from unloading permission)
-            Future.successful(ACCEPTED)
 
           }
       }
       .recover {
         case ex =>
-          Logger.error(s"${ex.getMessage}")
+          Logger.error(s"$ex")
           None
       }
 
