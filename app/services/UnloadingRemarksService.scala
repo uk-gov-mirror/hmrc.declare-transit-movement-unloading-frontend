@@ -50,15 +50,6 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
                 Future.successful(None)
               }
             }
-            // set RemarksService
-            // populate UnloadingRemarksRequest
-            // set Meta (internal data) - consider Meta.apply
-            // set Header (from unloading permission)
-            // set trader (from unloading permission)
-            // set presentationOffice (from unloading permission)
-            // set unloadingRemarks
-            // set seals (either useranswers or unloading permission)
-            // set goods items (from unloading permission)
 
           }
       }
