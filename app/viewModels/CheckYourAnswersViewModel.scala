@@ -18,7 +18,7 @@ package viewModels
 import cats.data.NonEmptyList
 import controllers.routes
 import models.reference.Country
-import models.{MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import pages._
 import play.api.i18n.Messages
 import queries.SealsQuery
@@ -99,13 +99,13 @@ object CheckYourAnswersViewModel {
     )
   }
 
-  private def buildRows(rows: Seq[Row], mrn: MovementReferenceNumber): Seq[Row] = rows match {
+  private def buildRows(rows: Seq[Row], arrivalId: ArrivalId): Seq[Row] = rows match {
     case head :: tail => {
       val changeAction = head.copy(
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = routes.UnloadingSummaryController.onPageLoad(mrn).url,
+            href               = routes.UnloadingSummaryController.onPageLoad(arrivalId).url,
             visuallyHiddenText = Some(msg"checkYourAnswers.changeItems.hidden"),
             attributes         = Map("id" -> s"""change-answers""")
           )))

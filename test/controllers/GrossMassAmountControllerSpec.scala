@@ -44,7 +44,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
   val formProvider = new GrossMassAmountFormProvider()
   val form         = formProvider()
 
-  lazy val grossMassAmountRoute = routes.GrossMassAmountController.onPageLoad(mrn, NormalMode).url
+  lazy val grossMassAmountRoute = routes.GrossMassAmountController.onPageLoad(arrivalId, NormalMode).url
 
   "GrossMassAmount Controller" - {
 
@@ -81,7 +81,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn, mrn).set(GrossMassAmountPage, "answer").success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(GrossMassAmountPage, "answer").success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, grossMassAmountRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

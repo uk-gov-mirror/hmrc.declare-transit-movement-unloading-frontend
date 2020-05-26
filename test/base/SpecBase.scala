@@ -19,7 +19,7 @@ package base
 import cats.data.NonEmptyList
 import config.FrontendAppConfig
 import controllers.actions._
-import models.{GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
 import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -50,9 +50,11 @@ trait SpecBase
     Mockito.reset(mockRenderer, mockUnloadingPermissionService)
   }
 
+  val arrivalId: ArrivalId = ArrivalId(1)
+
   val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
 
-  def emptyUserAnswers = UserAnswers(mrn, mrn, Json.obj())
+  def emptyUserAnswers = UserAnswers(arrivalId, mrn, Json.obj())
 
   def injector: Injector = app.injector
 

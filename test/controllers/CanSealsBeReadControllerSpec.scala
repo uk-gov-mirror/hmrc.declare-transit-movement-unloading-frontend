@@ -44,7 +44,7 @@ class CanSealsBeReadControllerSpec extends SpecBase with MockitoSugar with Nunju
   val formProvider = new CanSealsBeReadFormProvider()
   val form         = formProvider()
 
-  lazy val canSealsBeReadRoute = routes.CanSealsBeReadController.onPageLoad(mrn, NormalMode).url
+  lazy val canSealsBeReadRoute = routes.CanSealsBeReadController.onPageLoad(arrivalId, NormalMode).url
 
   "CanSealsBeRead Controller" - {
 
@@ -82,7 +82,7 @@ class CanSealsBeReadControllerSpec extends SpecBase with MockitoSugar with Nunju
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn, mrn).set(CanSealsBeReadPage, true).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(CanSealsBeReadPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, canSealsBeReadRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

@@ -46,7 +46,7 @@ class TotalNumberOfItemsControllerSpec extends SpecBase with MockitoSugar with N
 
   val validAnswer = 1
 
-  lazy val totalNumberOfItemsRoute = routes.TotalNumberOfItemsController.onPageLoad(mrn, NormalMode).url
+  lazy val totalNumberOfItemsRoute = routes.TotalNumberOfItemsController.onPageLoad(arrivalId, NormalMode).url
 
   "TotalNumberOfItems Controller" - {
 
@@ -83,7 +83,7 @@ class TotalNumberOfItemsControllerSpec extends SpecBase with MockitoSugar with N
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn, mrn).set(TotalNumberOfItemsPage, validAnswer).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(TotalNumberOfItemsPage, validAnswer).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, totalNumberOfItemsRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

@@ -48,7 +48,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
 
   val validAnswer = LocalDate.now(ZoneOffset.UTC)
 
-  lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(mrn, NormalMode).url
+  lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, NormalMode).url
 
   def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, dateGoodsUnloadedRoute)
@@ -98,7 +98,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn, mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
@@ -179,7 +179,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val expectedJson = Json.obj(
         "form" -> boundForm,
         "mode" -> NormalMode,
-        "mrn"  -> mrn,
+        //"mrn"  -> mrn,  Todo: add this back in once mrn available
         "date" -> viewModel
       )
 
@@ -189,38 +189,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       application.stop()
     }
 
-    "must return OK and the correct view  if no existing data is found" in {
-
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, getRequest).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val viewModel = DateInput.localDate(form("value"))
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must redirect to the next page when if no existing data is found" in {
+    "must redirect to the next page when no existing data is found" in {
 
       when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
 

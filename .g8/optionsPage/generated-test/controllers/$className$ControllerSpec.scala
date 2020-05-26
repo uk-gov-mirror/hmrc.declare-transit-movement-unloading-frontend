@@ -51,8 +51,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       val expectedJson = Json.obj(
         "form"   -> form,
         "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> $className$.radios(form)
+        "mrn"    -> request.userAnswers.mrn,"radios" -> $className$.radios(form)
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -66,7 +65,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers = UserAnswers(mrn, mrn).set($className$Page, $className$.values.head).success.value
+      val userAnswers = UserAnswers(arrivalId, mrn).set($className$Page, $className$.values.head).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request = FakeRequest(GET, $className;format="decap"$Route)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -83,8 +82,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       val expectedJson = Json.obj(
         "form"   -> filledForm,
         "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> $className$.radios(filledForm)
+        "mrn"    -> request.userAnswers.mrn,"radios" -> $className$.radios(filledForm)
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
@@ -140,8 +138,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
       val expectedJson = Json.obj(
         "form"   -> boundForm,
         "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> $className$.radios(boundForm)
+        "mrn"    -> request.userAnswers.mrn,"radios" -> $className$.radios(boundForm)
       )
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"

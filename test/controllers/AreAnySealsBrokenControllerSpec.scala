@@ -44,7 +44,7 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
   val formProvider = new AreAnySealsBrokenFormProvider()
   val form         = formProvider()
 
-  lazy val areAnySealsBrokenRoute = routes.AreAnySealsBrokenController.onPageLoad(mrn, NormalMode).url
+  lazy val areAnySealsBrokenRoute = routes.AreAnySealsBrokenController.onPageLoad(arrivalId, NormalMode).url
 
   "AreAnySealsBroken Controller" - {
 
@@ -82,7 +82,7 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn, mrn).set(AreAnySealsBrokenPage, true).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(AreAnySealsBrokenPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, areAnySealsBrokenRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

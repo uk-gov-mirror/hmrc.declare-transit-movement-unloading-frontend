@@ -49,7 +49,7 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
   val countries                                          = Seq(country)
   val form: Form[Country]                                = formProvider(countries)
   val mockReferenceDataConnector: ReferenceDataConnector = mock[ReferenceDataConnector]
-  lazy val vehicleRegistrationCountryRoute               = routes.VehicleRegistrationCountryController.onPageLoad(mrn, NormalMode).url
+  lazy val vehicleRegistrationCountryRoute               = routes.VehicleRegistrationCountryController.onPageLoad(arrivalId, NormalMode).url
 
   def countriesJson(selected: Boolean = false) = Seq(
     Json.obj("text" -> "", "value"               -> ""),
@@ -103,7 +103,7 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
         Future.successful(countries)
       )
 
-      val userAnswers = UserAnswers(mrn, mrn).set(VehicleRegistrationCountryPage, country).success.value
+      val userAnswers = UserAnswers(arrivalId, mrn).set(VehicleRegistrationCountryPage, country).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers))
         .overrides {
           bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)

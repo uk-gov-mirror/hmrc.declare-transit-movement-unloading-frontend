@@ -44,7 +44,7 @@ class ConfirmRemoveCommentsControllerSpec extends SpecBase with MockitoSugar wit
   val formProvider = new ConfirmRemoveCommentsFormProvider()
   val form         = formProvider()
 
-  lazy val confirmRemoveCommentsRoute = routes.ConfirmRemoveCommentsController.onPageLoad(mrn, NormalMode).url
+  lazy val confirmRemoveCommentsRoute = routes.ConfirmRemoveCommentsController.onPageLoad(arrivalId, NormalMode).url
 
   "ConfirmRemoveComments Controller" - {
 

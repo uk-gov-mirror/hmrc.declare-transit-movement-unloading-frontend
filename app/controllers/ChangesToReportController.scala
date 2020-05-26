@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.ChangesToReportFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, Mode, MovementReferenceNumber, UserAnswers}
 import navigation.Navigator
 import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -50,7 +50,7 @@ class ChangesToReportController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val preparedForm = request.userAnswers.get(ChangesToReportPage) match {
         case None        => form
@@ -59,14 +59,14 @@ class ChangesToReportController @Inject()(
 
       val json = Json.obj(
         "form" -> preparedForm,
-        "mrn"  -> mrn,
+        "mrn"  -> request.userAnswers.mrn,
         "mode" -> mode
       )
 
       renderer.render("changesToReport.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -75,7 +75,7 @@ class ChangesToReportController @Inject()(
 
             val json = Json.obj(
               "form" -> formWithErrors,
-              "mrn"  -> mrn,
+              "mrn"  -> request.userAnswers.mrn,
               "mode" -> mode
             )
 

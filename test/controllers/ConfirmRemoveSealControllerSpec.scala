@@ -45,7 +45,7 @@ class ConfirmRemoveSealControllerSpec extends SpecBase with MockitoSugar with Nu
   val form         = formProvider("seal 1")
   val index: Index = Index(0)
 
-  lazy val confirmRemoveSealRoute = routes.ConfirmRemoveSealController.onPageLoad(mrn, index, NormalMode).url
+  lazy val confirmRemoveSealRoute = routes.ConfirmRemoveSealController.onPageLoad(arrivalId, index, NormalMode).url
 
   "ConfirmRemoveSeal Controller" - {
 

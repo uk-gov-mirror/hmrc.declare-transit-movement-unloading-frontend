@@ -26,7 +26,7 @@ import queries.Gettable
 import scala.util.{Failure, Success, Try}
 
 final case class UserAnswers(
-  id: MovementReferenceNumber,
+  id: ArrivalId,
   mrn: MovementReferenceNumber,
   data: JsObject             = Json.obj(),
   lastUpdated: LocalDateTime = LocalDateTime.now
@@ -81,7 +81,7 @@ object UserAnswers {
     import play.api.libs.functional.syntax._
 
     (
-      (__ \ "_id").read[MovementReferenceNumber] and
+      (__ \ "_id").read[ArrivalId] and
         (__ \ "mrn").read[MovementReferenceNumber] and
         (__ \ "data").read[JsObject] and
         (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead)
@@ -93,7 +93,7 @@ object UserAnswers {
     import play.api.libs.functional.syntax._
 
     (
-      (__ \ "_id").write[MovementReferenceNumber] and
+      (__ \ "_id").write[ArrivalId] and
         (__ \ "mrn").write[MovementReferenceNumber] and
         (__ \ "data").write[JsObject] and
         (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite)

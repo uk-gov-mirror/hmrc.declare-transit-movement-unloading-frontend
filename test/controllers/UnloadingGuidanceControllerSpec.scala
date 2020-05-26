@@ -39,7 +39,7 @@ class UnloadingGuidanceControllerSpec extends SpecBase with MockitoSugar with Js
         .thenReturn(Future.successful(Html("")))
 
       val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-      val request        = FakeRequest(GET, routes.UnloadingGuidanceController.onPageLoad(mrn).url)
+      val request        = FakeRequest(GET, routes.UnloadingGuidanceController.onPageLoad(arrivalId).url)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
@@ -49,7 +49,7 @@ class UnloadingGuidanceControllerSpec extends SpecBase with MockitoSugar with Js
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val expectedJson = Json.obj("mrn" -> mrn)
+      val expectedJson = Json.obj("mrn" -> "19IT02110010007827")
 
       templateCaptor.getValue mustEqual "unloadingGuidance.njk"
       jsonCaptor.getValue must containJson(expectedJson)

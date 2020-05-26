@@ -17,7 +17,7 @@
 package controllers.actions
 
 import javax.inject.Inject
-import models.MovementReferenceNumber
+import models.{ArrivalId, MovementReferenceNumber}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import play.api.mvc.ActionTransformer
 import repositories.SessionRepository
@@ -26,23 +26,23 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class DataRetrievalActionProviderImpl @Inject()(sessionRepository: SessionRepository, ec: ExecutionContext) extends DataRetrievalActionProvider {
 
-  def apply(mrn: MovementReferenceNumber): ActionTransformer[IdentifierRequest, OptionalDataRequest] =
-    new DataRetrievalAction(mrn, ec, sessionRepository)
+  def apply(arrivalId: ArrivalId): ActionTransformer[IdentifierRequest, OptionalDataRequest] =
+    new DataRetrievalAction(arrivalId, ec, sessionRepository)
 }
 
 trait DataRetrievalActionProvider {
 
-  def apply(mrn: MovementReferenceNumber): ActionTransformer[IdentifierRequest, OptionalDataRequest]
+  def apply(arrivalId: ArrivalId): ActionTransformer[IdentifierRequest, OptionalDataRequest]
 }
 
 class DataRetrievalAction(
-  mrn: MovementReferenceNumber,
+  arrivalId: ArrivalId,
   implicit protected val executionContext: ExecutionContext,
   sessionRepository: SessionRepository
 ) extends ActionTransformer[IdentifierRequest, OptionalDataRequest] {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    sessionRepository.get(mrn.toString).map {
+    sessionRepository.get(arrivalId).map {
       userAnswers =>
         OptionalDataRequest(request.request, request.eoriNumber, userAnswers)
     }

@@ -64,7 +64,7 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with Nunjucks
 
       when(mockRenderer.render(any(), any())(any())) thenReturn Future.successful(Html(""))
 
-      val userAnswers = UserAnswers(mrn, mrn).set($className$Page, $className$.values.toSet).success.value
+      val userAnswers = UserAnswers(arrivalId, mrn).set($className$Page, $className$.values.toSet).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request = FakeRequest(GET, $className;format="decap"$Route)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
