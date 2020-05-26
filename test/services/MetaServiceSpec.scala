@@ -40,7 +40,7 @@ class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCh
   "MetaServiceSpec" - {
 
     "return a Meta model" in {
-      forAll(stringsWithMaxLength(8: Int), arbitrary[InterchangeControlReference]) {
+      forAll(stringsWithMaxLength(MessageSender.eoriLength), arbitrary[InterchangeControlReference]) {
         (eori, interchangeControlReference) =>
           val localDateTime = LocalDateTime.now()
 

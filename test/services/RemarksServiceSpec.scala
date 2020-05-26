@@ -19,12 +19,12 @@ import java.time.{LocalDate, ZoneOffset}
 
 import base.SpecBase
 import generators.Generators
-import models.messages.{ResultsOfControl, _}
+import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
+import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages._
-import org.mockito.Mockito.when
 
 class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropertyChecks {
 

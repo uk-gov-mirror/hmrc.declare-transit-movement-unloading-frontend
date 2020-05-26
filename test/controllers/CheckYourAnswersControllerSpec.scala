@@ -26,7 +26,7 @@ import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{UnloadingPermissionService, UnloadingRemarksService}
+import services.UnloadingRemarksService
 
 import scala.concurrent.Future
 

@@ -30,7 +30,7 @@ trait MessagesModelGenerators extends Generators {
     Arbitrary {
       for {
         environment <- Gen.oneOf(Seq("LOCAL", "QA", "STAGING", "PRODUCTION"))
-        eori        <- stringsWithMaxLength(8: Int)
+        eori        <- stringsWithMaxLength(MessageSender.eoriLength)
       } yield MessageSender(environment, eori)
     }
   }
