@@ -17,11 +17,13 @@
 package services
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import connectors.UnloadingConnector
 import models.messages.{Meta, UnloadingRemarksRequest}
 import models.{UnloadingPermission, UserAnswers}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -29,9 +31,10 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
                                         metaService: MetaService,
                                         remarksService: RemarksService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
-                                        interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository)(implicit ec: ExecutionContext) {
+                                        interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
+                                        unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
-  def submit(eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission) =
+  def submit(arrivalId: Int, eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit hc: HeaderCarrier) =
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()
       .flatMap {
@@ -43,7 +46,14 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
               case Right(unloadingRemarks) => {
                 val unloadingRemarksRequest: UnloadingRemarksRequest =
                   unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
-                Future.successful(ACCEPTED)
+
+                unloadingConnector.post(arrivalId, unloadingRemarksRequest).flatMap {
+                  case Some(response) if response.status == ACCEPTED => {
+                    Future.successful(ACCEPTED) // can remove user answers
+                  }
+                  case _ => Future.successful(SERVICE_UNAVAILABLE)
+                }
+
               }
               case Left(failure) => {
                 Logger.error(s"failed to build UnloadingRemarks $failure")

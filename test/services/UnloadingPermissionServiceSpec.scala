@@ -73,7 +73,7 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
 
     "convertSeals" - {
       "return the same userAnswers when given an ID with no Seals" in {
-        when(mockConnector.get(any())(any(), any()))
+        when(mockConnector.get(any())(any()))
           .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
         val mrn: MovementReferenceNumber = MovementReferenceNumber("22", "IT", "0211001000782")
         val userAnswers                  = UserAnswers(mrn, Json.obj())
@@ -95,7 +95,7 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
         val arrivalId: Int               = 1
         val userAnswers                  = UserAnswers(mrn, Json.obj())
 
-        when(mockConnector.get(eqTo(arrivalId))(any(), any()))
+        when(mockConnector.get(eqTo(arrivalId))(any()))
           .thenReturn(Future.successful(None))
 
         service.convertSeals(userAnswers) mustBe None
