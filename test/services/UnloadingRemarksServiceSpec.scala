@@ -104,7 +104,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
             when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(Some(HttpResponse(ACCEPTED))))
 
-            arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe ACCEPTED
+            arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
 
             reset(mockInterchangeControlReferenceIdRepository)
             reset(mockMetaService)
@@ -160,7 +160,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
             when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(Some(HttpResponse(BAD_REQUEST))))
 
-            arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe SERVICE_UNAVAILABLE
+            arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
 
             reset(mockInterchangeControlReferenceIdRepository)
             reset(mockMetaService)

@@ -21,6 +21,7 @@ import config.FrontendAppConfig
 import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
 import models.{Movement, MovementMessage}
+import play.api.Logger
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -40,7 +41,9 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
       .POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
       .map(x => Some(x))
       .recover {
-        case _ => None
+        case ex =>
+          Logger.error(s"failed posting to backend: $ex")
+          None
       }
   }
 
@@ -74,7 +77,30 @@ class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val h
     case _ => Future.successful(None)
   }
 
-  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[Option[HttpResponse]] = ???
+  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[Option[HttpResponse]] = {
+
+    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.toString}/messages/"
+
+    Logger.error(s"URL HERE - $url")
+
+    val headers = Seq(("Content-Type", "application/xml"))
+
+    //TODO: Remove the map and use the custom httpReads in package
+    http
+      .POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
+      .map(x => {
+
+        Logger.error(s"RESPONSE : $x")
+
+        Some(x)
+      })
+      .recover {
+        case ex => {
+          Logger.error(s"failed posting to backend: $ex")
+          None
+        }
+      }
+  }
 
 }
 

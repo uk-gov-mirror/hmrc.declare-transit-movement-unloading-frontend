@@ -34,7 +34,8 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
-  def submit(arrivalId: Int, eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit hc: HeaderCarrier) =
+  def submit(arrivalId: Int, eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
+    implicit hc: HeaderCarrier): Future[Option[Int]] =
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()
       .flatMap {
@@ -44,23 +45,30 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
 
             remarksService.build(userAnswers, unloadingPermission) match {
               case Right(unloadingRemarks) => {
+
                 val unloadingRemarksRequest: UnloadingRemarksRequest =
                   unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
 
-                unloadingConnector.post(arrivalId, unloadingRemarksRequest).flatMap {
-                  case Some(response) if response.status == ACCEPTED => {
-                    Future.successful(ACCEPTED) // can remove user answers
+                unloadingConnector
+                  .post(arrivalId, unloadingRemarksRequest)
+                  .flatMap {
+                    case Some(response) if response.status == ACCEPTED || response.status == UNAUTHORIZED => {
+                      Future.successful(Some(response.status)) // can remove user answers
+                    }
+                    case Some(response) => {
+                      Logger.error(s"backend returned unhandled status: ${response.status}")
+                      Future.successful(Some(SERVICE_UNAVAILABLE))
+                    }
+                    case None => {
+                      Future.successful(Some(BAD_REQUEST))
+                    }
                   }
-                  case _ => Future.successful(SERVICE_UNAVAILABLE)
-                }
-
               }
               case Left(failure) => {
                 Logger.error(s"failed to build UnloadingRemarks $failure")
                 Future.successful(None)
               }
             }
-
           }
       }
       .recover {
