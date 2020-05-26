@@ -63,7 +63,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
     "should return 202 for successful submission" in {
 
       forAll(
-        stringsWithMaxLength(8: Int),
+        stringsWithMaxLength(MessageSender.eoriLength),
         arbitrary[UnloadingPermission],
         arbitrary[Meta],
         arbitrary[RemarksConform],
@@ -102,7 +102,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
                 unloadingRemarksRequest
               )
 
-            when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(Some(HttpResponse(ACCEPTED))))
+            when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(HttpResponse(ACCEPTED)))
 
             arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
 
@@ -119,7 +119,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
     "should return 503 when connector fails" in {
 
       forAll(
-        stringsWithMaxLength(8: Int),
+        stringsWithMaxLength(MessageSender.eoriLength),
         arbitrary[UnloadingPermission],
         arbitrary[Meta],
         arbitrary[RemarksConform],
@@ -158,7 +158,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
                 unloadingRemarksRequest
               )
 
-            when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(Some(HttpResponse(BAD_REQUEST))))
+            when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
 
             arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
 
@@ -173,7 +173,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
     "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
 
-      forAll(stringsWithMaxLength(8: Int), arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
+      forAll(stringsWithMaxLength(MessageSender.eoriLength), arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
         (eori, unloadingPermission, meta, interchangeControlReference) =>
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
@@ -195,7 +195,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
     "should return None when failed to generate InterchangeControlReference" in {
 
-      forAll(stringsWithMaxLength(8: Int), arbitrary[UnloadingPermission]) {
+      forAll(stringsWithMaxLength(MessageSender.eoriLength), arbitrary[UnloadingPermission]) {
         (eori, unloadingPermission) =>
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))

@@ -36,7 +36,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
         val unloadingRemarksRequest: UnloadingRemarksRequest = unloadingRemarksRequestObject .sample.get
 
-        val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue.value
+        val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
 
         result.status mustBe ACCEPTED
       }
@@ -52,7 +52,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
               post(postUri)
                 .willReturn(aResponse().withStatus(errorResponseCode)))
 
-            connector.post(arrivalId, unloadingRemarksRequest).futureValue.value.status mustBe errorResponseCode
+            connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
         }
       }
     }

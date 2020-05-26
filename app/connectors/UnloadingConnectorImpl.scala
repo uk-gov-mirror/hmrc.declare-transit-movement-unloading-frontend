@@ -30,21 +30,13 @@ import scala.xml.{Elem, XML}
 
 class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext) extends UnloadingConnector {
 
-  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[Option[HttpResponse]] = {
+  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
     val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.toString}/messages/"
 
     val headers = Seq(("Content-Type", "application/xml"))
 
-    //TODO: Remove the map and use the custom httpReads in package
-    http
-      .POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
-      .map(x => Some(x))
-      .recover {
-        case ex =>
-          Logger.error(s"failed posting to backend: $ex")
-          None
-      }
+    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
   /**
@@ -77,7 +69,7 @@ class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val h
     case _ => Future.successful(None)
   }
 
-  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[Option[HttpResponse]] = {
+  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
     val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.toString}/messages/"
 
@@ -85,26 +77,12 @@ class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val h
 
     val headers = Seq(("Content-Type", "application/xml"))
 
-    //TODO: Remove the map and use the custom httpReads in package
-    http
-      .POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
-      .map(x => {
-
-        Logger.error(s"RESPONSE : $x")
-
-        Some(x)
-      })
-      .recover {
-        case ex => {
-          Logger.error(s"failed posting to backend: $ex")
-          None
-        }
-      }
+    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
 }
 
 trait UnloadingConnector {
   def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]]
-  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[Option[HttpResponse]]
+  def post(arrivalId: Int, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
 }

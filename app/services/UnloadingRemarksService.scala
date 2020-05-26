@@ -51,17 +51,11 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
 
                 unloadingConnector
                   .post(arrivalId, unloadingRemarksRequest)
-                  .flatMap {
-                    case Some(response) if response.status == ACCEPTED || response.status == UNAUTHORIZED => {
-                      Future.successful(Some(response.status)) // can remove user answers
-                    }
-                    case Some(response) => {
-                      Logger.error(s"backend returned unhandled status: ${response.status}")
-                      Future.successful(Some(SERVICE_UNAVAILABLE))
-                    }
-                    case None => {
-                      Future.successful(Some(BAD_REQUEST))
-                    }
+                  .flatMap(response => Future.successful(Some(response.status)))
+                  .recover {
+                    case ex =>
+                      Logger.error(s"$ex")
+                      Some(SERVICE_UNAVAILABLE)
                   }
               }
               case Left(failure) => {
