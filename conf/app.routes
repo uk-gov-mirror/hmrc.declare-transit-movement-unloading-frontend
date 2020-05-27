@@ -1,10 +1,10 @@
 # microservice specific routes
 
-GET        /                                            controllers.IndexController.onPageLoad
+GET        /:arrivalId/                                            controllers.IndexController.onPageLoad(arrivalId: ArrivalId)
 
 GET        /assets/*file                                controllers.Assets.versioned(path="/public", file: Asset)
 
-GET        /language/:lang                              controllers.LanguageSwitchController.switchToLanguage(lang: String)
+GET        /:arrivalId/language/:lang                              controllers.LanguageSwitchController.switchToLanguage(arrivalId: ArrivalId, lang: String)
 
 GET        /this-service-has-been-reset                 controllers.SessionExpiredController.onPageLoad
 
@@ -14,9 +14,9 @@ GET        /cannot-use-service-no-eori                                      cont
 
 GET        /accessibility-statement                                         controllers.AccessibilityController.onPageLoad
 
-GET        /:arrivalId/unloading-guidance                                   controllers.UnloadingGuidanceController.onPageLoad(arrivalId: ArrivalId)
+GET        /:arrivalId/unloading-guidance                                   controllers.UnloadingGuidanceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
 
-GET        /:arrivalId/date-goods-unloaded                                  controllers.DateGoodsUnloadedController.onPageLoad(arrivalId: ArrivalId, mode:Mode = NormalMode)
+GET        /:arrivalId/date-goods-unloaded                                  controllers.DateGoodsUnloadedController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
 POST       /:arrivalId/date-goods-unloaded                                  controllers.DateGoodsUnloadedController.onSubmit(arrivalId: ArrivalId, mode: Mode = NormalMode)
 GET        /:arrivalId/change-date-goods-unloaded                           controllers.DateGoodsUnloadedController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)
 POST       /:arrivalId/change-date-goods-unloaded                           controllers.DateGoodsUnloadedController.onSubmit(arrivalId: ArrivalId, mode: Mode = CheckMode)

@@ -69,8 +69,8 @@ class Navigator @Inject()() {
         routes.UnloadingSummaryController.onPageLoad(ua.id)
 
     case _ =>
-      _ =>
-        routes.IndexController.onPageLoad()
+      ua =>
+        routes.IndexController.onPageLoad(ua.id)
 
   }
 

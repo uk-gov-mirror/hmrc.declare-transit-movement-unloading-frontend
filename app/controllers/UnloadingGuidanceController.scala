@@ -19,13 +19,12 @@ package controllers
 import controllers.actions._
 import javax.inject.Inject
 import models.requests.OptionalDataRequest
-import models.{ArrivalId, MovementReferenceNumber, NormalMode, UserAnswers}
+import models.{ArrivalId, Mode, MovementReferenceNumber, UserAnswers}
 import navigation.Navigator
 import pages.UnloadingGuidancePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import queries.MrnQuery
 import renderer.Renderer
 import repositories.SessionRepository
 import services.UnloadingPermissionServiceImpl
@@ -35,41 +34,24 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingGuidanceController @Inject()(
   override val messagesApi: MessagesApi,
-  sessionRepository: SessionRepository,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
+  requireData: DataRequiredAction,
   navigator: Navigator,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer,
-  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl
+  renderer: Renderer
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      unloadingPermissionServiceImpl.getUnloadingPermission(arrivalId) flatMap {
-        case Some(unloadingPermission) =>
-          val mrn = MovementReferenceNumber(unloadingPermission.movementReferenceNumber).get
-          request.userAnswers match {
-            case Some(userAnswers) =>
-              renderPage(arrivalId, mrn, navigator.nextPage(UnloadingGuidancePage, NormalMode, userAnswers).url).map(Ok(_))
-            case _ =>
-              Future.fromTry(request.userAnswers.getOrElse(UserAnswers(arrivalId, mrn)).set(MrnQuery, mrn)).flatMap {
-                updatedAnswers =>
-                  sessionRepository.set(updatedAnswers).flatMap {
-                    _ =>
-                      renderPage(arrivalId, mrn, navigator.nextPage(UnloadingGuidancePage, NormalMode, updatedAnswers).url).map(Ok(_))
-                  }
-              }
-          }
-        case _ =>
-          Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
-      }
-  }
+      val json = Json.obj(
+        "mrn"         -> request.userAnswers.mrn,
+        "nextPageUrl" -> navigator.nextPage(UnloadingGuidancePage, mode, request.userAnswers).url,
+        "mode"        -> mode
+      )
 
-  private def renderPage(arrivalId: ArrivalId, mrn: MovementReferenceNumber, nextPageUrl: String)(implicit request: OptionalDataRequest[AnyContent]) = {
-    val json = Json.obj("arrivalId" -> arrivalId, "mrn" -> mrn, "nextPageUrl" -> nextPageUrl, "mode" -> NormalMode)
-    renderer.render("unloadingGuidance.njk", json)
+      renderer.render("unloadingGuidance.njk", json).map(Ok(_))
   }
 }
