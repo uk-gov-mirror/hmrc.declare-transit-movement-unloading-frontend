@@ -61,18 +61,18 @@ class DateGoodsUnloadedController @Inject()(
       val viewModel = DateInput.localDate(preparedForm("value"))
 
       val json = Json.obj(
-        "form" -> preparedForm,
-        "mode" -> mode,
-        "mrn"  -> request.userAnswers.mrn,
-        "date" -> viewModel
+        "form"      -> preparedForm,
+        "mode"      -> mode,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_))
   }
 
-  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      val mrn = MovementReferenceNumber("", "", "") //ToDo: add the mrn here
       form
         .bindFromRequest()
         .fold(
@@ -81,17 +81,18 @@ class DateGoodsUnloadedController @Inject()(
             val viewModel = DateInput.localDate(formWithErrors("value"))
 
             val json = Json.obj(
-              "form" -> formWithErrors,
-              "mode" -> mode,
-              "mrn"  -> mrn,
-              "date" -> viewModel
+              "form"      -> formWithErrors,
+              "mode"      -> mode,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "date"      -> viewModel
             )
 
             renderer.render("dateGoodsUnloaded.njk", json).map(BadRequest(_))
           },
           value =>
             for {
-              updatedAnswers      <- Future.fromTry(request.userAnswers.getOrElse(UserAnswers(arrivalId, mrn)).set(DateGoodsUnloadedPage, value))
+              updatedAnswers      <- Future.fromTry(request.userAnswers.set(DateGoodsUnloadedPage, value))
               _                   <- sessionRepository.set(updatedAnswers)
               unloadingPermission <- unloadingPermissionService.getUnloadingPermission(arrivalId)
             } yield {

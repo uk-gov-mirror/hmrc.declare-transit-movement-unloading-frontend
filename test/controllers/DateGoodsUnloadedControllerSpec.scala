@@ -44,11 +44,11 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
   val formProvider = new DateGoodsUnloadedFormProvider()
   private def form = formProvider()
 
-  def onwardRoute = Call("GET", "/foo")
+  private def onwardRoute = Call("GET", "/foo")
 
-  val validAnswer = LocalDate.now(ZoneOffset.UTC)
+  private val validAnswer = LocalDate.now(ZoneOffset.UTC)
 
-  lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, NormalMode).url
+  private lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, NormalMode).url
 
   def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, dateGoodsUnloadedRoute)
@@ -81,10 +81,11 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val viewModel = DateInput.localDate(form("value"))
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
+        "form"      -> form,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
@@ -120,10 +121,11 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val viewModel = DateInput.localDate(filledForm("value"))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
+        "form"      -> filledForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
@@ -133,11 +135,9 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
     }
 
     "must redirect to the next page when valid data is submitted" in {
-
       when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
       val mockSessionRepository = mock[SessionRepository]
-
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
       val application =
@@ -151,14 +151,12 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val result = route(application, postRequest).value
 
       status(result) mustEqual SEE_OTHER
-
       redirectLocation(result).value mustEqual onwardRoute.url
 
       application.stop()
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
-
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
@@ -177,39 +175,15 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val viewModel = DateInput.localDate(boundForm("value"))
 
       val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mode" -> NormalMode,
-        //"mrn"  -> mrn,  Todo: add this back in once mrn available
-        "date" -> viewModel
+        "form"      -> boundForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must redirect to the next page when no existing data is found" in {
-
-      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
-
-      val mockSessionRepository = mock[SessionRepository]
-
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
-
-      val application =
-        applicationBuilder(userAnswers = None)
-          .overrides(
-            bind[NavigatorUnloadingPermission].toInstance(new FakeUnloadingPermissionNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
-          .build()
-
-      val result = route(application, postRequest).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual onwardRoute.url
 
       application.stop()
     }
