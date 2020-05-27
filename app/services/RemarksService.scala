@@ -24,6 +24,8 @@ import models.{Seals, UnloadingPermission, UserAnswers}
 import pages._
 import queries.SealsQuery
 
+import scala.concurrent.Future
+
 class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlService) extends RemarksService {
 
   import RemarksServiceImpl._
@@ -40,7 +42,8 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
           .reduce(_ orElse _)
           .apply(unloadingPermission.seals)
 
-      case None => Left(FailedToFindUnloadingDate)
+      case None =>
+        Future.failed(new NoSuchElementException("date goods unloaded not found"))
     }
 
   private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate,
@@ -50,7 +53,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
       if (haveSealsChanged(unloadingPermissionSeals, userAnswers) ||
           sealsUnreadable(userAnswers.get(CanSealsBeReadPage)) ||
           sealsBroken(userAnswers.get(AreAnySealsBrokenPage))) {
-        Right(
+        Future.successful(
           RemarksNonConform(
             stateOfSeals    = Some(0),
             unloadingRemark = userAnswers.get(ChangesToReportPage),
@@ -60,7 +63,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
       } else {
         userAnswers.get(ChangesToReportPage) match {
           case Some(unloadingRemarks) =>
-            Right(
+            Future.successful(
               RemarksNonConform(
                 stateOfSeals    = Some(1),
                 unloadingRemark = Some(unloadingRemarks),
@@ -71,9 +74,9 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
           case None => {
 
             if (resultsOfControl.isEmpty) {
-              Right(RemarksConformWithSeals(unloadingDate))
+              Future.successful(RemarksConformWithSeals(unloadingDate))
             } else {
-              Right(
+              Future.successful(
                 RemarksNonConform(
                   stateOfSeals    = Some(1),
                   unloadingRemark = None,
@@ -94,7 +97,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
     case None => {
       userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) =>
-          Right(
+          Future.successful(
             RemarksNonConform(
               stateOfSeals    = None,
               unloadingRemark = userAnswers.get(ChangesToReportPage),
@@ -105,7 +108,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
         case None => {
           userAnswers.get(ChangesToReportPage) match {
             case Some(unloadingRemarks) =>
-              Right(
+              Future.successful(
                 RemarksNonConform(
                   stateOfSeals    = None,
                   unloadingRemark = Some(unloadingRemarks),
@@ -115,9 +118,9 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
               )
             case None =>
               if (resultsOfControl.isEmpty) {
-                Right(RemarksConform(unloadingDate))
+                Future.successful(RemarksConform(unloadingDate))
               } else {
-                Right(
+                Future.successful(
                   RemarksNonConform(
                     stateOfSeals    = None,
                     unloadingRemark = None,
@@ -134,7 +137,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
 
 object RemarksServiceImpl {
 
-  type Response = Either[RemarksFailure, Remarks]
+  type Response = Future[Remarks]
 
   private def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
     !canSealsBeReadPage.getOrElse(true)
@@ -152,5 +155,5 @@ object RemarksServiceImpl {
 
 trait RemarksService {
   //TODO: Is it better to return a Future or Either?
-  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Either[RemarksFailure, Remarks]
+  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Future[Remarks]
 }

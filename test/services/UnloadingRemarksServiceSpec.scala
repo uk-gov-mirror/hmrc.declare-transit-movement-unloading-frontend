@@ -85,7 +85,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
               .thenReturn(meta)
 
             when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
-              .thenReturn(Right(unloadingRemarks))
+              .thenReturn(Future.successful(unloadingRemarks))
 
             val unloadingRemarksRequest = UnloadingRemarksRequest(
               meta,
@@ -141,7 +141,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
               .thenReturn(meta)
 
             when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
-              .thenReturn(Right(unloadingRemarks))
+              .thenReturn(Future.successful(unloadingRemarks))
 
             val unloadingRemarksRequest = UnloadingRemarksRequest(
               meta,
@@ -182,7 +182,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             .thenReturn(meta)
 
           when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
-            .thenReturn(Left(FailedToFindUnloadingDate))
+            .thenReturn(Future.failed(new Throwable))
 
           arrivalNotificationService.submit(1, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 

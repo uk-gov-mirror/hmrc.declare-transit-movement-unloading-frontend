@@ -41,28 +41,24 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
       .flatMap {
         interchangeControlReference =>
           {
-            val meta: Meta = metaService.build(eori, interchangeControlReference)
+            remarksService
+              .build(userAnswers, unloadingPermission)
+              .flatMap {
+                unloadingRemarks =>
+                  val meta: Meta = metaService.build(eori, interchangeControlReference)
 
-            remarksService.build(userAnswers, unloadingPermission) match {
-              case Right(unloadingRemarks) => {
+                  val unloadingRemarksRequest: UnloadingRemarksRequest =
+                    unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
 
-                val unloadingRemarksRequest: UnloadingRemarksRequest =
-                  unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
-
-                unloadingConnector
-                  .post(arrivalId, unloadingRemarksRequest)
-                  .flatMap(response => Future.successful(Some(response.status)))
-                  .recover {
-                    case ex =>
-                      Logger.error(s"$ex")
-                      Some(SERVICE_UNAVAILABLE)
-                  }
+                  unloadingConnector
+                    .post(arrivalId, unloadingRemarksRequest)
+                    .flatMap(response => Future.successful(Some(response.status)))
+                    .recover {
+                      case ex =>
+                        Logger.error(s"$ex")
+                        Some(SERVICE_UNAVAILABLE)
+                    }
               }
-              case Left(failure) => {
-                Logger.error(s"failed to build UnloadingRemarks $failure")
-                Future.successful(None)
-              }
-            }
           }
       }
       .recover {
