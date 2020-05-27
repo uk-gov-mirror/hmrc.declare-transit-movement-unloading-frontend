@@ -52,10 +52,11 @@ class ConfirmRemoveCommentsController @Inject()(
   def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val json = Json.obj(
-        "form"   -> form,
-        "mode"   -> mode,
-        "mrn"    -> request.userAnswers.mrn,
-        "radios" -> Radios.yesNo(form("value"))
+        "form"      -> form,
+        "mode"      -> mode,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(form("value"))
       )
 
       renderer.render("confirmRemoveComments.njk", json).map(Ok(_))
@@ -69,10 +70,11 @@ class ConfirmRemoveCommentsController @Inject()(
           formWithErrors => {
 
             val json = Json.obj(
-              "form"   -> formWithErrors,
-              "mode"   -> mode,
-              "mrn"    -> request.userAnswers.mrn,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
+              "form"      -> formWithErrors,
+              "mode"      -> mode,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "radios"    -> Radios.yesNo(formWithErrors("value"))
             )
 
             renderer.render("confirmRemoveComments.njk", json).map(BadRequest(_))

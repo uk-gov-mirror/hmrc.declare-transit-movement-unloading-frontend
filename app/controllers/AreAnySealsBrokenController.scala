@@ -57,10 +57,11 @@ class AreAnySealsBrokenController @Inject()(
       }
 
       val json = Json.obj(
-        "form"   -> preparedForm,
-        "mode"   -> mode,
-        "mrn"    -> request.userAnswers.mrn,
-        "radios" -> Radios.yesNo(preparedForm("value"))
+        "form"      -> preparedForm,
+        "mode"      -> mode,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(preparedForm("value"))
       )
 
       renderer.render("areAnySealsBroken.njk", json).map(Ok(_))
@@ -74,10 +75,11 @@ class AreAnySealsBrokenController @Inject()(
           formWithErrors => {
 
             val json = Json.obj(
-              "form"   -> formWithErrors,
-              "mode"   -> mode,
-              "mrn"    -> request.userAnswers.mrn,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
+              "form"      -> formWithErrors,
+              "mode"      -> mode,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "radios"    -> Radios.yesNo(formWithErrors("value"))
             )
 
             renderer.render("areAnySealsBroken.njk", json).map(BadRequest(_))

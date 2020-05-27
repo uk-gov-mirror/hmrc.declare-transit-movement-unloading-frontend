@@ -66,9 +66,10 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> form,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "newSealNumber.njk"
@@ -97,9 +98,10 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       val filledForm = form.bind(Map("value" -> "answer"))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> filledForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "newSealNumber.njk"

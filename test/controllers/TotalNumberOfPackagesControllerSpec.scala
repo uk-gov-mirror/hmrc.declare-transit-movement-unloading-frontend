@@ -67,9 +67,10 @@ class TotalNumberOfPackagesControllerSpec extends SpecBase with MockitoSugar wit
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> form,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"
@@ -98,9 +99,10 @@ class TotalNumberOfPackagesControllerSpec extends SpecBase with MockitoSugar wit
       val filledForm = form.bind(Map("value" -> validAnswer.toString))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> filledForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"
@@ -154,9 +156,10 @@ class TotalNumberOfPackagesControllerSpec extends SpecBase with MockitoSugar wit
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> boundForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"

@@ -65,10 +65,11 @@ class ConfirmRemoveCommentsControllerSpec extends SpecBase with MockitoSugar wit
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> form,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(form("value"))
+        "form"      -> form,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(form("value"))
       )
 
       templateCaptor.getValue mustEqual "confirmRemoveComments.njk"
@@ -149,10 +150,11 @@ class ConfirmRemoveCommentsControllerSpec extends SpecBase with MockitoSugar wit
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> boundForm,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(boundForm("value"))
+        "form"      -> boundForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(boundForm("value"))
       )
 
       templateCaptor.getValue mustEqual "confirmRemoveComments.njk"

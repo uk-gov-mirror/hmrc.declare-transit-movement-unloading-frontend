@@ -67,6 +67,7 @@ class ConfirmRemoveSealController @Inject()(
       "form"            -> form,
       "mode"            -> mode,
       "mrn"             -> request.userAnswers.mrn,
+      "arrivalId"       -> request.userAnswers.id,
       "sealDescription" -> seal,
       "radios"          -> Radios.yesNo(form("value"))
     )

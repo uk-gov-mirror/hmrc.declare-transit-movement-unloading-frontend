@@ -44,7 +44,11 @@ class ConfirmationController @Inject()(
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      val json = Json.obj("mrn" -> request.userAnswers.mrn, "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl)
+      val json = Json.obj(
+        "mrn"                       -> request.userAnswers.mrn,
+        "arrivalId"                 -> arrivalId,
+        "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl
+      )
 
 //      sessionRepository.remove(mrn.toString)
       renderer.render("confirmation.njk", json).map(Ok(_))

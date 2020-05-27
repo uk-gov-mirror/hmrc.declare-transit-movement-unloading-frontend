@@ -57,10 +57,11 @@ class AnythingElseToReportController @Inject()(
       }
 
       val json = Json.obj(
-        "form"   -> preparedForm,
-        "mode"   -> mode,
-        "mrn"    -> request.userAnswers.mrn,
-        "radios" -> Radios.yesNo(preparedForm("value"))
+        "form"      -> preparedForm,
+        "mode"      -> mode,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(preparedForm("value"))
       )
 
       renderer.render("anythingElseToReport.njk", json).map(Ok(_))
@@ -74,10 +75,11 @@ class AnythingElseToReportController @Inject()(
           formWithErrors => {
 
             val json = Json.obj(
-              "form"   -> formWithErrors,
-              "mode"   -> mode,
-              "mrn"    -> request.userAnswers.mrn,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
+              "form"      -> formWithErrors,
+              "mode"      -> mode,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "radios"    -> Radios.yesNo(formWithErrors("value"))
             )
 
             renderer.render("anythingElseToReport.njk", json).map(BadRequest(_))
