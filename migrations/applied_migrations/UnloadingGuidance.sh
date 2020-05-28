@@ -5,7 +5,7 @@ echo "Applying migration UnloadingGuidance"
 
 echo "Adding routes to conf/app.routes"
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/unloadingGuidance                       controllers.UnloadingGuidanceController.onPageLoad(mrn: MovementReferenceNumber)" >> ../conf/app.routes
+echo "GET        /:mrn/unloadingGuidance                       controllers.UnloadingGuidanceController.onPageLoad(arrivalId: ArrivalId)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
 echo "" >> ../conf/messages.en

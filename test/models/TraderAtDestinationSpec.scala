@@ -16,12 +16,11 @@
 
 package models
 import generators.MessagesModelGenerators
-
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-
 import models.XMLWrites._
+import models.messages.escapeXml
 
 import scala.xml.NodeSeq
 import models.messages.escapeXml

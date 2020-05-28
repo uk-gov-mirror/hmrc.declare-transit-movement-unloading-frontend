@@ -18,6 +18,7 @@ package config
 
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
+import models.ArrivalId
 import play.api.Configuration
 import play.api.i18n.Lang
 import play.api.mvc.Call
@@ -64,6 +65,6 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
     "cymraeg" -> Lang("cy")
   )
 
-  def routeToSwitchLanguage: String => Call =
-    (lang: String) => routes.LanguageSwitchController.switchToLanguage(lang)
+  def routeToSwitchLanguage: (ArrivalId, String) => Call =
+    (arrivalId: ArrivalId, lang: String) => routes.LanguageSwitchController.switchToLanguage(arrivalId, lang)
 }

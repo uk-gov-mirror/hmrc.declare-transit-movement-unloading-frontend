@@ -6,10 +6,10 @@ echo "Applying migration TotalNumberOfPackages"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/totalNumberOfPackages                  controllers.TotalNumberOfPackagesController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:mrn/totalNumberOfPackages                  controllers.TotalNumberOfPackagesController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)" >> ../conf/app.routes
 echo "POST       /:mrn/totalNumberOfPackages                  controllers.TotalNumberOfPackagesController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /:mrn/changeTotalNumberOfPackages                        controllers.TotalNumberOfPackagesController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:mrn/changeTotalNumberOfPackages                        controllers.TotalNumberOfPackagesController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)" >> ../conf/app.routes
 echo "POST       /:mrn/changeTotalNumberOfPackages                        controllers.TotalNumberOfPackagesController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"

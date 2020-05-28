@@ -44,7 +44,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
   val formProvider = new GrossMassAmountFormProvider()
   val form         = formProvider()
 
-  lazy val grossMassAmountRoute = routes.GrossMassAmountController.onPageLoad(mrn, NormalMode).url
+  lazy val grossMassAmountRoute = routes.GrossMassAmountController.onPageLoad(arrivalId, NormalMode).url
 
   "GrossMassAmount Controller" - {
 
@@ -65,9 +65,10 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> form,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "grossMassAmount.njk"
@@ -81,7 +82,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(GrossMassAmountPage, "answer").success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(GrossMassAmountPage, "answer").success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, grossMassAmountRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -96,9 +97,10 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
       val filledForm = form.bind(Map("value" -> "answer"))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> filledForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "grossMassAmount.njk"
@@ -151,9 +153,10 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> boundForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "grossMassAmount.njk"

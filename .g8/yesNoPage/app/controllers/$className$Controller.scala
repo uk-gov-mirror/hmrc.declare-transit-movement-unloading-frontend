@@ -30,7 +30,7 @@ class $className;format="cap"$Controller @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
 
       val preparedForm = request.userAnswers.get($className$Page) match {
@@ -41,14 +41,13 @@ class $className;format="cap"$Controller @Inject()(
       val json = Json.obj(
         "form"   -> preparedForm,
         "mode"   -> mode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(preparedForm("value"))
+        "mrn"    -> request.userAnswers.mrn,"radios" -> Radios.yesNo(preparedForm("value"))
       )
 
       renderer.render("$className;format="decap"$.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
 
       form.bindFromRequest().fold(
@@ -57,8 +56,7 @@ class $className;format="cap"$Controller @Inject()(
           val json = Json.obj(
             "form"   -> formWithErrors,
             "mode"   -> mode,
-            "mrn"    -> mrn,
-            "radios" -> Radios.yesNo(formWithErrors("value"))
+            "mrn"    -> request.userAnswers.mrn,"radios" -> Radios.yesNo(formWithErrors("value"))
           )
     
           renderer.render("$className;format="decap"$.njk", json).map(BadRequest(_))

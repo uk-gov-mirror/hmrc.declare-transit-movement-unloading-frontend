@@ -6,10 +6,10 @@ echo "Applying migration ConfirmRemoveSeal"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/confirmRemoveSeal                        controllers.ConfirmRemoveSealController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:mrn/confirmRemoveSeal                        controllers.ConfirmRemoveSealController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)" >> ../conf/app.routes
 echo "POST       /:mrn/confirmRemoveSeal                        controllers.ConfirmRemoveSealController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /:mrn/changeConfirmRemoveSeal                  controllers.ConfirmRemoveSealController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:mrn/changeConfirmRemoveSeal                  controllers.ConfirmRemoveSealController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)" >> ../conf/app.routes
 echo "POST       /:mrn/changeConfirmRemoveSeal                  controllers.ConfirmRemoveSealController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"

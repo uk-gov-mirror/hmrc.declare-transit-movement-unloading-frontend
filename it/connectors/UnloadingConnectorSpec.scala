@@ -2,6 +2,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
+import models.ArrivalId
 import models.messages.UnloadingRemarksRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
@@ -136,16 +137,19 @@ object UnloadingConnectorSpec {
       Json.obj("messages" -> Json.arr(
         Json.obj(
         "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>"))).toString()
+          "message" -> "<CC043A></CC043A>",
+        "mrn" -> "19IT02110010007827"))).toString()
 
   private val jsonMultiple =
       Json.obj("messages" -> Json.arr(
         Json.obj(
           "messageType" -> "IE015E",
-          "message" -> "<CC015A></CC015A>"),
+          "message" -> "<CC015A></CC015A>",
+          "mrn" -> "19IT02110010007827"),
         Json.obj(
           "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>"))).toString()
+          "message" -> "<CC043A></CC043A>",
+          "mrn" -> "19IT02110010007827"))).toString()
 
   private val malFormedJson =
     """
@@ -155,9 +159,9 @@ object UnloadingConnectorSpec {
     """.stripMargin
 
   private val emptyObject: String = JsObject.empty.toString()
-  private val arrivalId = 1
-  private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/$arrivalId/messages/"
-  private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/$arrivalId/messages/"
+  private val arrivalId = ArrivalId(1)
+  private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+  private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
 
 
 

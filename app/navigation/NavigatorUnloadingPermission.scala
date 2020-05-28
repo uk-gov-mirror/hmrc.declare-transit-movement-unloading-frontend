@@ -35,8 +35,8 @@ class NavigatorUnloadingPermission @Inject()() {
         }
 
     case _ =>
-      _ => _ =>
-        routes.IndexController.onPageLoad()
+      ua => _ =>
+        routes.IndexController.onPageLoad(ua.id)
   }
 
   def nextPage(page: Page, mode: Mode, userAnswers: UserAnswers, unloadingPermission: Option[UnloadingPermission]): Call = mode match {

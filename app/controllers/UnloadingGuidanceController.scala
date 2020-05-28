@@ -18,29 +18,39 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.{MovementReferenceNumber, NormalMode}
+import models.requests.OptionalDataRequest
+import models.{ArrivalId, Mode, MovementReferenceNumber, UserAnswers}
+import navigation.Navigator
+import pages.UnloadingGuidancePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import repositories.SessionRepository
+import services.UnloadingPermissionServiceImpl
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingGuidanceController @Inject()(
   override val messagesApi: MessagesApi,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
+  navigator: Navigator,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn)).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      val json = Json.obj("mrn" -> mrn, "mode" -> NormalMode)
+      val json = Json.obj(
+        "mrn"         -> request.userAnswers.mrn,
+        "nextPageUrl" -> navigator.nextPage(UnloadingGuidancePage, mode, request.userAnswers).url,
+        "mode"        -> mode
+      )
 
       renderer.render("unloadingGuidance.njk", json).map(Ok(_))
   }

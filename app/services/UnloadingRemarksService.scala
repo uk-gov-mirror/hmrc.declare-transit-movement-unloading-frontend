@@ -19,7 +19,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import connectors.UnloadingConnector
 import models.messages.{Meta, UnloadingRemarksRequest}
-import models.{UnloadingPermission, UserAnswers}
+import models.{ArrivalId, UnloadingPermission, UserAnswers}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
@@ -34,7 +34,7 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
-  def submit(arrivalId: Int, eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
+  def submit(arrivalId: ArrivalId, eori: String, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
     implicit hc: HeaderCarrier): Future[Option[Int]] =
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()

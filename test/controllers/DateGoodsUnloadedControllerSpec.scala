@@ -44,11 +44,11 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
   val formProvider = new DateGoodsUnloadedFormProvider()
   private def form = formProvider()
 
-  def onwardRoute = Call("GET", "/foo")
+  private def onwardRoute = Call("GET", "/foo")
 
-  val validAnswer = LocalDate.now(ZoneOffset.UTC)
+  private val validAnswer = LocalDate.now(ZoneOffset.UTC)
 
-  lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(mrn, NormalMode).url
+  private lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, NormalMode).url
 
   def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, dateGoodsUnloadedRoute)
@@ -81,10 +81,11 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val viewModel = DateInput.localDate(form("value"))
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
+        "form"      -> form,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
@@ -98,7 +99,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
@@ -120,10 +121,11 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val viewModel = DateInput.localDate(filledForm("value"))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
+        "form"      -> filledForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
@@ -133,11 +135,9 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
     }
 
     "must redirect to the next page when valid data is submitted" in {
-
       when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
       val mockSessionRepository = mock[SessionRepository]
-
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
       val application =
@@ -151,14 +151,12 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val result = route(application, postRequest).value
 
       status(result) mustEqual SEE_OTHER
-
       redirectLocation(result).value mustEqual onwardRoute.url
 
       application.stop()
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
-
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
@@ -177,70 +175,15 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       val viewModel = DateInput.localDate(boundForm("value"))
 
       val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
+        "form"      -> boundForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must return OK and the correct view  if no existing data is found" in {
-
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
-      val application = applicationBuilder(userAnswers = None).build()
-
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, getRequest).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val viewModel = DateInput.localDate(form("value"))
-
-      val expectedJson = Json.obj(
-        "form" -> form,
-        "mode" -> NormalMode,
-        "mrn"  -> mrn,
-        "date" -> viewModel
-      )
-
-      templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must redirect to the next page when if no existing data is found" in {
-
-      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
-
-      val mockSessionRepository = mock[SessionRepository]
-
-      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
-
-      val application =
-        applicationBuilder(userAnswers = None)
-          .overrides(
-            bind[NavigatorUnloadingPermission].toInstance(new FakeUnloadingPermissionNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository)
-          )
-          .build()
-
-      val result = route(application, postRequest).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual onwardRoute.url
 
       application.stop()
     }

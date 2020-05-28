@@ -19,7 +19,7 @@ package controllers
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import handlers.ErrorHandler
-import models.MovementReferenceNumber
+import models.{ArrivalId, MovementReferenceNumber}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
@@ -48,12 +48,12 @@ class CheckYourAnswersController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private val redirectUrl: MovementReferenceNumber => Call =
-    mrn => controllers.routes.ConfirmationController.onPageLoad(mrn)
+  private val redirectUrl: ArrivalId => Call =
+    arrivalId => controllers.routes.ConfirmationController.onPageLoad(arrivalId)
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
+      unloadingPermissionService.getUnloadingPermission(arrivalId).flatMap {
         case Some(unloadingPermission) => {
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
@@ -64,7 +64,7 @@ class CheckYourAnswersController @Inject()(
               renderer
                 .render(
                   "check-your-answers.njk",
-                  Json.obj("mrn" -> Json.toJson(mrn), "sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(mrn).url)
+                  Json.obj("mrn" -> request.userAnswers.mrn, "sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(arrivalId).url)
                 )
                 .map(Ok(_))
           }
@@ -73,15 +73,14 @@ class CheckYourAnswersController @Inject()(
       }
   }
 
-  def onSubmit(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
+      unloadingPermissionService.getUnloadingPermission(arrivalId).flatMap {
         case Some(unloadingPermission) => {
-          //TODO: arrivalId needs pulling from uri
-          unloadingRemarksService.submit(1, request.eoriNumber, request.userAnswers, unloadingPermission) flatMap {
+          unloadingRemarksService.submit(arrivalId, request.eoriNumber, request.userAnswers, unloadingPermission) flatMap {
             case Some(status) =>
               status match {
-                case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(mrn)))
+                case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
                 case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
                 case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
               }

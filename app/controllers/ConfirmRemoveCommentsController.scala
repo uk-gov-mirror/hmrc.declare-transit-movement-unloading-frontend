@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.ConfirmRemoveCommentsFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber}
+import models.{ArrivalId, Mode, MovementReferenceNumber}
 import navigation.Navigator
 import pages.{ChangesToReportPage, ConfirmRemoveCommentsPage}
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -49,19 +49,20 @@ class ConfirmRemoveCommentsController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val json = Json.obj(
-        "form"   -> form,
-        "mode"   -> mode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(form("value"))
+        "form"      -> form,
+        "mode"      -> mode,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(form("value"))
       )
 
       renderer.render("confirmRemoveComments.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -69,10 +70,11 @@ class ConfirmRemoveCommentsController @Inject()(
           formWithErrors => {
 
             val json = Json.obj(
-              "form"   -> formWithErrors,
-              "mode"   -> mode,
-              "mrn"    -> mrn,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
+              "form"      -> formWithErrors,
+              "mode"      -> mode,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "radios"    -> Radios.yesNo(formWithErrors("value"))
             )
 
             renderer.render("confirmRemoveComments.njk", json).map(BadRequest(_))

@@ -27,7 +27,7 @@
           }) }}
         {% endif %}
 
-        <form action="{{ routes.controllers.AnythingElseToReportController.onSubmit(mrn, mode).url }}" method="post">
+        <form action="{{ routes.controllers.AnythingElseToReportController.onSubmit(arrivalId, mode).url }}" method="post">
 
           {{ csrf() | safe }}
 

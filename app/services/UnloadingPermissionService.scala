@@ -18,7 +18,7 @@ package services
 import com.google.inject.{Inject, Singleton}
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
-import models.{Movement, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, Movement, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import queries.SealsQuery
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -28,16 +28,16 @@ import scala.xml.XML
 class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) extends UnloadingPermissionService {
 
   //TODO: When uri is updated to arrivalId the getUnloadingPermission argument needs updating
-  def getUnloadingPermission(mrn: MovementReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
+  def getUnloadingPermission(arrivalId: ArrivalId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
     //TODO: Only needed until we call backend through connector and update uri to use arrivalId
-    val arrivalID = mrn.toString match {
-      case "19IT02110010007827" => 1
-      case "99IT9876AB88901209" => 2
-      case _                    => 3
+    val arrivalIdTemp = arrivalId match {
+      case ArrivalId(1) => arrivalId
+      case ArrivalId(2) => arrivalId
+      case _            => ArrivalId(3)
     }
 
-    connector.get(arrivalID).map {
+    connector.get(arrivalIdTemp).map {
       case Some(Movement(messages)) =>
         messages.reverse match {
           case head :: _ =>
@@ -73,6 +73,6 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
 }
 
 trait UnloadingPermissionService {
-  def getUnloadingPermission(mrn: MovementReferenceNumber)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]]
+  def getUnloadingPermission(arrivalId: ArrivalId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]]
   def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]]
 }

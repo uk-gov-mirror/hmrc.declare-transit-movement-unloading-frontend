@@ -45,7 +45,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -65,7 +65,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val application = applicationBuilder(userAnswers = None).build()
 
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -84,7 +84,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -115,13 +115,13 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(ACCEPTED)))
 
-        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(mrn).url)
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
         val result = route(application, request).value
 
         status(result) mustEqual SEE_OTHER
 
-        redirectLocation(result).value mustEqual routes.ConfirmationController.onPageLoad(mrn).url
+        redirectLocation(result).value mustEqual routes.ConfirmationController.onPageLoad(arrivalId).url
 
         application.stop()
       }
@@ -138,7 +138,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(BAD_REQUEST)))
 
-        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(mrn).url)
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -163,7 +163,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
 
-        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(mrn).url)
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -186,7 +186,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
 
-        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(mrn).url)
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -207,7 +207,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
 
-        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(mrn).url)
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
         val result = route(application, request).value
 
@@ -216,6 +216,5 @@ class CheckYourAnswersControllerSpec extends SpecBase {
         application.stop()
       }
     }
-
   }
 }

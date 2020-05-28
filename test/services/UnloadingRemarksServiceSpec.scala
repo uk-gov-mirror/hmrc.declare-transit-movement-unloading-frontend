@@ -104,7 +104,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
             when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(HttpResponse(ACCEPTED)))
 
-            arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
+            arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
 
             reset(mockInterchangeControlReferenceIdRepository)
             reset(mockMetaService)
@@ -160,7 +160,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
             when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
 
-            arrivalNotificationService.submit(1, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
+            arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
 
             reset(mockInterchangeControlReferenceIdRepository)
             reset(mockMetaService)
@@ -184,7 +184,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
             .thenReturn(Future.failed(new Throwable))
 
-          arrivalNotificationService.submit(1, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
+          arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
           reset(mockInterchangeControlReferenceIdRepository)
           reset(mockMetaService)
@@ -200,7 +200,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))
 
-          arrivalNotificationService.submit(1, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
+          arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
           reset(mockInterchangeControlReferenceIdRepository)
       }

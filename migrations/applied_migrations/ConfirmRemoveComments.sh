@@ -6,10 +6,10 @@ echo "Applying migration ConfirmRemoveComments"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/confirmRemoveComments                        controllers.ConfirmRemoveCommentsController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:mrn/confirmRemoveComments                        controllers.ConfirmRemoveCommentsController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)" >> ../conf/app.routes
 echo "POST       /:mrn/confirmRemoveComments                        controllers.ConfirmRemoveCommentsController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /:mrn/changeConfirmRemoveComments                  controllers.ConfirmRemoveCommentsController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:mrn/changeConfirmRemoveComments                  controllers.ConfirmRemoveCommentsController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)" >> ../conf/app.routes
 echo "POST       /:mrn/changeConfirmRemoveComments                  controllers.ConfirmRemoveCommentsController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"
