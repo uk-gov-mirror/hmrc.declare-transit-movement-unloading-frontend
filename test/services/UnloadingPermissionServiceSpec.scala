@@ -15,6 +15,7 @@
  */
 
 package services
+import base.SpecBase
 import connectors.UnloadingConnector
 import models.{ArrivalId, Movement, MovementMessage, MovementReferenceNumber, UnloadingPermission, UserAnswers}
 import org.mockito.Matchers.{any, eq => eqTo}
@@ -28,7 +29,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with MockitoSugar with ScalaFutures with IntegrationPatience {
+class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with IntegrationPatience {
   private val mockConnector      = mock[UnloadingConnector]
   private val service            = new UnloadingPermissionServiceImpl(mockConnector)
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -41,23 +42,21 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
 
       //TODO: This needs more tests adding when we're calling connector
       "must return UnloadingPermission when IE0043 message exists" in {
-
         when(mockConnector.get(ArrivalId(1)))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
+          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message, mrn = mrn))))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe a[Some[_]]
       }
 
       "must return UnloadingPermission when invalid message exists" in {
-
         when(mockConnector.get(ArrivalId(1)))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = goodsReleasedMessage))))))
+          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = goodsReleasedMessage, mrn = mrn))))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe None
       }
 
       "must return UnloadingPermission when multiple messages exists" in {
-
-        when(mockConnector.get(ArrivalId(1))).thenReturn(Future.successful(Some(Movement(
-          Seq(MovementMessage(messageType = "IE007A", message = "<CC007A></CC007A>"), MovementMessage(messageType = "IE043A", message = ie043Message))))))
+        when(mockConnector.get(ArrivalId(1))).thenReturn(
+          Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE007A", message = "<CC007A></CC007A>", mrn = mrn),
+                                              MovementMessage(messageType = "IE043A", message = ie043Message, mrn        = mrn))))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe a[Some[_]]
       }
 
@@ -75,29 +74,25 @@ class UnloadingPermissionServiceSpec extends FreeSpec with MustMatchers with Moc
     "convertSeals" - {
       "return the same userAnswers when given an ID with no Seals" in {
         when(mockConnector.get(any())(any(), any()))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
-        val arrivalId                    = ArrivalId(1)
-        val mrn: MovementReferenceNumber = MovementReferenceNumber("22", "IT", "0211001000782")
-        val userAnswers                  = UserAnswers(arrivalId, mrn, Json.obj())
+          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message, mrn = mrn))))))
+        val arrivalId   = ArrivalId(1)
+        val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswers)
       }
 
       "return updated userAnswers when given an ID with seals" in {
         when(mockConnector.get(ArrivalId(2)))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043MessageSeals))))))
-        val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "IT", "0211001000782")
-        val arrivalId                    = ArrivalId(2)
-        val userAnswers                  = UserAnswers(arrivalId, mrn, Json.obj())
-        val userAnswersWithSeals         = UserAnswers(arrivalId, mrn, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)
+          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043MessageSeals, mrn = mrn))))))
+        val arrivalId            = ArrivalId(2)
+        val userAnswers          = UserAnswers(arrivalId, mrn, Json.obj())
+        val userAnswersWithSeals = UserAnswers(arrivalId, mrn, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswersWithSeals)
       }
 
       //TODO: This needs putting back in when id within uri changes
       "return None when ID doesn't return an unloading permission" ignore {
-
-        val mrn: MovementReferenceNumber = MovementReferenceNumber("41", "IT", "0211001000782")
-        val arrivalId                    = ArrivalId(1)
-        val userAnswers                  = UserAnswers(arrivalId, mrn, Json.obj())
+        val arrivalId   = ArrivalId(1)
+        val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
 
         when(mockConnector.get(eqTo(arrivalId))(any(), any()))
           .thenReturn(Future.successful(None))

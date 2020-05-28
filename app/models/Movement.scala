@@ -23,8 +23,8 @@ case class Movement(messages: Seq[MovementMessage])
 object Movement {
   implicit val formats: OFormat[Movement] = Json.format[Movement]
 }
-//todo: tidy this up
-case class MovementMessage(messageType: String, message: String, mrn: MovementReferenceNumber = MovementReferenceNumber("19IT02110010007827").get)
+
+case class MovementMessage(messageType: String, message: String, mrn: MovementReferenceNumber)
 
 object MovementMessage {
   implicit val formats: OFormat[MovementMessage] = Json.format[MovementMessage]
