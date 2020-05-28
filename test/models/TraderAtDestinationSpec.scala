@@ -23,6 +23,7 @@ import models.XMLWrites._
 import models.messages.escapeXml
 
 import scala.xml.NodeSeq
+import models.messages.escapeXml
 
 class TraderDestinationSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality {
 

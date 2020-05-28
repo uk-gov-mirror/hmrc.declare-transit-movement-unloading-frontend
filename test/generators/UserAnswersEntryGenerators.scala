@@ -27,7 +27,7 @@ trait UserAnswersEntryGenerators extends PageGenerators {
     Arbitrary {
       for {
         page  <- arbitrary[ChangesToReportPage.type]
-        value <- arbitrary[Boolean].map(Json.toJson(_))
+        value <- arbitrary[String].map(Json.toJson(_))
       } yield (page, value)
     }
 

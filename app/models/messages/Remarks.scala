@@ -27,6 +27,10 @@ sealed trait Remarks {
   val unloadingCompleted: String = "1"
 }
 
+trait RemarksFailure
+
+object FailedToFindUnloadingDate extends RemarksFailure
+
 case class RemarksConform(unloadingDate: LocalDate) extends Remarks {
   val conform = "1"
 }
