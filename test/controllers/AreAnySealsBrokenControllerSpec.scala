@@ -44,7 +44,7 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
   val formProvider = new AreAnySealsBrokenFormProvider()
   val form         = formProvider()
 
-  lazy val areAnySealsBrokenRoute = routes.AreAnySealsBrokenController.onPageLoad(mrn, NormalMode).url
+  lazy val areAnySealsBrokenRoute = routes.AreAnySealsBrokenController.onPageLoad(arrivalId, NormalMode).url
 
   "AreAnySealsBroken Controller" - {
 
@@ -65,10 +65,11 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> form,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(form("value"))
+        "form"      -> form,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(form("value"))
       )
 
       templateCaptor.getValue mustEqual "areAnySealsBroken.njk"
@@ -82,7 +83,7 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(AreAnySealsBrokenPage, true).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(AreAnySealsBrokenPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, areAnySealsBrokenRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -97,10 +98,11 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
       val filledForm = form.bind(Map("value" -> "true"))
 
       val expectedJson = Json.obj(
-        "form"   -> filledForm,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(filledForm("value"))
+        "form"      -> filledForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(filledForm("value"))
       )
 
       templateCaptor.getValue mustEqual "areAnySealsBroken.njk"
@@ -154,10 +156,11 @@ class AreAnySealsBrokenControllerSpec extends SpecBase with MockitoSugar with Nu
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> boundForm,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(boundForm("value"))
+        "form"      -> boundForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(boundForm("value"))
       )
 
       templateCaptor.getValue mustEqual "areAnySealsBroken.njk"

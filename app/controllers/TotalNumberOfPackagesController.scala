@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.TotalNumberOfPackagesFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber}
+import models.{ArrivalId, Mode, MovementReferenceNumber}
 import navigation.Navigator
 import pages.TotalNumberOfPackagesPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -49,7 +49,7 @@ class TotalNumberOfPackagesController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val preparedForm = request.userAnswers.get(TotalNumberOfPackagesPage) match {
         case None        => form
@@ -57,15 +57,16 @@ class TotalNumberOfPackagesController @Inject()(
       }
 
       val json = Json.obj(
-        "form" -> preparedForm,
-        "mrn"  -> mrn,
-        "mode" -> mode
+        "form"      -> preparedForm,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> mode
       )
 
       renderer.render("totalNumberOfPackages.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -73,9 +74,10 @@ class TotalNumberOfPackagesController @Inject()(
           formWithErrors => {
 
             val json = Json.obj(
-              "form" -> formWithErrors,
-              "mrn"  -> mrn,
-              "mode" -> mode
+              "form"      -> formWithErrors,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "mode"      -> mode
             )
 
             renderer.render("totalNumberOfPackages.njk", json).map(BadRequest(_))

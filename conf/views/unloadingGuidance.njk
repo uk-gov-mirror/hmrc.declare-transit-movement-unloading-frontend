@@ -16,19 +16,19 @@
         <h1 class="govuk-heading-xl">
           {{ messages("unloadingGuidance.heading") }}
         </h1>
-          <p class="govuk-body">
-            {{messages("unloadingGuidance.para")}}
-          </p>
+        <p class="govuk-body">
+          {{messages("unloadingGuidance.para")}}
+        </p>
 
-             <ul class="govuk-list govuk-list--bullet">
-                  <li>{{ messages("unloadingGuidance.bullet1") }}</li>
-                  <li>{{ messages("unloadingGuidance.bullet2", mrn) }}</li>
-             </ul>
+        <ul class="govuk-list govuk-list--bullet">
+          <li>{{ messages("unloadingGuidance.bullet1") }}</li>
+          <li>{{ messages("unloadingGuidance.bullet2", mrn) }}</li>
+        </ul>
 
 
         {{ govukButton({
           text: messages("site.continue"),
-          href: routes.controllers.DateGoodsUnloadedController.onPageLoad(mrn, mode).url,
+          href: nextPageUrl,
           attributes: {id:"submit"}
         }) }}
       </div>

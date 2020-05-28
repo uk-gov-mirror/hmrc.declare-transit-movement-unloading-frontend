@@ -19,7 +19,7 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions._
 import javax.inject.Inject
-import models.MovementReferenceNumber
+import models.{ArrivalId, MovementReferenceNumber}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -42,9 +42,13 @@ class ConfirmationController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      val json = Json.obj("mrn" -> mrn, "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl)
+      val json = Json.obj(
+        "mrn"                       -> request.userAnswers.mrn,
+        "arrivalId"                 -> arrivalId,
+        "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl
+      )
 
 //      sessionRepository.remove(mrn.toString)
       renderer.render("confirmation.njk", json).map(Ok(_))

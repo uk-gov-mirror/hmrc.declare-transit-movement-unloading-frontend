@@ -18,7 +18,7 @@ package connectors
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
-import models.{Movement, MovementMessage}
+import models.{ArrivalId, Movement, MovementMessage, MovementReferenceNumber}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -31,7 +31,7 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     * Connector SHOULD
     * - Consider returning more meaningful responses on failure (when we write the calling service)
     */
-  def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]] = {
+  def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]] = {
 
     val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.toString}/messages/"
 
@@ -51,14 +51,19 @@ class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val h
   val unloadingPermissionSeals: Elem   = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionSeals.xml"))
   val unloadingPermissionNoSeals: Elem = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionNoSeals.xml"))
 
-  def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]] = arrivalId match {
-    case 1 => Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = unloadingPermissionSeals.toString())))))
-    case 2 => Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = unloadingPermissionNoSeals.toString())))))
+  def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]] = arrivalId match {
+    case ArrivalId(1) =>
+      Future.successful(Some(Movement(
+        Seq(MovementMessage(messageType = "IE043A", message = unloadingPermissionSeals.toString(), mrn = MovementReferenceNumber("19IT02110010007827").get)))))
+    case ArrivalId(2) =>
+      Future.successful(
+        Some(Movement(Seq(
+          MovementMessage(messageType = "IE043A", message = unloadingPermissionNoSeals.toString(), mrn = MovementReferenceNumber("19IT02110010007827").get)))))
     case _ => Future.successful(None)
   }
 
 }
 
 trait UnloadingConnector {
-  def get(arrivalId: Int)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]]
+  def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier, executionContext: ExecutionContext): Future[Option[Movement]]
 }

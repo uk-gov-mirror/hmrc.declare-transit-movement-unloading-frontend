@@ -21,7 +21,7 @@ import derivable.DeriveNumberOfSeals
 import forms.NewSealNumberFormProvider
 import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{Index, Mode, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, Index, Mode, MovementReferenceNumber, UserAnswers}
 import navigation.Navigator
 import pages.NewSealNumberPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -54,7 +54,7 @@ class NewSealNumberController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val preparedForm = request.userAnswers.get(NewSealNumberPage(index)) match {
         case None        => form
@@ -62,15 +62,16 @@ class NewSealNumberController @Inject()(
       }
 
       val json = Json.obj(
-        "form" -> preparedForm,
-        "mrn"  -> mrn,
-        "mode" -> mode
+        "form"      -> preparedForm,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> mode
       )
 
       renderer.render("newSealNumber.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, index: Index, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val userAnswers: Future[Option[UserAnswers]] = request.userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) => Future.successful(Some(request.userAnswers))
@@ -83,7 +84,7 @@ class NewSealNumberController @Inject()(
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                val json = Json.obj("form" -> formWithErrors, "mrn" -> mrn, "mode" -> mode)
+                val json = Json.obj("form" -> formWithErrors, "mrn" -> request.userAnswers.mrn, "arrivalId" -> arrivalId, "mode" -> mode)
                 renderer.render("newSealNumber.njk", json).map(BadRequest(_))
               },
               value =>

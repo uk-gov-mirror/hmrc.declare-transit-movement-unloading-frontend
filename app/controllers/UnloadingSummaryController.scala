@@ -20,7 +20,7 @@ import controllers.actions._
 import derivable.DeriveNumberOfSeals
 import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{Index, MovementReferenceNumber, NormalMode}
+import models.{ArrivalId, Index, MovementReferenceNumber, NormalMode}
 import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -48,14 +48,14 @@ class UnloadingSummaryController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  private val redirectUrl: MovementReferenceNumber => Call =
-    mrn => controllers.routes.CheckYourAnswersController.onPageLoad(mrn)
-  private val addCommentUrl: MovementReferenceNumber => Call =
-    mrn => controllers.routes.ChangesToReportController.onPageLoad(mrn, NormalMode)
+  private val redirectUrl: ArrivalId => Call =
+    arrivalId => controllers.routes.CheckYourAnswersController.onPageLoad(arrivalId)
+  private val addCommentUrl: ArrivalId => Call =
+    arrivalId => controllers.routes.ChangesToReportController.onPageLoad(arrivalId, NormalMode)
 
-  def onPageLoad(mrn: MovementReferenceNumber): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      unloadingPermissionService.getUnloadingPermission(mrn).flatMap {
+      unloadingPermissionService.getUnloadingPermission(arrivalId).flatMap {
         case Some(unloadingPermission) => {
 
           //TODO: Move unloading summary into UnloadingSummaryViewModel
@@ -71,7 +71,7 @@ class UnloadingSummaryController @Inject()(
               }
           }
 
-          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(mrn, Index(numberOfSeals), NormalMode) //todo add mode
+          val addSealUrl = controllers.routes.NewSealNumberController.onPageLoad(arrivalId, Index(numberOfSeals), NormalMode) //todo add mode
 
           referenceDataService.getCountryByCode(unloadingPermission.transportCountry).flatMap {
             transportCountry =>
@@ -79,10 +79,10 @@ class UnloadingSummaryController @Inject()(
 
               val json =
                 Json.obj(
-                  "mrn"                -> mrn,
-                  "redirectUrl"        -> redirectUrl(mrn).url,
+                  "mrn"                -> request.userAnswers.mrn,
+                  "redirectUrl"        -> redirectUrl(arrivalId).url,
                   "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
-                  "addCommentUrl"      -> addCommentUrl(mrn).url,
+                  "addCommentUrl"      -> addCommentUrl(arrivalId).url,
                   "addSealUrl"         -> addSealUrl.url,
                   "sealsSection"       -> Json.toJson(sealsSection),
                   "sections"           -> Json.toJson(sections)

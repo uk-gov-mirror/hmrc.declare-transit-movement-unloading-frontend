@@ -15,7 +15,7 @@
  */
 
 package utils
-import models.{CheckMode, Index, MovementReferenceNumber, NormalMode, UserAnswers}
+import models.{ArrivalId, CheckMode, Index, NormalMode, UserAnswers}
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels._
 
@@ -29,7 +29,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, index, CheckMode).url,
+            href               = controllers.routes.NewSealNumberController.onPageLoad(arrivalId, index, CheckMode).url,
             visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
             attributes         = Map("id" -> s"""change-seal-${index.position}""")
           )
@@ -45,13 +45,13 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.NewSealNumberController.onPageLoad(mrn, index, CheckMode).url,
+            href               = controllers.routes.NewSealNumberController.onPageLoad(arrivalId, index, CheckMode).url,
             visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
             attributes         = Map("id" -> s"""change-seal-${index.position}""")
           ),
           Action(
             content            = msg"site.delete",
-            href               = controllers.routes.ConfirmRemoveSealController.onPageLoad(mrn, index, NormalMode).url,
+            href               = controllers.routes.ConfirmRemoveSealController.onPageLoad(arrivalId, index, NormalMode).url,
             visuallyHiddenText = Some(msg"changeSeal.sealList.remove.hidden".withArgs(index.display)),
             attributes         = Map("id" -> s"""remove-seal-${index.position}""")
           )
@@ -76,7 +76,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.VehicleNameRegistrationReferenceController.onPageLoad(mrn, CheckMode).url,
+            href               = controllers.routes.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId, CheckMode).url,
             visuallyHiddenText = Some(msg"changeVehicle.reference.change.hidden"),
             attributes         = Map("id" -> s"""change-vehicle-reference""")
           )
@@ -110,7 +110,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.VehicleRegistrationCountryController.onPageLoad(mrn, CheckMode).url,
+            href               = controllers.routes.VehicleRegistrationCountryController.onPageLoad(arrivalId, CheckMode).url,
             visuallyHiddenText = Some(msg"changeVehicle.registeredCountry.change.hidden"),
             attributes         = Map("id" -> s"""change-vehicle-reference""")
           )
@@ -126,7 +126,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.GrossMassAmountController.onPageLoad(mrn, CheckMode).url,
+            href               = controllers.routes.GrossMassAmountController.onPageLoad(arrivalId, CheckMode).url,
             visuallyHiddenText = Some(msg"changeItems.grossMass.change.hidden"),
             attributes         = Map("id" -> s"""change-gross-mass""")
           )
@@ -142,7 +142,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.TotalNumberOfItemsController.onPageLoad(mrn, CheckMode).url,
+            href               = controllers.routes.TotalNumberOfItemsController.onPageLoad(arrivalId, CheckMode).url,
             visuallyHiddenText = Some(msg"changeItems.totalNumberOfItems.change.hidden"),
             attributes         = Map("id" -> s"""change-total-number-of-items""")
           )
@@ -158,7 +158,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.TotalNumberOfPackagesController.onPageLoad(mrn, CheckMode).url,
+            href               = controllers.routes.TotalNumberOfPackagesController.onPageLoad(arrivalId, CheckMode).url,
             visuallyHiddenText = Some(msg"changeItems.totalNumberOfPackages.change.hidden"),
             attributes         = Map("id" -> s"""change-total-number-of-packages""")
           )
@@ -201,13 +201,13 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = controllers.routes.ChangesToReportController.onPageLoad(mrn, NormalMode).url,
+            href               = controllers.routes.ChangesToReportController.onPageLoad(arrivalId, NormalMode).url,
             visuallyHiddenText = Some(msg"changeItems.comments.change.hidden"),
             attributes         = Map("id" -> s"""change-comments""")
           ),
           Action(
             content            = msg"site.delete",
-            href               = controllers.routes.ConfirmRemoveCommentsController.onPageLoad(mrn, NormalMode).url,
+            href               = controllers.routes.ConfirmRemoveCommentsController.onPageLoad(arrivalId, NormalMode).url,
             visuallyHiddenText = Some(msg"changeItems.comments.remove.hidden"),
             attributes         = Map("id" -> s"""remove-comment""")
           )
@@ -224,5 +224,5 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
       )
   }
 
-  def mrn: MovementReferenceNumber = userAnswers.id
+  def arrivalId: ArrivalId = userAnswers.id
 }

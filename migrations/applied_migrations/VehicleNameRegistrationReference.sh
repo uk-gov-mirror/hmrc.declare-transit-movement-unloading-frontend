@@ -6,10 +6,10 @@ echo "Applying migration VehicleNameRegistrationReference"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/vehicleNameRegistrationReference                        controllers.VehicleNameRegistrationReferenceController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:mrn/vehicleNameRegistrationReference                        controllers.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)" >> ../conf/app.routes
 echo "POST       /:mrn/vehicleNameRegistrationReference                        controllers.VehicleNameRegistrationReferenceController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /:mrn/changeVehicleNameRegistrationReference                  controllers.VehicleNameRegistrationReferenceController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:mrn/changeVehicleNameRegistrationReference                  controllers.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)" >> ../conf/app.routes
 echo "POST       /:mrn/changeVehicleNameRegistrationReference                  controllers.VehicleNameRegistrationReferenceController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"

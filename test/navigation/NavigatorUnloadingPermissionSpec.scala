@@ -41,7 +41,6 @@ class NavigatorUnloadingPermissionSpec extends SpecBase with ScalaCheckPropertyC
               .mustBe(routes.CheckYourAnswersController.onPageLoad(answers.id))
         }
       }
-
     }
 
     "in Normal mode" - {
@@ -54,7 +53,7 @@ class NavigatorUnloadingPermissionSpec extends SpecBase with ScalaCheckPropertyC
           answers =>
             navigator
               .nextPage(UnknownPage, NormalMode, answers, None)
-              .mustBe(routes.IndexController.onPageLoad())
+              .mustBe(routes.IndexController.onPageLoad(arrivalId))
         }
       }
 

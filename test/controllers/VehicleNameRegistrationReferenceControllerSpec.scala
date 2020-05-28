@@ -44,7 +44,7 @@ class VehicleNameRegistrationReferenceControllerSpec extends SpecBase with Mocki
   val formProvider = new VehicleNameRegistrationReferenceFormProvider()
   val form         = formProvider()
 
-  lazy val vehicleNameRegistrationReferenceRoute = routes.VehicleNameRegistrationReferenceController.onPageLoad(mrn, NormalMode).url
+  lazy val vehicleNameRegistrationReferenceRoute = routes.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId, NormalMode).url
 
   "VehicleNameRegistrationReference Controller" - {
 
@@ -65,9 +65,10 @@ class VehicleNameRegistrationReferenceControllerSpec extends SpecBase with Mocki
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> form,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> form,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
@@ -81,7 +82,7 @@ class VehicleNameRegistrationReferenceControllerSpec extends SpecBase with Mocki
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(VehicleNameRegistrationReferencePage, "answer").success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(VehicleNameRegistrationReferencePage, "answer").success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, vehicleNameRegistrationReferenceRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -96,9 +97,10 @@ class VehicleNameRegistrationReferenceControllerSpec extends SpecBase with Mocki
       val filledForm = form.bind(Map("value" -> "answer"))
 
       val expectedJson = Json.obj(
-        "form" -> filledForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> filledForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
@@ -151,9 +153,10 @@ class VehicleNameRegistrationReferenceControllerSpec extends SpecBase with Mocki
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form" -> boundForm,
-        "mrn"  -> mrn,
-        "mode" -> NormalMode
+        "form"      -> boundForm,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "mode"      -> NormalMode
       )
 
       templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"

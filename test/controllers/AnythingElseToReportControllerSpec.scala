@@ -44,7 +44,7 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
   val formProvider = new AnythingElseToReportFormProvider()
   val form         = formProvider()
 
-  lazy val anythingElseToReportRoute = routes.AnythingElseToReportController.onPageLoad(mrn, NormalMode).url
+  lazy val anythingElseToReportRoute = routes.AnythingElseToReportController.onPageLoad(arrivalId, NormalMode).url
 
   "AnythingElseToReport Controller" - {
 
@@ -65,10 +65,11 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> form,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(form("value"))
+        "form"      -> form,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(form("value"))
       )
 
       templateCaptor.getValue mustEqual "anythingElseToReport.njk"
@@ -82,7 +83,7 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(mrn).set(AnythingElseToReportPage, true).success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(AnythingElseToReportPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, anythingElseToReportRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -97,10 +98,11 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
       val filledForm = form.bind(Map("value" -> "true"))
 
       val expectedJson = Json.obj(
-        "form"   -> filledForm,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(filledForm("value"))
+        "form"      -> filledForm,
+        "mode"      -> NormalMode,
+        "arrivalId" -> arrivalId,
+        "mrn"       -> mrn,
+        "radios"    -> Radios.yesNo(filledForm("value"))
       )
 
       templateCaptor.getValue mustEqual "anythingElseToReport.njk"
@@ -154,10 +156,11 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       val expectedJson = Json.obj(
-        "form"   -> boundForm,
-        "mode"   -> NormalMode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(boundForm("value"))
+        "form"      -> boundForm,
+        "mode"      -> NormalMode,
+        "mrn"       -> mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(boundForm("value"))
       )
 
       templateCaptor.getValue mustEqual "anythingElseToReport.njk"

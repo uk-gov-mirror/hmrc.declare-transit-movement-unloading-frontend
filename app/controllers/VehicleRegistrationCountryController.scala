@@ -21,7 +21,8 @@ import controllers.actions._
 import forms.VehicleRegistrationCountryFormProvider
 import javax.inject.Inject
 import models.reference.Country
-import models.{Mode, MovementReferenceNumber}
+import models.requests.{DataRequest, OptionalDataRequest}
+import models.{ArrivalId, Mode, MovementReferenceNumber}
 import navigation.Navigator
 import pages.VehicleRegistrationCountryPage
 import play.api.data.Form
@@ -51,7 +52,7 @@ class VehicleRegistrationCountryController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       referenceDataConnector.getCountryList() flatMap {
         countries =>
@@ -60,17 +61,18 @@ class VehicleRegistrationCountryController @Inject()(
             case None        => form
             case Some(value) => form.fill(value)
           }
-          renderPage(mrn, mode, preparedForm, countries, Results.Ok)
+          renderPage(arrivalId, request.userAnswers.mrn, mode, preparedForm, countries, Results.Ok)
       }
 
   }
 
-  private def renderPage(mrn: MovementReferenceNumber, mode: Mode, form: Form[Country], countries: Seq[Country], status: Results.Status)(
+  private def renderPage(arrivalId: ArrivalId, mrn: MovementReferenceNumber, mode: Mode, form: Form[Country], countries: Seq[Country], status: Results.Status)(
     implicit request: Request[AnyContent]): Future[Result] = {
     val json = Json.obj(
       "form"      -> form,
       "mrn"       -> mrn,
       "mode"      -> mode,
+      "arrivalId" -> arrivalId,
       "countries" -> countryJsonList(form.value, countries)
     )
     renderer.render("vehicleRegistrationCountry.njk", json).map(status(_))
@@ -85,7 +87,7 @@ class VehicleRegistrationCountryController @Inject()(
     Json.obj("value" -> "", "text" -> "") +: countryJsonList
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       referenceDataConnector.getCountryList() flatMap {
         countries =>
@@ -94,7 +96,7 @@ class VehicleRegistrationCountryController @Inject()(
             .bindFromRequest()
             .fold(
               formWithErrors => {
-                renderPage(mrn, mode, formWithErrors, countries, Results.BadRequest)
+                renderPage(arrivalId, request.userAnswers.mrn, mode, formWithErrors, countries, Results.BadRequest)
               },
               value =>
                 for {

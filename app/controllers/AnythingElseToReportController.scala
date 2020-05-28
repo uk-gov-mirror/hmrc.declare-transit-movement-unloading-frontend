@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.AnythingElseToReportFormProvider
 import javax.inject.Inject
-import models.{Mode, MovementReferenceNumber}
+import models.{ArrivalId, Mode, MovementReferenceNumber}
 import navigation.Navigator
 import pages.AnythingElseToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -49,7 +49,7 @@ class AnythingElseToReportController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       val preparedForm = request.userAnswers.get(AnythingElseToReportPage) match {
         case None        => form
@@ -57,16 +57,17 @@ class AnythingElseToReportController @Inject()(
       }
 
       val json = Json.obj(
-        "form"   -> preparedForm,
-        "mode"   -> mode,
-        "mrn"    -> mrn,
-        "radios" -> Radios.yesNo(preparedForm("value"))
+        "form"      -> preparedForm,
+        "mode"      -> mode,
+        "mrn"       -> request.userAnswers.mrn,
+        "arrivalId" -> arrivalId,
+        "radios"    -> Radios.yesNo(preparedForm("value"))
       )
 
       renderer.render("anythingElseToReport.njk", json).map(Ok(_))
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, mode: Mode): Action[AnyContent] = (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
       form
         .bindFromRequest()
@@ -74,10 +75,11 @@ class AnythingElseToReportController @Inject()(
           formWithErrors => {
 
             val json = Json.obj(
-              "form"   -> formWithErrors,
-              "mode"   -> mode,
-              "mrn"    -> mrn,
-              "radios" -> Radios.yesNo(formWithErrors("value"))
+              "form"      -> formWithErrors,
+              "mode"      -> mode,
+              "mrn"       -> request.userAnswers.mrn,
+              "arrivalId" -> arrivalId,
+              "radios"    -> Radios.yesNo(formWithErrors("value"))
             )
 
             renderer.render("anythingElseToReport.njk", json).map(BadRequest(_))

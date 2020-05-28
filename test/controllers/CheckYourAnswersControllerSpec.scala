@@ -40,7 +40,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
       val result = route(application, request).value
 
@@ -60,7 +60,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
       val application = applicationBuilder(userAnswers = None).build()
 
-      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
       val result = route(application, request).value
 
@@ -79,7 +79,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(mrn).url)
+      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
       val result = route(application, request).value
 

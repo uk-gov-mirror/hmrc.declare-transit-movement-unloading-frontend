@@ -6,10 +6,10 @@ echo "Applying migration AreAnySealsBroken"
 echo "Adding routes to conf/app.routes"
 
 echo "" >> ../conf/app.routes
-echo "GET        /:mrn/areAnySealsBroken                        controllers.AreAnySealsBrokenController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
+echo "GET        /:mrn/areAnySealsBroken                        controllers.AreAnySealsBrokenController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)" >> ../conf/app.routes
 echo "POST       /:mrn/areAnySealsBroken                        controllers.AreAnySealsBrokenController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = NormalMode)" >> ../conf/app.routes
 
-echo "GET        /:mrn/changeAreAnySealsBroken                  controllers.AreAnySealsBrokenController.onPageLoad(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
+echo "GET        /:mrn/changeAreAnySealsBroken                  controllers.AreAnySealsBrokenController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)" >> ../conf/app.routes
 echo "POST       /:mrn/changeAreAnySealsBroken                  controllers.AreAnySealsBrokenController.onSubmit(mrn: MovementReferenceNumber, mode: Mode = CheckMode)" >> ../conf/app.routes
 
 echo "Adding messages to conf.messages"

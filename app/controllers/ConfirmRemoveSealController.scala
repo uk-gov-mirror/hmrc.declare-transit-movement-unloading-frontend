@@ -20,7 +20,7 @@ import controllers.actions._
 import forms.ConfirmRemoveSealFormProvider
 import javax.inject.Inject
 import models.requests.DataRequest
-import models.{Index, Mode, MovementReferenceNumber}
+import models.{ArrivalId, Index, Mode, MovementReferenceNumber}
 import navigation.Navigator
 import pages.{ConfirmRemoveSealPage, NewSealNumberPage}
 import play.api.data.Form
@@ -50,24 +50,24 @@ class ConfirmRemoveSealController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  def onPageLoad(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] =
-    (identify andThen getData(mrn) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId, index: Index, mode: Mode): Action[AnyContent] =
+    (identify andThen getData(arrivalId) andThen requireData).async {
       implicit request =>
         request.userAnswers.get(NewSealNumberPage(index)) match {
           case Some(seal) =>
             val form = formProvider(seal)
-            renderedPage(mrn, index, mode, form, seal).map(Ok(_))
+            renderedPage(mode, form, seal).map(Ok(_))
 
           case _ => Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
         }
     }
 
-  private def renderedPage(mrn: MovementReferenceNumber, index: Index, mode: Mode, form: Form[Boolean], seal: String)(
-    implicit request: DataRequest[AnyContent]): Future[Html] = {
+  private def renderedPage(mode: Mode, form: Form[Boolean], seal: String)(implicit request: DataRequest[AnyContent]): Future[Html] = {
     val json = Json.obj(
       "form"            -> form,
       "mode"            -> mode,
-      "mrn"             -> mrn,
+      "mrn"             -> request.userAnswers.mrn,
+      "arrivalId"       -> request.userAnswers.id,
       "sealDescription" -> seal,
       "radios"          -> Radios.yesNo(form("value"))
     )
@@ -75,8 +75,8 @@ class ConfirmRemoveSealController @Inject()(
     renderer.render("confirmRemoveSeal.njk", json)
   }
 
-  def onSubmit(mrn: MovementReferenceNumber, index: Index, mode: Mode): Action[AnyContent] =
-    (identify andThen getData(mrn) andThen requireData).async {
+  def onSubmit(arrivalId: ArrivalId, index: Index, mode: Mode): Action[AnyContent] =
+    (identify andThen getData(arrivalId) andThen requireData).async {
       implicit request =>
         request.userAnswers.get(NewSealNumberPage(index)) match {
           case Some(seal) =>
@@ -84,7 +84,7 @@ class ConfirmRemoveSealController @Inject()(
               .bindFromRequest()
               .fold(
                 formWithErrors => {
-                  renderedPage(mrn, index, mode, formWithErrors, seal).map(BadRequest(_))
+                  renderedPage(mode, formWithErrors, seal).map(BadRequest(_))
                 },
                 value =>
                   if (value) {
