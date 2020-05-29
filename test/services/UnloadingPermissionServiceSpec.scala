@@ -43,25 +43,27 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
       //TODO: This needs more tests adding when we're calling connector
       "must return UnloadingPermission when IE0043 message exists" in {
         when(mockConnector.get(ArrivalId(1)))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message, mrn = mrn))))))
+          .thenReturn(Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe a[Some[_]]
       }
 
       "must return UnloadingPermission when invalid message exists" in {
         when(mockConnector.get(ArrivalId(1)))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = goodsReleasedMessage, mrn = mrn))))))
+          .thenReturn(
+            Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = goodsReleasedMessage))))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe None
       }
 
       "must return UnloadingPermission when multiple messages exists" in {
-        when(mockConnector.get(ArrivalId(1))).thenReturn(
-          Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE007A", message = "<CC007A></CC007A>", mrn = mrn),
-                                              MovementMessage(messageType = "IE043A", message = ie043Message, mrn        = mrn))))))
+        when(mockConnector.get(ArrivalId(1))).thenReturn(Future.successful(Some(Movement(
+          movementReferenceNumber = mrn,
+          Seq(MovementMessage(messageType = "IE007A", message = "<CC007A></CC007A>"), MovementMessage(messageType = "IE043A", message = ie043Message))
+        ))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe a[Some[_]]
       }
 
       "must return None when no message exists in the movement" in {
-        when(mockConnector.get(ArrivalId(1))).thenReturn(Future.successful(Some(Movement(Seq.empty))))
+        when(mockConnector.get(ArrivalId(1))).thenReturn(Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq.empty))))
         service.getUnloadingPermission(ArrivalId(1)).futureValue mustBe None
       }
 
@@ -74,7 +76,7 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
     "convertSeals" - {
       "return the same userAnswers when given an ID with no Seals" in {
         when(mockConnector.get(any())(any()))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message, mrn = mrn))))))
+          .thenReturn(Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
         val arrivalId   = ArrivalId(1)
         val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswers)
@@ -82,7 +84,8 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
 
       "return updated userAnswers when given an ID with seals" in {
         when(mockConnector.get(ArrivalId(2)))
-          .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043MessageSeals, mrn = mrn))))))
+          .thenReturn(
+            Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = ie043MessageSeals))))))
         val arrivalId            = ArrivalId(2)
         val userAnswers          = UserAnswers(arrivalId, mrn, Json.obj())
         val userAnswersWithSeals = UserAnswers(arrivalId, mrn, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)

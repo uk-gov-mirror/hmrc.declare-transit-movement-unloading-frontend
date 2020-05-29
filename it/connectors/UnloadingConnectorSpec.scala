@@ -134,22 +134,21 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 object UnloadingConnectorSpec {
 
   private val unloadingJson =
-      Json.obj("messages" -> Json.arr(
+      Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
         Json.obj(
         "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>",
-        "mrn" -> "19IT02110010007827"))).toString()
+          "message" -> "<CC043A></CC043A>"))).toString()
 
   private val jsonMultiple =
-      Json.obj("messages" -> Json.arr(
+      Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
         Json.obj(
           "messageType" -> "IE015E",
-          "message" -> "<CC015A></CC015A>",
-          "mrn" -> "19IT02110010007827"),
+          "message" -> "<CC015A></CC015A>"
+          ),
         Json.obj(
           "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>",
-          "mrn" -> "19IT02110010007827"))).toString()
+          "message" -> "<CC043A></CC043A>"
+          ))).toString()
 
   private val malFormedJson =
     """
@@ -162,8 +161,6 @@ object UnloadingConnectorSpec {
   private val arrivalId = ArrivalId(1)
   private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
   private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-
-
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }
