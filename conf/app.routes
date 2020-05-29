@@ -9,6 +9,7 @@ GET        /:arrivalId/language/:lang                              controllers.L
 GET        /error/this-service-has-been-reset                 controllers.SessionExpiredController.onPageLoad
 
 GET        /:arrivalId/check-your-answers                                   controllers.CheckYourAnswersController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/check-your-answers                    controllers.CheckYourAnswersController.onSubmit(arrivalId: ArrivalId)
 
 GET        /error/cannot-use-service-no-eori                                      controllers.UnauthorisedController.onPageLoad
 

@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package models.messages
+import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-import models.XMLWrites
+package object connectors {
 
-case class MessageSender(environment: String, eori: String)
-
-object MessageSender {
-
-  val eoriLength = 8
-
-  implicit val writes: XMLWrites[MessageSender] =
-    XMLWrites(
-      a => <MesSenMES3>{escapeXml(s"${a.environment}-${a.eori}")}</MesSenMES3>
-    )
+  implicit val httpReads: HttpReads[HttpResponse] =
+    new HttpReads[HttpResponse] {
+      override def read(method: String, url: String, response: HttpResponse): HttpResponse =
+        response
+    }
 }

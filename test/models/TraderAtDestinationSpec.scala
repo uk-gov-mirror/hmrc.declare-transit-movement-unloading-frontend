@@ -33,7 +33,7 @@ class TraderDestinationSpec extends FreeSpec with MustMatchers with ScalaCheckPr
       forAll(arbitrary[TraderAtDestinationWithEori]) {
         trader =>
           val nameNode = trader.name.map(
-            name => <NamTRD7>{name}</NamTRD7>
+            name => <NamTRD7>{escapeXml(name)}</NamTRD7>
           )
           val streetNameNode = trader.streetAndNumber.map(
             streetName => <StrAndNumTRD22>{streetName}</StrAndNumTRD22>

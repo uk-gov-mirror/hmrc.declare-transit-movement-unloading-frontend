@@ -17,13 +17,16 @@
 package services
 import java.time.LocalDate
 
+import com.google.inject.Inject
 import derivable.DeriveNumberOfSeals
 import models.messages._
-import models.{Index, Seals, UnloadingPermission, UserAnswers}
+import models.{Seals, UnloadingPermission, UserAnswers}
 import pages._
 import queries.SealsQuery
 
-class RemarksServiceImpl extends RemarksService {
+import scala.concurrent.Future
+
+class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlService) extends RemarksService {
 
   import RemarksServiceImpl._
 
@@ -33,67 +36,98 @@ class RemarksServiceImpl extends RemarksService {
       case Some(date) =>
         implicit val unloadingDate: LocalDate = date
 
+        implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
+
         Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers))
           .reduce(_ orElse _)
           .apply(unloadingPermission.seals)
 
-      case None => Left(FailedToFindUnloadingDate)
+      case None =>
+        Future.failed(new NoSuchElementException("date goods unloaded not found"))
     }
 
-  private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
+  private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate,
+                                                                         resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
     case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
 
       if (haveSealsChanged(unloadingPermissionSeals, userAnswers) ||
           sealsUnreadable(userAnswers.get(CanSealsBeReadPage)) ||
           sealsBroken(userAnswers.get(AreAnySealsBrokenPage))) {
-        Right(
+        Future.successful(
           RemarksNonConform(
             stateOfSeals    = Some(0),
             unloadingRemark = userAnswers.get(ChangesToReportPage),
             unloadingDate   = unloadingDate,
-            resultOfControl = Nil
+            resultOfControl = resultsOfControl
           ))
       } else {
         userAnswers.get(ChangesToReportPage) match {
           case Some(unloadingRemarks) =>
-            Right(
+            Future.successful(
               RemarksNonConform(
                 stateOfSeals    = Some(1),
                 unloadingRemark = Some(unloadingRemarks),
                 unloadingDate   = unloadingDate,
-                resultOfControl = Nil
+                resultOfControl = resultsOfControl
               )
             )
-          case None => Right(RemarksConformWithSeals(unloadingDate))
+          case None => {
+
+            if (resultsOfControl.isEmpty) {
+              Future.successful(RemarksConformWithSeals(unloadingDate))
+            } else {
+              Future.successful(
+                RemarksNonConform(
+                  stateOfSeals    = Some(1),
+                  unloadingRemark = None,
+                  unloadingDate   = unloadingDate,
+                  resultOfControl = resultsOfControl
+                ))
+            }
+
+          }
         }
       }
     }
+
   }
 
-  private def unloadingPermissionDoesNotContainSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate): PartialFunction[Option[Seals], Response] = {
+  private def unloadingPermissionDoesNotContainSeals(
+    userAnswers: UserAnswers)(implicit unloadingDate: LocalDate, resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
     case None => {
       userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) =>
-          Right(
+          Future.successful(
             RemarksNonConform(
               stateOfSeals    = None,
               unloadingRemark = userAnswers.get(ChangesToReportPage),
               unloadingDate   = unloadingDate,
-              resultOfControl = Nil
+              resultOfControl = resultsOfControl
             )
           )
         case None => {
           userAnswers.get(ChangesToReportPage) match {
             case Some(unloadingRemarks) =>
-              Right(
+              Future.successful(
                 RemarksNonConform(
                   stateOfSeals    = None,
                   unloadingRemark = Some(unloadingRemarks),
                   unloadingDate   = unloadingDate,
-                  resultOfControl = Nil
+                  resultOfControl = resultsOfControl
                 )
               )
-            case None => Right(RemarksConform(unloadingDate))
+            case None =>
+              if (resultsOfControl.isEmpty) {
+                Future.successful(RemarksConform(unloadingDate))
+              } else {
+                Future.successful(
+                  RemarksNonConform(
+                    stateOfSeals    = None,
+                    unloadingRemark = None,
+                    unloadingDate   = unloadingDate,
+                    resultOfControl = resultsOfControl
+                  ))
+              }
           }
         }
       }
@@ -103,7 +137,7 @@ class RemarksServiceImpl extends RemarksService {
 
 object RemarksServiceImpl {
 
-  type Response = Either[RemarksFailure, Remarks]
+  type Response = Future[Remarks]
 
   private def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
     !canSealsBeReadPage.getOrElse(true)
@@ -120,5 +154,6 @@ object RemarksServiceImpl {
 }
 
 trait RemarksService {
-  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Either[RemarksFailure, Remarks]
+  //TODO: Is it better to return a Future or Either?
+  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Future[Remarks]
 }

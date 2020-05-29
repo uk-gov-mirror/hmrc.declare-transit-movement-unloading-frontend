@@ -21,7 +21,7 @@ import play.api.mvc.PathBindable
 
 import scala.util.Try
 
-case class ArrivalId(index: Int)
+case class ArrivalId(value: Int)
 
 object ArrivalId {
   implicit val formatsArrivalId: Format[ArrivalId] = new Format[ArrivalId] {
@@ -36,7 +36,7 @@ object ArrivalId {
         JsError(s"Error in deserialization of Json value to an ArrivalId, expected JsNumber got ${e.getClass}")
     }
 
-    override def writes(o: ArrivalId): JsNumber = JsNumber(o.index)
+    override def writes(o: ArrivalId): JsNumber = JsNumber(o.value)
   }
 
   implicit lazy val pathBindable: PathBindable[ArrivalId] = new PathBindable[ArrivalId] {
@@ -44,6 +44,6 @@ object ArrivalId {
       implicitly[PathBindable[Int]].bind(key, value).right.map(ArrivalId(_))
 
     override def unbind(key: String, value: ArrivalId): String =
-      value.index.toString
+      value.value.toString
   }
 }

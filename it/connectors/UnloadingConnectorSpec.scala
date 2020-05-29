@@ -1,17 +1,20 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import generators.MessagesModelGenerators
+import models.ArrivalId
+import models.messages.UnloadingRemarksRequest
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
-  IntegrationPatience with WireMockSuite with MustMatchers  with ScalaCheckPropertyChecks {
+  IntegrationPatience with WireMockSuite with MustMatchers with OptionValues with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
   import UnloadingConnectorSpec._
 
@@ -23,13 +26,45 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
   "UnloadingConnectorSpec" - {
 
+    "POST" - {
+
+      "should handle an ACCEPTED response" in {
+        server.stubFor(
+          post(postUri)
+            .willReturn(status(ACCEPTED)))
+
+        val unloadingRemarksRequestObject = arbitrary[UnloadingRemarksRequest]
+
+        val unloadingRemarksRequest: UnloadingRemarksRequest = unloadingRemarksRequestObject .sample.get
+
+        val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
+
+        result.status mustBe ACCEPTED
+      }
+
+      "should handle client and server errors" in {
+
+        val errorResponsesCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
+
+        forAll(arbitrary[UnloadingRemarksRequest], errorResponsesCodes) {
+          (unloadingRemarksRequest, errorResponseCode) =>
+
+            server.stubFor(
+              post(postUri)
+                .willReturn(aResponse().withStatus(errorResponseCode)))
+
+            connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
+        }
+      }
+    }
+
     "GET" - {
 
       "should handle a 200 response" - {
 
         "containing single message" in {
           server.stubFor(
-            get(uri)
+            get(getUri)
               .willReturn(okJson(unloadingJson)
               ))
 
@@ -41,7 +76,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
         "containing multiple messages" in {
           server.stubFor(
-            get(uri)
+            get(getUri)
               .willReturn(okJson(jsonMultiple)
               ))
 
@@ -57,7 +92,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
       "should handle a 404 response" in {
 
         server.stubFor(
-          get(uri)
+          get(getUri)
             .willReturn(notFound)
         )
         connector.get(arrivalId).futureValue mustBe None
@@ -67,7 +102,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
         forAll(responseCodes) {
           code =>
             server.stubFor(
-              get(uri)
+              get(getUri)
                 .willReturn(aResponse().withStatus(code))
             )
             connector.get(arrivalId).futureValue mustBe None
@@ -77,7 +112,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
       "should return None when empty object is returned" in {
 
         server.stubFor(
-          get(uri)
+          get(getUri)
             .willReturn(okJson(emptyObject))
         )
         connector.get(arrivalId).futureValue mustBe None
@@ -86,7 +121,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
       "should return None when json is malformed" in {
 
         server.stubFor(
-          get(uri)
+          get(getUri)
             .willReturn(okJson(malFormedJson))
         )
         connector.get(arrivalId).futureValue mustBe None
@@ -102,16 +137,19 @@ object UnloadingConnectorSpec {
       Json.obj("messages" -> Json.arr(
         Json.obj(
         "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>"))).toString()
+          "message" -> "<CC043A></CC043A>",
+        "mrn" -> "19IT02110010007827"))).toString()
 
   private val jsonMultiple =
       Json.obj("messages" -> Json.arr(
         Json.obj(
           "messageType" -> "IE015E",
-          "message" -> "<CC015A></CC015A>"),
+          "message" -> "<CC015A></CC015A>",
+          "mrn" -> "19IT02110010007827"),
         Json.obj(
           "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>"))).toString()
+          "message" -> "<CC043A></CC043A>",
+          "mrn" -> "19IT02110010007827"))).toString()
 
   private val malFormedJson =
     """
@@ -121,8 +159,11 @@ object UnloadingConnectorSpec {
     """.stripMargin
 
   private val emptyObject: String = JsObject.empty.toString()
-  private val arrivalId = 1
-  private val uri = s"/transit-movements-trader-at-destination/movements/arrivals/$arrivalId/messages/"
+  private val arrivalId = ArrivalId(1)
+  private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+  private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+
+
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }

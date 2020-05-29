@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package models.messages
+package services
+import java.time.LocalDateTime
 
-import models.XMLWrites
+import com.google.inject.Singleton
+import utils.Format
 
-case class MessageSender(environment: String, eori: String)
+@Singleton
+class DateTimeServiceImpl extends DateTimeService {
 
-object MessageSender {
+  override def currentDateTime: LocalDateTime = LocalDateTime.now()
 
-  val eoriLength = 8
+  def dateFormatted: String = currentDateTime.format(Format.dateFormatter)
+}
 
-  implicit val writes: XMLWrites[MessageSender] =
-    XMLWrites(
-      a => <MesSenMES3>{escapeXml(s"${a.environment}-${a.eori}")}</MesSenMES3>
-    )
+trait DateTimeService {
+
+  def currentDateTime: LocalDateTime
+
+  def dateFormatted: String
 }

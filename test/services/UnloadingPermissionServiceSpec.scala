@@ -17,22 +17,22 @@
 package services
 import base.SpecBase
 import connectors.UnloadingConnector
-import models.{ArrivalId, Movement, MovementMessage, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, Movement, MovementMessage, UserAnswers}
 import org.mockito.Matchers.{any, eq => eqTo}
 import org.mockito.Mockito.when
+import org.scalatest.MustMatchers
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with MockitoSugar with ScalaFutures with IntegrationPatience {
-  private val mockConnector      = mock[UnloadingConnector]
-  private val service            = new UnloadingPermissionServiceImpl(mockConnector)
-  implicit val hc: HeaderCarrier = HeaderCarrier()
+
+  private val mockConnector = mock[UnloadingConnector]
+
+  private val service = new UnloadingPermissionServiceImpl(mockConnector)
 
   import UnloadingPermissionServiceSpec._
 
@@ -73,7 +73,7 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
 
     "convertSeals" - {
       "return the same userAnswers when given an ID with no Seals" in {
-        when(mockConnector.get(any())(any(), any()))
+        when(mockConnector.get(any())(any()))
           .thenReturn(Future.successful(Some(Movement(Seq(MovementMessage(messageType = "IE043A", message = ie043Message, mrn = mrn))))))
         val arrivalId   = ArrivalId(1)
         val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
@@ -94,7 +94,7 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
         val arrivalId   = ArrivalId(1)
         val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
 
-        when(mockConnector.get(eqTo(arrivalId))(any(), any()))
+        when(mockConnector.get(eqTo(arrivalId))(any()))
           .thenReturn(Future.successful(None))
 
         service.convertSeals(userAnswers) mustBe None

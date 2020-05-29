@@ -20,10 +20,13 @@ import base.SpecBase
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
+import play.api.http.Status.ACCEPTED
+import play.api.inject.bind
 import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.UnloadingRemarksService
 
 import scala.concurrent.Future
 
@@ -31,67 +34,187 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
   "Check Your Answers Controller" - {
 
-    "must return OK and the correct view for a GET" in {
+    "onPageLoad must" - {
 
-      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
+      "return OK and the correct view for a GET" in {
 
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        when(mockRenderer.render(any(), any())(any()))
+          .thenReturn(Future.successful(Html("")))
 
-      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
 
-      val result = route(application, request).value
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
-      status(result) mustEqual OK
+        val result = route(application, request).value
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+        status(result) mustEqual OK
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      templateCaptor.getValue mustEqual "check-your-answers.njk"
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      application.stop()
+        templateCaptor.getValue mustEqual "check-your-answers.njk"
+
+        application.stop()
+      }
+
+      "redirect to Session Expired for a GET if no existing data is found" in {
+
+        val application = applicationBuilder(userAnswers = None).build()
+
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+
+        redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+
+        application.stop()
+      }
+
+      "return BAD REQUEST when unloading permission does not exist" in {
+
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+
+        val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
+
+        val result = route(application, request).value
+
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+
+        status(result) mustEqual BAD_REQUEST
+
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+
+        templateCaptor.getValue mustEqual "badRequest.njk"
+
+        application.stop()
+      }
+
     }
 
-    "must redirect to Session Expired for a GET if no existing data is found" in {
+    "onSubmit must" - {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      "redirect to Confirmation on valid submission" in {
 
-      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
+        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
 
-      val result = route(application, request).value
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
+          .build()
 
-      status(result) mustEqual SEE_OTHER
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
-      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
+        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(ACCEPTED)))
 
-      application.stop()
-    }
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-    "must return BAD REQUEST when unloading permission does not exist" in {
+        val result = route(application, request).value
 
-      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+        status(result) mustEqual SEE_OTHER
 
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+        redirectLocation(result).value mustEqual routes.ConfirmationController.onPageLoad(arrivalId).url
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        application.stop()
+      }
 
-      val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
+      "redirect to Technical Difficulties on failed submission (invalid response code)" in {
 
-      val result = route(application, request).value
+        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
 
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
+          .build()
 
-      status(result) mustEqual BAD_REQUEST
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(BAD_REQUEST)))
 
-      templateCaptor.getValue mustEqual "badRequest.njk"
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-      application.stop()
+        val result = route(application, request).value
+
+        status(result) mustEqual SEE_OTHER
+
+        redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad.url
+
+        application.stop()
+      }
+
+      "return UNAUTHORIZED when backend returns 401" in {
+
+        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
+          .build()
+
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
+
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual UNAUTHORIZED
+
+        application.stop()
+      }
+
+      "return INTERNAL_SERVER_ERROR on internal failure" in {
+
+        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
+          .build()
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
+
+        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual INTERNAL_SERVER_ERROR
+
+        application.stop()
+      }
+
+      "return INTERNAL_SERVER_ERROR when UnloadingPermission can't be retrieved" in {
+
+        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
+
+        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
+          .build()
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+        when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
+
+        val result = route(application, request).value
+
+        status(result) mustEqual INTERNAL_SERVER_ERROR
+
+        application.stop()
+      }
     }
   }
 }

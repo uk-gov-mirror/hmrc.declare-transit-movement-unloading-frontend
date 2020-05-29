@@ -50,7 +50,7 @@ class ConfirmationController @Inject()(
         "manageTransitMovementsUrl" -> appConfig.manageTransitMovementsUrl
       )
 
-//      sessionRepository.remove(mrn.toString)
+      sessionRepository.remove(arrivalId)
       renderer.render("confirmation.njk", json).map(Ok(_))
   }
 }
