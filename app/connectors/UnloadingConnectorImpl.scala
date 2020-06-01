@@ -20,12 +20,11 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
-import models.{ArrivalId, Movement, MovementMessage, MovementReferenceNumber}
+import models.{ArrivalId, Movement}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.{Elem, XML}
 
 class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext) extends UnloadingConnector {
 
@@ -52,34 +51,6 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
       .recover {
         case _ => None
       }
-  }
-
-}
-
-//TODO: This needs removing and UnloadingConnectorImpl needs injecting once backend is available
-class UnloadingConnectorTemporary @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext) extends UnloadingConnector {
-
-  val unloadingPermissionSeals: Elem   = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionSeals.xml"))
-  val unloadingPermissionNoSeals: Elem = XML.load(getClass.getResourceAsStream("/resources/unloadingPermissionNoSeals.xml"))
-
-  def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]] = arrivalId match {
-    case ArrivalId(1) =>
-      Future.successful(Some(Movement(
-        Seq(MovementMessage(messageType = "IE043A", message = unloadingPermissionSeals.toString(), mrn = MovementReferenceNumber("19IT02110010007827").get)))))
-    case ArrivalId(2) =>
-      Future.successful(
-        Some(Movement(Seq(
-          MovementMessage(messageType = "IE043A", message = unloadingPermissionNoSeals.toString(), mrn = MovementReferenceNumber("19IT02110010007827").get)))))
-    case _ => Future.successful(None)
-  }
-
-  def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
-
-    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.value}/messages/"
-
-    val headers = Seq(("Content-Type", "application/xml"))
-
-    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
 }

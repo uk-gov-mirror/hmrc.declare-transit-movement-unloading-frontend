@@ -15,10 +15,10 @@
  */
 
 package services
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.Inject
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
-import models.{ArrivalId, Movement, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, Movement, UnloadingPermission, UserAnswers}
 import queries.SealsQuery
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -27,18 +27,9 @@ import scala.xml.XML
 
 class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) extends UnloadingPermissionService {
 
-  //TODO: When uri is updated to arrivalId the getUnloadingPermission argument needs updating
-  def getUnloadingPermission(arrivalId: ArrivalId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
-
-    //TODO: Only needed until we call backend through connector and update uri to use arrivalId
-    val arrivalIdTemp = arrivalId match {
-      case ArrivalId(1) => arrivalId
-      case ArrivalId(2) => arrivalId
-      case _            => ArrivalId(3)
-    }
-
-    connector.get(arrivalIdTemp).map {
-      case Some(Movement(messages)) =>
+  def getUnloadingPermission(arrivalId: ArrivalId)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UnloadingPermission]] =
+    connector.get(arrivalId).map {
+      case Some(Movement(_, messages)) =>
         messages.reverse match {
           case head :: _ =>
             XmlReader.of[UnloadingPermission].read(XML.loadString(head.message)) match {
@@ -50,7 +41,6 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
 
       case None => None
     }
-  }
 
   //TODO: Refactor
   def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]] =
