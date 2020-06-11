@@ -19,7 +19,7 @@ package base
 import cats.data.NonEmptyList
 import config.FrontendAppConfig
 import controllers.actions._
-import models.{ArrivalId, GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, Trader, UnloadingPermission, UserAnswers}
 import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -50,6 +50,15 @@ trait SpecBase
   override def beforeEach {
     Mockito.reset(mockRenderer, mockUnloadingPermissionService)
   }
+
+  val trader = Trader(
+    name            = "name",
+    streetAndNumber = "street and number",
+    postCode        = "city",
+    city            = "postcode",
+    countryCode     = "BG",
+    eori            = "GB123456"
+  )
 
   val arrivalId: ArrivalId = ArrivalId(1)
 
@@ -83,9 +92,6 @@ trait SpecBase
         bind[NunjucksRenderer].toInstance(mockRenderer)
       )
 
-  protected lazy val traderWithoutEori =
-    TraderAtDestinationWithoutEori("The Luggage Carriers", "225 Suedopolish Yard,", "SS8 2BB", ",", "GB")
-
   protected lazy val packages = Packages(Some("Ref."), "BX", Some(1), None)
 
   protected lazy val producedDocuments = ProducedDocument("235", Some("Ref."), None)
@@ -109,7 +115,7 @@ trait SpecBase
     grossMass               = "1000",
     numberOfItems           = 1,
     numberOfPackages        = 1,
-    traderAtDestination     = traderWithoutEori,
+    trader                  = trader,
     presentationOffice      = "GB000060",
     seals                   = None,
     goodsItems              = NonEmptyList(goodsItemMandatory, Nil)

@@ -45,7 +45,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
               UnloadingRemarksRequest(
                 meta,
                 header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
+                unloadingPermission.trader,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 seals = None,
@@ -64,7 +64,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
               UnloadingRemarksRequest(
                 meta,
                 header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
+                unloadingPermission.trader,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 seals = None,
@@ -88,7 +88,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
               UnloadingRemarksRequest(
                 meta,
                 header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
+                unloadingPermission.trader,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 seals = None,
@@ -112,7 +112,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
               UnloadingRemarksRequest(
                 meta,
                 header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
+                unloadingPermission.trader,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 seals = None,
@@ -136,7 +136,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
               UnloadingRemarksRequest(
                 meta,
                 header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
+                unloadingPermission.trader,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 seals = unloadingPermission.seals,
@@ -172,7 +172,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
               UnloadingRemarksRequest(
                 meta,
                 header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
+                unloadingPermission.trader,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3"))),

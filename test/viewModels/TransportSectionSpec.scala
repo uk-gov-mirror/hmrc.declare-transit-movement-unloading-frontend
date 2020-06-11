@@ -17,9 +17,7 @@
 package viewModels
 
 import base.SpecBase
-import cats.data.NonEmptyList
 import models.reference.Country
-import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithEori, UnloadingPermission}
 import pages.{VehicleNameRegistrationReferencePage, VehicleRegistrationCountryPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.UnloadingSummaryRow

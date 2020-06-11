@@ -100,7 +100,7 @@ class IndexControllerSpec extends SpecBase {
         grossMass               = "1000",
         numberOfItems           = 1,
         numberOfPackages        = 1,
-        traderAtDestination     = traderWithoutEori,
+        trader                  = trader,
         presentationOffice      = "GB000060",
         seals                   = None,
         goodsItems              = NonEmptyList(goodsItemMandatory, Nil)

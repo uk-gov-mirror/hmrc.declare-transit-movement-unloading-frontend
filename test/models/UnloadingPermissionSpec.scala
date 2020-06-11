@@ -46,7 +46,7 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
                 <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
                 <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
               </HEAHEA>
-              {trader(unloadingPermission.traderAtDestination)}
+              {trader(unloadingPermission.trader)}
               <CUSOFFPREOFFRES>
                 <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
               </CUSOFFPREOFFRES>
@@ -76,7 +76,7 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
             <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
           </HEAHEA>
-          {trader(unloadingPermission.traderAtDestination)}
+          {trader(unloadingPermission.trader)}
           <CUSOFFPREOFFRES>
             <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES>
@@ -104,7 +104,7 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
             <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
           </HEAHEA>
-          {trader(unloadingPermission.traderAtDestination)}
+          {trader(unloadingPermission.trader)}
           <CUSOFFPREOFFRES>
             <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES>
@@ -203,54 +203,14 @@ object UnloadingPermissionSpec {
     case None => NodeSeq.Empty
   }
 
-  def trader(traderAtDestination: TraderAtDestination): Elem = traderAtDestination match {
-
-    case traderWithEori: TraderAtDestinationWithEori => {
-
-      val name = traderWithEori.name.map {
-        name =>
-          <NamTRD7>{name}</NamTRD7>
-      }
-
-      val streetAndNumber = traderWithEori.streetAndNumber.map {
-        streetAndNumber =>
-          <StrAndNumTRD22>{streetAndNumber}</StrAndNumTRD22>
-      }
-
-      val postCode = traderWithEori.postCode.map {
-        postCode =>
-          <PosCodTRD23>{postCode}</PosCodTRD23>
-      }
-
-      val city = traderWithEori.city.map {
-        city =>
-          <CitTRD24>{city}</CitTRD24>
-      }
-
-      val countryCode = traderWithEori.countryCode.map {
-        countryCode =>
-          <CouTRD25>{countryCode}</CouTRD25>
-      }
-
-      <TRADESTRD>
-        {name.getOrElse(NodeSeq.Empty)}
-        {streetAndNumber.getOrElse(NodeSeq.Empty)}
-        {postCode.getOrElse(NodeSeq.Empty)}
-        {city.getOrElse(NodeSeq.Empty)}
-        {countryCode.getOrElse(NodeSeq.Empty)}
-        <TINTRD59>{traderWithEori.eori}</TINTRD59>
+  def trader(trader: Trader) =
+    <TRADESTRD>
+        <NamTRD7>{trader.name}</NamTRD7>
+        <StrAndNumTRD22>{trader.streetAndNumber}</StrAndNumTRD22>
+        <PosCodTRD23>{trader.postCode}</PosCodTRD23>
+        <CitTRD24>{trader.city}</CitTRD24>
+        <CouTRD25>{trader.countryCode}</CouTRD25>
+        <NADLNGRD>{LanguageCodeEnglish.code}</NADLNGRD>
+        <TINTRD59>{trader.eori}</TINTRD59>
       </TRADESTRD>
-
-    }
-    case traderWithOutEori: TraderAtDestinationWithoutEori => {
-
-      <TRADESTRD>
-        <NamTRD7>{traderWithOutEori.name}</NamTRD7>
-        <StrAndNumTRD22>{traderWithOutEori.streetAndNumber}</StrAndNumTRD22>
-        <PosCodTRD23>{traderWithOutEori.postCode}</PosCodTRD23>
-        <CitTRD24>{traderWithOutEori.city}</CitTRD24>
-        <CouTRD25>{traderWithOutEori.countryCode}</CouTRD25>
-      </TRADESTRD>
-    }
-  }
 }

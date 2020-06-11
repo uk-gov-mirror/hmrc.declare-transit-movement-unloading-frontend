@@ -90,7 +90,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             val unloadingRemarksRequest = UnloadingRemarksRequest(
               meta,
               header(unloadingPermission),
-              unloadingPermission.traderAtDestination,
+              unloadingPermission.trader,
               unloadingPermission.presentationOffice,
               unloadingRemarks,
               seals = None,
@@ -146,7 +146,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             val unloadingRemarksRequest = UnloadingRemarksRequest(
               meta,
               header(unloadingPermission),
-              unloadingPermission.traderAtDestination,
+              unloadingPermission.trader,
               unloadingPermission.presentationOffice,
               unloadingRemarks,
               seals = None,

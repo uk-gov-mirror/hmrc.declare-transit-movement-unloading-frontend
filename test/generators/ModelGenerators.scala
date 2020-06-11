@@ -65,27 +65,16 @@ trait ModelGenerators {
       } yield ProducedDocument(documentType, reference, complementOfInformation)
     }
 
-  implicit lazy val arbitraryTraderWithEori: Arbitrary[TraderAtDestinationWithEori] =
+  implicit lazy val arbitraryTrader: Arbitrary[Trader] =
     Arbitrary {
       for {
-        eori            <- stringsWithMaxLength(TraderAtDestinationWithEori.Constants.eoriLength)
-        name            <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.nameLength))
-        streetAndNumber <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.streetAndNumberLength))
-        postCode        <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.postCodeLength))
-        city            <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.cityLength))
-        countryCode     <- Gen.option(Gen.pick(2, 'A' to 'Z'))
-      } yield TraderAtDestinationWithEori(eori, name, streetAndNumber, postCode, city, countryCode.map(_.mkString))
-    }
-
-  implicit lazy val arbitraryTraderWithoutEori: Arbitrary[TraderAtDestinationWithoutEori] =
-    Arbitrary {
-      for {
-        name            <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.nameLength)
-        streetAndNumber <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.streetAndNumberLength)
-        postCode        <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.postCodeLength)
-        city            <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.cityLength)
+        eori            <- stringsWithMaxLength(Trader.Constants.eoriLength)
+        name            <- stringsWithMaxLength(Trader.Constants.nameLength)
+        streetAndNumber <- stringsWithMaxLength(Trader.Constants.streetAndNumberLength)
+        postCode        <- stringsWithMaxLength(Trader.Constants.postCodeLength)
+        city            <- stringsWithMaxLength(Trader.Constants.cityLength)
         countryCode     <- Gen.pick(2, 'A' to 'Z')
-      } yield TraderAtDestinationWithoutEori(name, streetAndNumber, postCode, city, countryCode.mkString)
+      } yield Trader(eori, name, streetAndNumber, postCode, city, countryCode.mkString)
     }
 
   //TODO: Check spec and add correct max sizes as constants
@@ -98,7 +87,7 @@ trait ModelGenerators {
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- stringsWithMaxLength(2: Int)
-        traderAtDestination     <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
+        trader                  <- arbitrary[Trader]
         presentationOffice      <- stringsWithMaxLength(UnloadingPermission.presentationOfficeLength)
         seals                   <- Gen.option(arbitrary[Seals])
         goodsItems              <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
@@ -110,7 +99,7 @@ trait ModelGenerators {
           numberOfItems,
           numberOfPackages,
           grossMass,
-          traderAtDestination,
+          trader,
           presentationOffice,
           seals,
           goodsItems

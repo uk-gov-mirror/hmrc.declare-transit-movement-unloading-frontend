@@ -16,14 +16,13 @@
 
 package models.messages
 import generators.MessagesModelGenerators
-import models.{TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori}
+import models.XMLWrites._
 import org.scalacheck.Arbitrary._
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import models.XMLWrites._
 
-import scala.xml.{Node, NodeSeq}
 import scala.xml.Utility.trim
+import scala.xml.{Node, NodeSeq}
 
 class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with MessagesModelGenerators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
@@ -37,7 +36,7 @@ class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with Messag
             <CC044A>
               {unloadingRemarksRequest.meta.toXml}
               {unloadingRemarksRequest.header.toXml}
-              {traderAtDesinationNode(unloadingRemarksRequest.traderAtDestination)}
+              {unloadingRemarksRequest.trader.toXml}
               <CUSOFFPREOFFRES>
                 <RefNumRES1>{unloadingRemarksRequest.presentationOffice}</RefNumRES1>
               </CUSOFFPREOFFRES>
@@ -51,12 +50,6 @@ class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with Messag
 
     }
 
-  }
-
-  //TODO: Get toXml on TraderAtDestination interface so we don't have to do this
-  private def traderAtDesinationNode(traderAtDestination: TraderAtDestination): NodeSeq = traderAtDestination match {
-    case traderAtDestinationWithEori: TraderAtDestinationWithEori       => traderAtDestinationWithEori.toXml
-    case traderAtDestinationWithoutEori: TraderAtDestinationWithoutEori => traderAtDestinationWithoutEori.toXml
   }
 
   //TODO: Get toXml on Remarks interface so we don't have to do this

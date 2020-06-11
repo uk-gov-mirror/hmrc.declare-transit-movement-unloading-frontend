@@ -28,7 +28,7 @@ case class UnloadingPermission(
   numberOfItems: Int,
   numberOfPackages: Int,
   grossMass: String, //TODO: Does this need to be BigDecimal
-  traderAtDestination: TraderAtDestination,
+  trader: Trader,
   presentationOffice: String,
   seals: Option[Seals],
   goodsItems: NonEmptyList[GoodsItem]
@@ -49,7 +49,7 @@ object UnloadingPermission {
     (__ \ "HEAHEA" \ "TotNumOfIteHEA305").read[Int],
     (__ \ "HEAHEA" \ "TotNumOfPacHEA306").read[Int],
     (__ \ "HEAHEA" \ "TotGroMasHEA307").read[String],
-    (__ \ "TRADESTRD").read[TraderAtDestination],
+    (__ \ "TRADESTRD").read[Trader],
     (__ \ "CUSOFFPREOFFRES" \ "RefNumRES1").read[String],
     (__ \ "SEAINFSLI").read[Seals].optional,
     (__ \ "GOOITEGDS").read[NonEmptyList[GoodsItem]](NonEmptyListOps.nonEmptyListReader)

@@ -17,15 +17,15 @@
 package models.messages
 
 import cats.data.NonEmptyList
-import models.{GoodsItem, Seals, TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, XMLWrites}
+import models.XMLWrites._
+import models.{GoodsItem, Seals, Trader, XMLWrites}
 
 import scala.xml.{Elem, Node, NodeSeq}
-import models.XMLWrites._
 
 case class UnloadingRemarksRequest(
   meta: Meta,
   header: Header,
-  traderAtDestination: TraderAtDestination,
+  trader: Trader,
   presentationOffice: String,
   unloadingRemark: Remarks,
   seals: Option[Seals],
@@ -47,7 +47,7 @@ object UnloadingRemarksRequest {
       val childNodes: NodeSeq = {
         unloadingRemarksRequest.meta.toXml ++
           unloadingRemarksRequest.header.toXml ++
-          traderAtDesinationNode(unloadingRemarksRequest.traderAtDestination) ++
+          unloadingRemarksRequest.trader.toXml ++
           <CUSOFFPREOFFRES>
             <RefNumRES1>{unloadingRemarksRequest.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES> ++
@@ -57,11 +57,6 @@ object UnloadingRemarksRequest {
       }
 
       Elem(parentNode.prefix, parentNode.label, parentNode.attributes, parentNode.scope, parentNode.child.isEmpty, parentNode.child ++ childNodes: _*)
-  }
-
-  private def traderAtDesinationNode(traderAtDestination: TraderAtDestination): NodeSeq = traderAtDestination match {
-    case traderAtDestinationWithEori: TraderAtDestinationWithEori       => traderAtDestinationWithEori.toXml
-    case traderAtDestinationWithoutEori: TraderAtDestinationWithoutEori => traderAtDestinationWithoutEori.toXml
   }
 
   private def unloadingRemarkNode(unloadingRemark: Remarks): NodeSeq = unloadingRemark match {

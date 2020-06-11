@@ -19,7 +19,7 @@ import java.time.LocalDate
 
 import base.SpecBase
 import cats.data.NonEmptyList
-import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithEori, UnloadingPermission, UserAnswers}
+import models.{UnloadingPermission, UserAnswers}
 import org.scalatest.{FreeSpec, MustMatchers}
 import pages._
 import uk.gov.hmrc.viewmodels.Text.Literal
@@ -33,7 +33,7 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
     numberOfItems           = 1,
     numberOfPackages        = 1,
     grossMass               = "1000",
-    traderAtDestination     = traderWithoutEori,
+    trader                  = trader,
     presentationOffice      = "GB000060",
     seals                   = None,
     goodsItems              = NonEmptyList(goodsItemMandatory, Nil)

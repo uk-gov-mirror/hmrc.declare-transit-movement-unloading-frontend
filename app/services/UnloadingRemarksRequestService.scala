@@ -51,7 +51,7 @@ class UnloadingRemarksRequestServiceImpl extends UnloadingRemarksRequestService 
     UnloadingRemarksRequest(
       meta,
       header,
-      unloadingPermission.traderAtDestination,
+      unloadingPermission.trader,
       unloadingPermission.presentationOffice,
       unloadingRemarks,
       seals,

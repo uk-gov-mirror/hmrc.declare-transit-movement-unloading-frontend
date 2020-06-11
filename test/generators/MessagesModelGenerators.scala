@@ -19,7 +19,7 @@ package generators
 import java.time.{LocalDate, LocalTime}
 
 import models.messages._
-import models.{GoodsItem, Seals, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
+import models.{GoodsItem, Seals, Trader, UnloadingPermission}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
@@ -89,12 +89,12 @@ trait MessagesModelGenerators extends Generators {
       for {
         meta               <- arbitrary[Meta]
         header             <- arbitrary[Header]
-        traderDestination  <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
+        trader             <- arbitrary[Trader]
         presentationOffice <- Gen.pick(UnloadingRemarksRequest.presentationOfficeLength, 'A' to 'Z')
         remarks            <- Gen.oneOf(arbitrary[RemarksConform], arbitrary[RemarksConformWithSeals], arbitrary[RemarksNonConform])
         seals              <- Gen.option(arbitrary[Seals])
         goodsItems         <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
-      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, seals, goodsItems)
+      } yield UnloadingRemarksRequest(meta, header, trader, presentationOffice.mkString, remarks, seals, goodsItems)
     }
   }
 }
