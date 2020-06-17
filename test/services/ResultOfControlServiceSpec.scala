@@ -26,10 +26,9 @@ class ResultOfControlServiceSpec extends SpecBase {
 
   "ResultOfControlServiceSpec" - {
 
-    //TODO: ResultsOfControlOther is not implmented because we don't know what we're setting for different scenarios
     "handle when UserAnswers" - {
 
-      "is empty" in {
+      "are empty" in {
         service.build(emptyUserAnswers) mustBe Nil
       }
 
@@ -115,14 +114,59 @@ class ResultOfControlServiceSpec extends SpecBase {
           .success
           .value
 
-        service.build(userAnswersUpdated) contains Seq(
-          ResultsOfControlDifferentValues(
-            PointerToAttribute(TransportCountry),
-            "FR"
-          ),
+        service.build(userAnswersUpdated) mustBe Seq(
           ResultsOfControlDifferentValues(
             PointerToAttribute(TransportIdentity),
             "reference"
+          ),
+          ResultsOfControlDifferentValues(
+            PointerToAttribute(TransportCountry),
+            "FR"
+          )
+        )
+      }
+
+      "AreAnySealsBroken is true" in {
+        val userAnswersUpdated = emptyUserAnswers
+          .set(AreAnySealsBrokenPage, true)
+          .success
+          .value
+
+        service.build(userAnswersUpdated) mustBe Seq(
+          ResultsOfControlOther(
+            "Some seals are broken"
+          )
+        )
+      }
+
+      "CanSealsBeRead is false" in {
+        val userAnswersUpdated = emptyUserAnswers
+          .set(CanSealsBeReadPage, false)
+          .success
+          .value
+
+        service.build(userAnswersUpdated) mustBe Seq(
+          ResultsOfControlOther(
+            "Some seals not readable"
+          )
+        )
+      }
+
+      "AreAnySealsBroken is true and CanSealsBeRead is false" in {
+        val userAnswersUpdated = emptyUserAnswers
+          .set(AreAnySealsBrokenPage, true)
+          .success
+          .value
+          .set(CanSealsBeReadPage, false)
+          .success
+          .value
+
+        service.build(userAnswersUpdated) mustBe Seq(
+          ResultsOfControlOther(
+            "Some seals are broken"
+          ),
+          ResultsOfControlOther(
+            "Some seals not readable"
           )
         )
       }
