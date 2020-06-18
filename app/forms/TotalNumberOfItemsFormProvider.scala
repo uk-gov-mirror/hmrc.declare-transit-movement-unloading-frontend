@@ -18,6 +18,7 @@ package forms
 
 import forms.mappings.Mappings
 import javax.inject.Inject
+import models.messages.UnloadingRemarksRequest
 import play.api.data.Form
 
 class TotalNumberOfItemsFormProvider @Inject() extends Mappings {
@@ -25,6 +26,6 @@ class TotalNumberOfItemsFormProvider @Inject() extends Mappings {
   def apply(): Form[Int] =
     Form(
       "value" -> int("totalNumberOfItems.error.required", "totalNumberOfItems.error.wholeNumber", "totalNumberOfItems.error.nonNumeric")
-        .verifying(inRange(1, Int.MaxValue, "totalNumberOfItems.error.outOfRange"))
+        .verifying(inRange(1, UnloadingRemarksRequest.numberOfItems, "totalNumberOfItems.error.outOfRange"))
     )
 }

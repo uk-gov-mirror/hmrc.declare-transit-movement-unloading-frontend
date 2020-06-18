@@ -17,8 +17,8 @@
 package forms
 
 import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.messages.UnloadingRemarksRequest
 import play.api.data.Form
 
 class VehicleNameRegistrationReferenceFormProvider @Inject() extends Mappings {
@@ -26,6 +26,9 @@ class VehicleNameRegistrationReferenceFormProvider @Inject() extends Mappings {
   def apply(): Form[String] =
     Form(
       "value" -> text("vehicleNameRegistrationReference.error.required")
-        .verifying(maxLength(100, "vehicleNameRegistrationReference.error.length"))
+        .verifying(
+          maxLength(UnloadingRemarksRequest.vehicleNameMaxLength, "vehicleNameRegistrationReference.error.length"),
+          regexp(UnloadingRemarksRequest.alphaNumericRegex.toString(), "vehicleNameRegistrationReference.error.characters")
+        )
     )
 }

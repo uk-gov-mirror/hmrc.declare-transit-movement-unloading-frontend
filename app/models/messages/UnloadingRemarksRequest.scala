@@ -34,11 +34,14 @@ case class UnloadingRemarksRequest(
 
 object UnloadingRemarksRequest {
 
-  val transportIdentityLength  = 27
-  val transportIdentityCountry = 2
-  val numberOfItemsLength      = 5
-  val numberOfPackagesLength   = 7
-  val presentationOfficeLength = 8
+  val transportIdentityLength    = 27
+  val transportIdentityCountry   = 2
+  val numberOfItems              = 99999
+  val numberOfPackages           = 999999
+  val presentationOfficeLength   = 8
+  val newSealNumberMaximumLength = 20
+  val vehicleNameMaxLength       = 27
+  val alphaNumericRegex          = "[A-Za-z0-9]+".r
 
   implicit def writes: XMLWrites[UnloadingRemarksRequest] = XMLWrites[UnloadingRemarksRequest] {
     unloadingRemarksRequest =>

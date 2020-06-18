@@ -17,8 +17,8 @@
 package forms
 
 import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.messages.{RemarksNonConform, UnloadingRemarksRequest}
 import play.api.data.Form
 
 class ChangesToReportFormProvider @Inject() extends Mappings {
@@ -26,6 +26,6 @@ class ChangesToReportFormProvider @Inject() extends Mappings {
   def apply(): Form[String] =
     Form(
       "value" -> text("changesToReport.error.required")
-        .verifying(maxLength(350, "changesToReport.error.length"))
+        .verifying(maxLength(RemarksNonConform.unloadingRemarkLength, "changesToReport.error.length"))
     )
 }

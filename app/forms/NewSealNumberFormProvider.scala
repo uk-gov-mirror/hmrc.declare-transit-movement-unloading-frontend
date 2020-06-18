@@ -17,8 +17,8 @@
 package forms
 
 import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.messages.UnloadingRemarksRequest
 import play.api.data.Form
 
 class NewSealNumberFormProvider @Inject() extends Mappings {
@@ -26,6 +26,9 @@ class NewSealNumberFormProvider @Inject() extends Mappings {
   def apply(): Form[String] =
     Form(
       "value" -> text("newSealNumber.error.required")
-        .verifying(maxLength(100, "newSealNumber.error.length"))
+        .verifying(
+          maxLength(UnloadingRemarksRequest.newSealNumberMaximumLength, "newSealNumber.error.length"),
+          regexp(UnloadingRemarksRequest.alphaNumericRegex.toString(), "newSealNumber.error.characters")
+        )
     )
 }

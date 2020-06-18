@@ -173,6 +173,7 @@ vehicleNameRegistrationReference.heading = What is the name, registration or ref
 vehicleNameRegistrationReference.checkYourAnswersLabel = What is the name, registration or reference of the new vehicle?
 vehicleNameRegistrationReference.error.required = Enter the name, registration or reference of the new vehicle
 vehicleNameRegistrationReference.error.length = The name, registration or reference of the new vehicle must be 100 characters or less
+vehicleNameRegistrationReference.error.characters = The name, registration or reference of the new vehicle must only contain letters a to z or numbers 0 to 9
 
 vehicleRegistrationCountry.title = Which country is the vehicle registered in?
 vehicleRegistrationCountry.heading = Which country is the vehicle registered in?
@@ -190,7 +191,8 @@ newSealNumber.title = What is the new seal number or mark?
 newSealNumber.heading = What is the new seal number or mark?
 newSealNumber.checkYourAnswersLabel = What is the new seal number or mark?
 newSealNumber.error.required = Enter the new seal number or mark
-newSealNumber.error.length = Seal number or mark must be 100 characters or less
+newSealNumber.error.length = Seal number or mark must be 20 characters or less
+newSealNumber.error.characters = Seal number or mark must only contain letters a to z or numbers 0 to 9
 
 unloadingSummary.title = Check what you found against the transit declaration
 unloadingSummary.heading = Check what you found against the transit declaration

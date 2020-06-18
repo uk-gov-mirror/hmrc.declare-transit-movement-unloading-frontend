@@ -17,13 +17,14 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import models.messages.UnloadingRemarksRequest
 import play.api.data.FormError
 
 class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehaviours {
 
   val requiredKey = "vehicleNameRegistrationReference.error.required"
   val lengthKey   = "vehicleNameRegistrationReference.error.length"
-  val maxLength   = 100
+  val maxLength   = UnloadingRemarksRequest.vehicleNameMaxLength
 
   val form = new VehicleNameRegistrationReferenceFormProvider()()
 

@@ -17,13 +17,14 @@
 package forms
 
 import forms.behaviours.StringFieldBehaviours
+import models.messages.UnloadingRemarksRequest
 import play.api.data.FormError
 
 class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
   val requiredKey = "newSealNumber.error.required"
   val lengthKey   = "newSealNumber.error.length"
-  val maxLength   = 100
+  val maxLength   = UnloadingRemarksRequest.newSealNumberMaximumLength
 
   val form = new NewSealNumberFormProvider()()
 
