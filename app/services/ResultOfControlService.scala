@@ -78,14 +78,11 @@ class ResultOfControlServiceImpl extends ResultOfControlService {
       case _ => Seq.empty
     }
 
-  private val sealsBrokenText: String     = "Some seals are broken"
-  private val sealsUnreadableText: String = "Some seals not readable"
-
   private def resultsOfControlOther()(implicit ua: UserAnswers): Seq[ResultsOfControlOther] =
     (ua.get(AreAnySealsBrokenPage), ua.get(CanSealsBeReadPage)) match {
-      case (Some(true), Some(false)) => Seq(ResultsOfControlOther(sealsBrokenText), ResultsOfControlOther(sealsUnreadableText))
-      case (Some(true), _)           => Seq(ResultsOfControlOther(sealsBrokenText))
-      case (_, Some(false))          => Seq(ResultsOfControlOther(sealsUnreadableText))
+      case (Some(true), Some(false)) => Seq(ResultsOfControlSealsBroken, ResultsOfControlSealsNotReadable)
+      case (Some(true), _)           => Seq(ResultsOfControlSealsBroken)
+      case (_, Some(false))          => Seq(ResultsOfControlSealsNotReadable)
       case _                         => Nil
     }
 }
