@@ -16,33 +16,27 @@
 
 package forms
 
-import forms.behaviours.StringFieldBehaviours
 import models.messages.UnloadingRemarksRequest
-import play.api.data.FormError
+import forms.behaviours.StringFieldBehaviours
+import org.scalacheck.Gen
+import play.api.data.{Field, FormError}
+import wolfendale.scalacheck.regexp.RegexpGen
 
 class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "vehicleNameRegistrationReference.error.required"
-  val lengthKey   = "vehicleNameRegistrationReference.error.length"
-  val maxLength   = UnloadingRemarksRequest.vehicleNameMaxLength
+  private val requiredKey = "vehicleNameRegistrationReference.error.required"
+  private val invalidKey  = "vehicleNameRegistrationReference.error.characters"
+  private val maxLength   = UnloadingRemarksRequest.vehicleNameMaxLength
 
-  val form = new VehicleNameRegistrationReferenceFormProvider()()
+  private val form      = new VehicleNameRegistrationReferenceFormProvider()()
+  private val fieldName = "value"
 
   ".value" - {
-
-    val fieldName = "value"
 
     behave like fieldThatBindsValidData(
       form,
       fieldName,
       stringsWithMaxLength(maxLength)
-    )
-
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength   = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
     )
 
     behave like mandatoryField(
@@ -51,4 +45,17 @@ class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehavi
       requiredError = FormError(fieldName, requiredKey)
     )
   }
+  "must not bind strings that do not match regex" in {
+
+    val generator: Gen[String] = RegexpGen.from("[^a-zA-Z0-9]{1,27}")
+    val validRegex             = "^[a-zA-Z0-9]*$"
+    val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
+
+    forAll(generator) {
+      invalidString =>
+        val result: Field = form.bind(Map(fieldName -> invalidString)).apply(fieldName)
+        result.errors should contain(expectedError)
+    }
+  }
+
 }

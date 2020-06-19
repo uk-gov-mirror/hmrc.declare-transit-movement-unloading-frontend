@@ -18,31 +18,25 @@ package forms
 
 import forms.behaviours.StringFieldBehaviours
 import models.messages.UnloadingRemarksRequest
-import play.api.data.FormError
+import org.scalacheck.Gen
+import play.api.data.{Field, FormError}
+import wolfendale.scalacheck.regexp.RegexpGen
 
 class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
-  val requiredKey = "newSealNumber.error.required"
-  val lengthKey   = "newSealNumber.error.length"
-  val maxLength   = UnloadingRemarksRequest.newSealNumberMaximumLength
+  private val requiredKey = "newSealNumber.error.required"
+  private val invalidKey  = "newSealNumber.error.characters"
+  private val maxLength   = UnloadingRemarksRequest.newSealNumberMaximumLength
 
-  val form = new NewSealNumberFormProvider()()
+  private val form      = new NewSealNumberFormProvider()()
+  private val fieldName = "value"
 
   ".value" - {
-
-    val fieldName = "value"
 
     behave like fieldThatBindsValidData(
       form,
       fieldName,
       stringsWithMaxLength(maxLength)
-    )
-
-    behave like fieldWithMaxLength(
-      form,
-      fieldName,
-      maxLength   = maxLength,
-      lengthError = FormError(fieldName, lengthKey, Seq(maxLength))
     )
 
     behave like mandatoryField(
@@ -51,4 +45,18 @@ class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
       requiredError = FormError(fieldName, requiredKey)
     )
   }
+
+  "must not bind strings that do not match regex" in {
+
+    val generator: Gen[String] = RegexpGen.from("[^a-zA-Z0-9]{1,20}")
+    val validRegex             = "^[a-zA-Z0-9]*$"
+    val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
+
+    forAll(generator) {
+      invalidString =>
+        val result: Field = form.bind(Map(fieldName -> invalidString)).apply(fieldName)
+        result.errors should contain(expectedError)
+    }
+  }
+
 }

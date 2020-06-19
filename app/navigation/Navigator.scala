@@ -60,11 +60,11 @@ class Navigator @Inject()() {
       ua =>
         routes.UnloadingSummaryController.onPageLoad(ua.id)
 
-    case ConfirmRemoveCommentsPage =>
+    case ConfirmRemoveCommentsPage() =>
       ua =>
         routes.UnloadingSummaryController.onPageLoad(ua.id)
 
-    case ConfirmRemoveSealPage =>
+    case ConfirmRemoveSealPage() =>
       ua =>
         routes.UnloadingSummaryController.onPageLoad(ua.id)
 

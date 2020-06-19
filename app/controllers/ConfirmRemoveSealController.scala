@@ -91,9 +91,9 @@ class ConfirmRemoveSealController @Inject()(
                     for {
                       updatedAnswers <- Future.fromTry(request.userAnswers.remove(NewSealNumberPage(index)))
                       _              <- sessionRepository.set(updatedAnswers)
-                    } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, updatedAnswers))
+                    } yield Redirect(navigator.nextPage(ConfirmRemoveSealPage(), mode, updatedAnswers))
                   } else {
-                    Future.successful(Redirect(navigator.nextPage(ConfirmRemoveSealPage, mode, request.userAnswers)))
+                    Future.successful(Redirect(navigator.nextPage(ConfirmRemoveSealPage(), mode, request.userAnswers)))
 
                 }
               )

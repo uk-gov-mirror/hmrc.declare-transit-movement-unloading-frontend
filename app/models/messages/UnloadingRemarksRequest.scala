@@ -41,7 +41,9 @@ object UnloadingRemarksRequest {
   val presentationOfficeLength   = 8
   val newSealNumberMaximumLength = 20
   val vehicleNameMaxLength       = 27
-  val alphaNumericRegex          = "[A-Za-z0-9]+".r
+  val alphaNumericRegex          = "^[a-zA-Z0-9]*$"
+  val grossMassRegex             = "^(\\d{1,10}[.]*\\d{0,3})$"
+  val grossMassLength            = 15
 
   implicit def writes: XMLWrites[UnloadingRemarksRequest] = XMLWrites[UnloadingRemarksRequest] {
     unloadingRemarksRequest =>

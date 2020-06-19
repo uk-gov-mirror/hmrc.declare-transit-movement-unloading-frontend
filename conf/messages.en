@@ -186,6 +186,7 @@ grossMassAmount.heading = What is the new total gross mass in kilograms?
 grossMassAmount.checkYourAnswersLabel = What is the new total gross mass in kilograms?
 grossMassAmount.error.required = Enter the new total gross mass in kilograms
 grossMassAmount.error.length = The new total gross mass in kilograms must be 100 characters or less
+grossMassAmount.error.characters = The new total gross mass in kilograms must be up to 10 digits with a maximum of 3 decimal places
 
 newSealNumber.title = What is the new seal number or mark?
 newSealNumber.heading = What is the new seal number or mark?
@@ -213,7 +214,7 @@ changeSeal.sealList.change.hidden = seal {0}
 changeSeal.sealList.remove.hidden = seal {0}
 
 changeItems.title = Items
-changeItems.grossMass.label = Total gross mass in kilograms
+changeItems.Mass.label = Total gross mass in kilograms
 changeItems.grossMass.change.hidden = total gross mass in kilograms
 changeItems.totalNumberOfItems.label = Total number of items
 changeItems.totalNumberOfItems.change.hidden = total number of items
