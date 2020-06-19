@@ -48,7 +48,7 @@ class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehavi
   "must not bind strings that do not match regex" in {
 
     val generator: Gen[String] = RegexpGen.from("[^a-zA-Z0-9]{1,27}")
-    val validRegex             = "^[a-zA-Z0-9]*$"
+    val validRegex: String     = "^[a-zA-Z0-9]*$"
     val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
 
     forAll(generator) {

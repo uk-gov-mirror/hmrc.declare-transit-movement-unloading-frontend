@@ -16,8 +16,8 @@
 
 package forms
 
-import forms.behaviours.StringFieldBehaviours
 import models.messages.UnloadingRemarksRequest
+import forms.behaviours.StringFieldBehaviours
 import org.scalacheck.Gen
 import play.api.data.{Field, FormError}
 import wolfendale.scalacheck.regexp.RegexpGen
@@ -48,8 +48,8 @@ class GrossMassAmountFormProviderSpec extends StringFieldBehaviours {
 
   "must not bind strings that do not match regex" in {
 
-    val generator: Gen[String] = RegexpGen.from("^(\\d{1,10}[.]*\\d{0,3})$")
-    val validRegex             = "^(\\d{1,10}[.]*\\d{0,3})$"
+    val generator: Gen[String] = RegexpGen.from("^\\d{1,11}(\\.\\d{1,3})?$")
+    val validRegex: String     = "^\\d{1,11}(\\.\\d{1,3})?$"
     val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
 
     forAll(generator) {
