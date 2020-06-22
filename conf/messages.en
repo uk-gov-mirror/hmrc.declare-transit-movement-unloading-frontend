@@ -174,7 +174,7 @@ vehicleNameRegistrationReference.checkYourAnswersLabel = What is the name, regis
 vehicleNameRegistrationReference.error.required = Enter the name, registration or reference of the new vehicle
 NameRegistrationReference.error.length = The name, registration or reference of the new vehicle must be 27 characters or less
 vehicleNameRegistrationReference.error.characters = The name, registration or reference of the new vehicle must only contain letters a to z or numbers 0 to 9
-vehicle
+
 vehicleRegistrationCountry.title = Which country is the vehicle registered in?
 vehicleRegistrationCountry.heading = Which country is the vehicle registered in?
 vehicleRegistrationCountry.checkYourAnswersLabel = Which country is the vehicle registered in?
@@ -214,7 +214,7 @@ changeSeal.sealList.change.hidden = seal {0}
 changeSeal.sealList.remove.hidden = seal {0}
 
 changeItems.title = Items
-changeItems.Mass.label = Total gross mass in kilograms
+changeItems.grossMass.label = Total gross mass in kilograms
 changeItems.grossMass.change.hidden = total gross mass in kilograms
 changeItems.totalNumberOfItems.label = Total number of items
 changeItems.totalNumberOfItems.change.hidden = total number of items
