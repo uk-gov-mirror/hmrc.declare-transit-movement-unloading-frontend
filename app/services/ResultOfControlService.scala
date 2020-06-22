@@ -37,7 +37,9 @@ class ResultOfControlServiceImpl extends ResultOfControlService {
 
     val grossMassAmount: Seq[ResultsOfControl] = resultsOfControlString(GrossMassAmountPage, GrossMass)
 
-    vehicleRegistrationReference ++ vehicleRegistrationCountry ++ totalNumberOfItemsPage ++ totalNumberOfPackagesPage ++ grossMassAmount
+    val sealsBroken: Seq[ResultsOfControl] = resultsOfControlOther
+
+    vehicleRegistrationReference ++ vehicleRegistrationCountry ++ totalNumberOfItemsPage ++ totalNumberOfPackagesPage ++ grossMassAmount ++ sealsBroken
   }
 
   private def resultsOfControlString(questionPage: QuestionPage[String], pointerIdentity: PointerIdentity)(
@@ -74,6 +76,14 @@ class ResultOfControlServiceImpl extends ResultOfControlService {
             code
           ))
       case _ => Seq.empty
+    }
+
+  private def resultsOfControlOther()(implicit ua: UserAnswers): Seq[ResultsOfControlOther] =
+    (ua.get(AreAnySealsBrokenPage), ua.get(CanSealsBeReadPage)) match {
+      case (Some(true), Some(false)) => Seq(ResultsOfControlSealsBroken, ResultsOfControlSealsNotReadable)
+      case (Some(true), _)           => Seq(ResultsOfControlSealsBroken)
+      case (_, Some(false))          => Seq(ResultsOfControlSealsNotReadable)
+      case _                         => Nil
     }
 }
 

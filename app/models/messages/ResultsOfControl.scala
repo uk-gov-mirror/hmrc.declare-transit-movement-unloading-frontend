@@ -31,6 +31,9 @@ case class ResultsOfControlOther(description: String) extends ResultsOfControl {
   val controlIndicator = ControlIndicator(OtherThingsToReport)
 }
 
+object ResultsOfControlSealsBroken extends ResultsOfControlOther("Some seals are broken")
+object ResultsOfControlSealsNotReadable extends ResultsOfControlOther("Some seals not readable")
+
 object ResultsOfControlOther {
   implicit val writes: XMLWrites[ResultsOfControlOther] = {
     XMLWrites(resultsOfControl => <RESOFCON534>
