@@ -49,7 +49,7 @@ class GrossMassAmountFormProviderSpec extends StringFieldBehaviours {
   "must not bind strings that do not match regex" in {
 
     val validRegex: String     = UnloadingRemarksRequest.grossMassRegex
-    val generator: Gen[String] = RegexpGen.from(validRegex)
+    val generator: Gen[String] = s"^(\\d{1,11}|(\\d{0,11}\\.{1}\\d{1,3}){1}){1,15}"
     val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
 
     forAll(generator) {
