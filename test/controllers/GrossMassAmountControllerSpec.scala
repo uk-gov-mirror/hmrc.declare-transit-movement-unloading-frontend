@@ -82,7 +82,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(arrivalId, mrn).set(GrossMassAmountPage, "answer").success.value
+      val userAnswers    = UserAnswers(arrivalId, mrn).set(GrossMassAmountPage, "123456.123").success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, grossMassAmountRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
@@ -94,7 +94,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val filledForm = form.bind(Map("value" -> "answer"))
+      val filledForm = form.bind(Map("value" -> "123456.123"))
 
       val expectedJson = Json.obj(
         "form"      -> filledForm,
@@ -125,7 +125,7 @@ class GrossMassAmountControllerSpec extends SpecBase with MockitoSugar with Nunj
 
       val request =
         FakeRequest(POST, grossMassAmountRoute)
-          .withFormUrlEncodedBody(("value", "answer"))
+          .withFormUrlEncodedBody(("value", "123456.123"))
 
       val result = route(application, request).value
 

@@ -28,7 +28,7 @@ class NewSealNumberFormProvider @Inject() extends Mappings {
       "value" -> text("newSealNumber.error.required")
         .verifying(
           maxLength(UnloadingRemarksRequest.newSealNumberMaximumLength, "newSealNumber.error.length"),
-          regexp(UnloadingRemarksRequest.alphaNumericRegex.toString(), "newSealNumber.error.characters")
+          regexp(UnloadingRemarksRequest.alphaNumericRegex, "newSealNumber.error.characters")
         )
     )
 }
