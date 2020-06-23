@@ -198,7 +198,7 @@ class NavigatorSpec extends SpecBase with ScalaCheckPropertyChecks with Generato
             forAll(arbitrary[UserAnswers]) {
               answers =>
                 navigator
-                  .nextPage(ConfirmRemoveCommentsPage(), NormalMode, answers)
+                  .nextPage(ConfirmRemoveCommentsPage, NormalMode, answers)
                   .mustBe(routes.UnloadingSummaryController.onPageLoad(answers.id))
             }
           }

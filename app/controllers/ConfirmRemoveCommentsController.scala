@@ -84,9 +84,9 @@ class ConfirmRemoveCommentsController @Inject()(
               for {
                 updatedAnswers <- Future.fromTry(request.userAnswers.remove(ChangesToReportPage))
                 _              <- sessionRepository.set(updatedAnswers)
-              } yield Redirect(navigator.nextPage(ConfirmRemoveCommentsPage(), mode, updatedAnswers))
+              } yield Redirect(navigator.nextPage(ConfirmRemoveCommentsPage, mode, updatedAnswers))
             } else {
-              Future.successful(Redirect(navigator.nextPage(ConfirmRemoveCommentsPage(), mode, request.userAnswers)))
+              Future.successful(Redirect(navigator.nextPage(ConfirmRemoveCommentsPage, mode, request.userAnswers)))
           }
         )
   }

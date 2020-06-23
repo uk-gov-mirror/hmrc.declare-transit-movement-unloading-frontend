@@ -16,4 +16,4 @@
 
 package pages
 
-final case class ConfirmRemoveSealPage() extends Page
+case object ConfirmRemoveSealPage extends Page

@@ -16,4 +16,4 @@
 
 package pages
 
-final case class ConfirmRemoveCommentsPage() extends Page
+case object ConfirmRemoveCommentsPage extends Page
