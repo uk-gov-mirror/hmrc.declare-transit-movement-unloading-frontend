@@ -27,8 +27,7 @@ class VehicleNameRegistrationReferenceFormProvider @Inject() extends Mappings {
     Form(
       "value" -> text("vehicleNameRegistrationReference.error.required")
         .verifying(
-          maxLength(UnloadingRemarksRequest.vehicleNameMaxLength, "vehicleNameRegistrationReference.error.length"),
-          regexp(UnloadingRemarksRequest.alphaNumericRegex, "vehicleNameRegistrationReference.error.characters")
+          maxLength(UnloadingRemarksRequest.vehicleNameMaxLength, "vehicleNameRegistrationReference.error.length")
         )
     )
 }
