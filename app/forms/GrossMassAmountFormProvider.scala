@@ -17,8 +17,8 @@
 package forms
 
 import javax.inject.Inject
-
 import forms.mappings.Mappings
+import models.messages.UnloadingRemarksRequest
 import play.api.data.Form
 
 class GrossMassAmountFormProvider @Inject() extends Mappings {
@@ -26,6 +26,9 @@ class GrossMassAmountFormProvider @Inject() extends Mappings {
   def apply(): Form[String] =
     Form(
       "value" -> text("grossMassAmount.error.required")
-        .verifying(maxLength(100, "grossMassAmount.error.length"))
+        .verifying(
+          maxLength(UnloadingRemarksRequest.grossMassLength, "grossMassAmount.error.length"),
+          regexp(UnloadingRemarksRequest.grossMassRegex, "grossMassAmount.error.characters")
+        )
     )
 }

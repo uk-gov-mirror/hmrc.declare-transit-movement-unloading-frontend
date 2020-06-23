@@ -17,6 +17,7 @@
 package forms
 
 import forms.behaviours.IntFieldBehaviours
+import models.messages.UnloadingRemarksRequest
 import play.api.data.FormError
 
 class TotalNumberOfItemsFormProviderSpec extends IntFieldBehaviours {
@@ -28,7 +29,7 @@ class TotalNumberOfItemsFormProviderSpec extends IntFieldBehaviours {
     val fieldName = "value"
 
     val minimum = 1
-    val maximum = Int.MaxValue
+    val maximum = UnloadingRemarksRequest.numberOfItems
 
     val validDataGenerator = intsInRangeWithCommas(minimum, maximum)
 

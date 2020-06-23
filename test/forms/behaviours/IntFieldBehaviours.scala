@@ -42,8 +42,8 @@ trait IntFieldBehaviours extends FieldBehaviours {
 
     "must not bind integers larger than Int.MaxValue" in {
 
-      forAll(intsLargerThanMaxValue -> "massiveInt") {
-        num: BigInt =>
+      forAll(intsLargerThanMaxValue -> 99999) {
+        num =>
           val result = form.bind(Map(fieldName -> num.toString)).apply(fieldName)
           result.errors shouldEqual Seq(nonNumericError)
       }
