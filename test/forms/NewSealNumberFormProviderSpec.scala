@@ -25,7 +25,6 @@ import wolfendale.scalacheck.regexp.RegexpGen
 class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
   private val requiredKey = "newSealNumber.error.required"
-  private val invalidKey  = "newSealNumber.error.characters"
   private val maxLength   = UnloadingRemarksRequest.newSealNumberMaximumLength
 
   private val form      = new NewSealNumberFormProvider()()
@@ -45,18 +44,4 @@ class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
       requiredError = FormError(fieldName, requiredKey)
     )
   }
-
-  "must not bind strings that do not match regex" in {
-
-    val generator: Gen[String] = RegexpGen.from("[^a-zA-Z0-9]{1,20}")
-    val validRegex             = "^[a-zA-Z0-9]*$"
-    val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
-
-    forAll(generator) {
-      invalidString =>
-        val result: Field = form.bind(Map(fieldName -> invalidString)).apply(fieldName)
-        result.errors should contain(expectedError)
-    }
-  }
-
 }
