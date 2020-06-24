@@ -25,7 +25,6 @@ import wolfendale.scalacheck.regexp.RegexpGen
 class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehaviours {
 
   private val requiredKey = "vehicleNameRegistrationReference.error.required"
-  private val invalidKey  = "vehicleNameRegistrationReference.error.characters"
   private val maxLength   = UnloadingRemarksRequest.vehicleNameMaxLength
 
   private val form      = new VehicleNameRegistrationReferenceFormProvider()()
@@ -45,17 +44,4 @@ class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehavi
       requiredError = FormError(fieldName, requiredKey)
     )
   }
-  "must not bind strings that do not match regex" in {
-
-    val generator: Gen[String] = RegexpGen.from("[^a-zA-Z0-9]{1,27}")
-    val validRegex: String     = "^[a-zA-Z0-9]*$"
-    val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
-
-    forAll(generator) {
-      invalidString =>
-        val result: Field = form.bind(Map(fieldName -> invalidString)).apply(fieldName)
-        result.errors should contain(expectedError)
-    }
-  }
-
 }
