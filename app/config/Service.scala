@@ -20,10 +20,13 @@ import play.api.{ConfigLoader, Configuration}
 
 import scala.language.implicitConversions
 
-final case class Service(host: String, port: String, protocol: String) {
+final case class Service(host: String, port: String, protocol: String, startUrl: String) {
 
   def baseUrl: String =
     s"$protocol://$host:$port"
+
+  def fullServiceUrl: String =
+    s"$baseUrl/$startUrl"
 
   override def toString: String =
     baseUrl
@@ -37,10 +40,11 @@ object Service {
       val host     = service.get[String]("host")
       val port     = service.get[String]("port")
       val protocol = service.get[String]("protocol")
+      val startUrl = service.get[String]("startUrl")
 
-      Service(host, port, protocol)
+      Service(host, port, protocol, startUrl)
   }
 
   implicit def convertToString(service: Service): String =
-    service.baseUrl
+    service.fullServiceUrl
 }
