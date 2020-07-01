@@ -86,3 +86,5 @@ GET        /:arrivalId/total-number-of-packages                  controllers.Tot
 POST       /:arrivalId/total-number-of-packages                    controllers.TotalNumberOfPackagesController.onSubmit(arrivalId: ArrivalId, mode: Mode = NormalMode)
 GET        /:arrivalId/change-total-number-of-packages                          controllers.TotalNumberOfPackagesController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)
 POST       /:arrivalId/change-total-number-of-packages                          controllers.TotalNumberOfPackagesController.onSubmit(arrivalId: ArrivalId, mode: Mode = CheckMode)
+
+GET        /:arrivalId/unloading-remarks-rejection                       controllers.UnloadingRemarksRejectionController.onPageLoad(arrivalId: ArrivalId)
