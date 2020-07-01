@@ -28,9 +28,9 @@ import scala.util.{Failure, Success, Try}
 final case class UserAnswers(
   id: ArrivalId,
   mrn: MovementReferenceNumber,
-  data: JsObject             = Json.obj(),
-  lastUpdated: LocalDateTime = LocalDateTime.now,
-  eoriNumber: Option[String] = None
+  data: JsObject                 = Json.obj(),
+  lastUpdated: LocalDateTime     = LocalDateTime.now,
+  eoriNumber: Option[EoriNumber] = None
 ) {
 
   def get[A](page: Gettable[A])(implicit rds: Reads[A]): Option[A] =
@@ -86,7 +86,7 @@ object UserAnswers {
         (__ \ "mrn").read[MovementReferenceNumber] and
         (__ \ "data").read[JsObject] and
         (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead) and
-        (__ \ "eoriNumber").readNullable[String]
+        (__ \ "eoriNumber").readNullable[EoriNumber]
     )(UserAnswers.apply _)
   }
 
@@ -99,7 +99,7 @@ object UserAnswers {
         (__ \ "mrn").write[MovementReferenceNumber] and
         (__ \ "data").write[JsObject] and
         (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite) and
-        (__ \ "eoriNumber").writeNullable[String]
+        (__ \ "eoriNumber").writeNullable[EoriNumber]
     )(unlift(UserAnswers.unapply))
   }
 }

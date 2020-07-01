@@ -18,7 +18,7 @@ package controllers
 
 import base.SpecBase
 import cats.data.NonEmptyList
-import models.{UnloadingPermission, UserAnswers}
+import models.{EoriNumber, UnloadingPermission, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
@@ -64,7 +64,7 @@ class IndexControllerSpec extends SpecBase {
 
       userAnswersCaptor.getValue.mrn.toString mustBe unloadingPermission.movementReferenceNumber
       userAnswersCaptor.getValue.id mustBe arrivalId
-      userAnswersCaptor.getValue.eoriNumber mustBe Some("id")
+      userAnswersCaptor.getValue.eoriNumber mustBe Some(EoriNumber("id"))
 
       application.stop()
     }

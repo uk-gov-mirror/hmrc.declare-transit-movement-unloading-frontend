@@ -17,7 +17,7 @@
 package controllers.actions
 
 import javax.inject.Inject
-import models.{ArrivalId, MovementReferenceNumber}
+import models.{ArrivalId, EoriNumber, MovementReferenceNumber}
 import models.requests.{IdentifierRequest, OptionalDataRequest}
 import play.api.mvc.ActionTransformer
 import repositories.SessionRepository
@@ -42,7 +42,7 @@ class DataRetrievalAction(
 ) extends ActionTransformer[IdentifierRequest, OptionalDataRequest] {
 
   override protected def transform[A](request: IdentifierRequest[A]): Future[OptionalDataRequest[A]] =
-    sessionRepository.get(arrivalId, request.eoriNumber).map {
+    sessionRepository.get(arrivalId, EoriNumber(request.eoriNumber)).map {
       userAnswers =>
         OptionalDataRequest(request.request, request.eoriNumber, userAnswers)
     }
