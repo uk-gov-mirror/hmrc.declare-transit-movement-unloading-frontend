@@ -18,10 +18,12 @@ package controllers
 
 import base.SpecBase
 import cats.data.NonEmptyList
-import models.UnloadingPermission
+import models.{UnloadingPermission, UserAnswers}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import play.api.inject.bind
+import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import repositories.SessionRepository
@@ -43,6 +45,8 @@ class IndexControllerSpec extends SpecBase {
       when(mockSessionRepository.set(any()))
         .thenReturn(Future.successful(true))
 
+      val userAnswersCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
+
       val application = applicationBuilder(userAnswers = None)
         .overrides(
           bind[UnloadingPermissionServiceImpl].toInstance(mockUnloadingPermissionServiceImpl),
@@ -50,11 +54,17 @@ class IndexControllerSpec extends SpecBase {
         )
         .build()
 
-      val request = FakeRequest(GET, routes.IndexController.onPageLoad(arrivalId).url)
-      val result  = route(application, request).value
+      val request                = FakeRequest(GET, routes.IndexController.onPageLoad(arrivalId).url)
+      val result: Future[Result] = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result) mustEqual Some(onwardRoute)
+
+      verify(mockSessionRepository).set(userAnswersCaptor.capture())
+
+      userAnswersCaptor.getValue.mrn.toString mustBe unloadingPermission.movementReferenceNumber
+      userAnswersCaptor.getValue.id mustBe arrivalId
+      userAnswersCaptor.getValue.eoriNumber mustBe Some("id")
 
       application.stop()
     }

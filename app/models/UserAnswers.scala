@@ -29,7 +29,8 @@ final case class UserAnswers(
   id: ArrivalId,
   mrn: MovementReferenceNumber,
   data: JsObject             = Json.obj(),
-  lastUpdated: LocalDateTime = LocalDateTime.now
+  lastUpdated: LocalDateTime = LocalDateTime.now,
+  eoriNumber: Option[String] = None
 ) {
 
   def get[A](page: Gettable[A])(implicit rds: Reads[A]): Option[A] =
@@ -84,7 +85,8 @@ object UserAnswers {
       (__ \ "_id").read[ArrivalId] and
         (__ \ "mrn").read[MovementReferenceNumber] and
         (__ \ "data").read[JsObject] and
-        (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead)
+        (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead) and
+        (__ \ "eoriNumber").readNullable[String]
     )(UserAnswers.apply _)
   }
 
@@ -96,7 +98,8 @@ object UserAnswers {
       (__ \ "_id").write[ArrivalId] and
         (__ \ "mrn").write[MovementReferenceNumber] and
         (__ \ "data").write[JsObject] and
-        (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite)
+        (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite) and
+        (__ \ "eoriNumber").writeNullable[String]
     )(unlift(UserAnswers.unapply))
   }
 }

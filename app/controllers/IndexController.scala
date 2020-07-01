@@ -49,7 +49,7 @@ class IndexController @Inject()(
             case Some(unloadingPermission) =>
               MovementReferenceNumber(unloadingPermission.movementReferenceNumber) match {
                 case Some(mrn) =>
-                  val updatedAnswers = request.userAnswers.getOrElse(UserAnswers(arrivalId, mrn))
+                  val updatedAnswers = request.userAnswers.getOrElse(UserAnswers(id = arrivalId, mrn = mrn, eoriNumber = Some(request.eoriNumber)))
                   sessionRepository.set(updatedAnswers).flatMap {
                     _ =>
                       Future.successful(Redirect(nextPage(arrivalId)))
