@@ -18,8 +18,18 @@ package generators
 
 import java.time.{LocalDate, LocalTime}
 
-import models.messages._
-import models.{GoodsItem, Seals, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
+import models.ErrorType.{GenericError, MRNError}
+import models.messages.{
+  Header,
+  InterchangeControlReference,
+  MessageSender,
+  Meta,
+  RemarksConform,
+  RemarksConformWithSeals,
+  RemarksNonConform,
+  UnloadingRemarksRequest
+}
+import models.{ErrorPointer, ErrorType, FunctionalError, GoodsItem, Seals, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
@@ -43,6 +53,36 @@ trait MessagesModelGenerators extends Generators {
       } yield InterchangeControlReference(dateTime, index)
     }
   }
+
+  implicit lazy val mrnErrorType: Arbitrary[MRNError] =
+    Arbitrary {
+      Gen.oneOf(ErrorType.mrnValues)
+    }
+
+  implicit lazy val genericErrorType: Arbitrary[GenericError] =
+    Arbitrary {
+      Gen.oneOf(ErrorType.genericValues)
+    }
+
+  implicit lazy val arbitraryErrorType: Arbitrary[ErrorType] =
+    Arbitrary {
+      for {
+        genericError      <- arbitrary[GenericError]
+        mrnRejectionError <- arbitrary[MRNError]
+        errorType         <- Gen.oneOf(Seq(genericError, mrnRejectionError))
+      } yield errorType
+    }
+
+  implicit lazy val arbitraryRejectionError: Arbitrary[FunctionalError] =
+    Arbitrary {
+
+      for {
+        errorType     <- arbitrary[ErrorType]
+        pointer       <- arbitrary[String]
+        reason        <- arbitrary[Option[String]]
+        originalValue <- arbitrary[Option[String]]
+      } yield FunctionalError(errorType, ErrorPointer(pointer), reason, originalValue)
+    }
 
   implicit lazy val arbitraryMeta: Arbitrary[Meta] = {
     Arbitrary {

@@ -20,7 +20,7 @@ import com.google.inject.Inject
 import config.FrontendAppConfig
 import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
-import models.{ArrivalId, Movement}
+import models.{ArrivalId, MessagesSummary, Movement, UnloadingRemarksRejectionMessage}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -52,10 +52,32 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
         case _ => None
       }
   }
+//  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
+//
+//    val serviceUrl: String = s"${config.destinationUrl}/movements/arrivals/${arrivalId.value}/messages/summary"
+//    http.GET[HttpResponse](serviceUrl) map {
+//      case responseMessage if is2xx(responseMessage.status) => Some(responseMessage.json.as[MessagesSummary])
+//      case _                                                => None
+//    }
+//  }
 
+//  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[ArrivalNotificationRejectionMessage]] = {
+//    val serviceUrl = s"${config.baseDestinationUrl}$rejectionLocation"
+//    http.GET[HttpResponse](serviceUrl) map {
+//      case responseMessage if is2xx(responseMessage.status) =>
+//        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
+//        XmlReader.of[ArrivalNotificationRejectionMessage].read(message).toOption
+//      case _ => None
+//    }
+//  }
+  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]                                = ???
+  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = ???
 }
 
 trait UnloadingConnector {
   def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]]
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
+  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
+  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
+
 }
