@@ -19,7 +19,7 @@ package controllers
 import base.SpecBase
 import forms.CanSealsBeReadFormProvider
 import matchers.JsonMatchers
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -83,7 +83,7 @@ class CanSealsBeReadControllerSpec extends SpecBase with MockitoSugar with Nunju
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(arrivalId, mrn).set(CanSealsBeReadPage, true).success.value
+      val userAnswers    = emptyUserAnswers.set(CanSealsBeReadPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, canSealsBeReadRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

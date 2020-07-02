@@ -20,7 +20,7 @@ import java.time.LocalDateTime
 
 import akka.stream.Materializer
 import javax.inject.Inject
-import models.{ArrivalId, UserAnswers}
+import models.{ArrivalId, EoriNumber, UserAnswers}
 import play.api.Configuration
 import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoApi
@@ -57,8 +57,8 @@ class DefaultSessionRepository @Inject()(
       }
       .map(_ => ())
 
-  override def get(id: ArrivalId): Future[Option[UserAnswers]] =
-    collection.flatMap(_.find(Json.obj("_id" -> id), None).one[UserAnswers])
+  override def get(id: ArrivalId, eoriNumber: EoriNumber): Future[Option[UserAnswers]] =
+    collection.flatMap(_.find(Json.obj("_id" -> id, "eoriNumber" -> eoriNumber), None).one[UserAnswers])
 
   override def set(userAnswers: UserAnswers): Future[Boolean] = {
 
@@ -90,7 +90,7 @@ trait SessionRepository {
 
   val started: Future[Unit]
 
-  def get(id: ArrivalId): Future[Option[UserAnswers]]
+  def get(id: ArrivalId, eoriNumber: EoriNumber): Future[Option[UserAnswers]]
 
   def set(userAnswers: UserAnswers): Future[Boolean]
 

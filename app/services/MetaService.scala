@@ -19,12 +19,13 @@ import java.time.LocalDateTime
 
 import com.google.inject.Inject
 import config.FrontendAppConfig
+import models.EoriNumber
 import models.messages.{InterchangeControlReference, MessageSender, Meta}
 
 class MetaServiceImpl @Inject()(config: FrontendAppConfig, dateTimeService: DateTimeService) extends MetaService {
 
-  def build(eori: String, interchangeControlReference: InterchangeControlReference): Meta = {
-    val messageSender                  = MessageSender(config.environment, eori)
+  def build(eori: EoriNumber, interchangeControlReference: InterchangeControlReference): Meta = {
+    val messageSender                  = MessageSender(config.environment, eori.value)
     val currentDateTime: LocalDateTime = dateTimeService.currentDateTime
     val dateOfPreparation              = currentDateTime.toLocalDate
     val timeOfPreparation              = currentDateTime.toLocalTime
@@ -35,5 +36,5 @@ class MetaServiceImpl @Inject()(config: FrontendAppConfig, dateTimeService: Date
 }
 
 trait MetaService {
-  def build(eori: String, interchangeControlReference: InterchangeControlReference): Meta
+  def build(eori: EoriNumber, interchangeControlReference: InterchangeControlReference): Meta
 }

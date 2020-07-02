@@ -78,7 +78,7 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
         when(mockConnector.get(any())(any()))
           .thenReturn(Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
         val arrivalId   = ArrivalId(1)
-        val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
+        val userAnswers = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswers)
       }
 
@@ -87,15 +87,15 @@ class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Moc
           .thenReturn(
             Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = ie043MessageSeals))))))
         val arrivalId            = ArrivalId(2)
-        val userAnswers          = UserAnswers(arrivalId, mrn, Json.obj())
-        val userAnswersWithSeals = UserAnswers(arrivalId, mrn, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)
+        val userAnswers          = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
+        val userAnswersWithSeals = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj("seals" -> Seq("Seals01", "Seals02")), userAnswers.lastUpdated)
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswersWithSeals)
       }
 
       //TODO: This needs putting back in when id within uri changes
       "return None when ID doesn't return an unloading permission" ignore {
         val arrivalId   = ArrivalId(1)
-        val userAnswers = UserAnswers(arrivalId, mrn, Json.obj())
+        val userAnswers = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
 
         when(mockConnector.get(eqTo(arrivalId))(any()))
           .thenReturn(Future.successful(None))
