@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package models.requests
+package models
 
-import models.EoriNumber
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.libs.json.{__, JsString, Reads, Writes}
 
-case class IdentifierRequest[A](request: Request[A], eoriNumber: EoriNumber) extends WrappedRequest[A](request)
+case class EoriNumber(value: String)
+
+object EoriNumber {
+  implicit def reads: Reads[EoriNumber]   = __.read[String] map EoriNumber.apply
+  implicit def writes: Writes[EoriNumber] = Writes(eori => JsString(eori.value))
+}

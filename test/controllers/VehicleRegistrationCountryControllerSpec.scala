@@ -20,8 +20,8 @@ import base.SpecBase
 import connectors.ReferenceDataConnector
 import forms.VehicleRegistrationCountryFormProvider
 import matchers.JsonMatchers
+import models.NormalMode
 import models.reference.Country
-import models.{NormalMode, UserAnswers}
 import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -30,7 +30,7 @@ import org.scalatestplus.mockito.MockitoSugar
 import pages.VehicleRegistrationCountryPage
 import play.api.data.Form
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, JsString, Json}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -103,7 +103,7 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
         Future.successful(countries)
       )
 
-      val userAnswers = UserAnswers(arrivalId, mrn).set(VehicleRegistrationCountryPage, country).success.value
+      val userAnswers = emptyUserAnswers.set(VehicleRegistrationCountryPage, country).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers))
         .overrides {
           bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)

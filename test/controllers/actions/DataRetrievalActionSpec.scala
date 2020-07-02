@@ -19,7 +19,7 @@ package controllers.actions
 import generators.Generators
 import models.requests.IdentifierRequest
 import models.requests.OptionalDataRequest
-import models.{ArrivalId, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, EoriNumber, MovementReferenceNumber, UserAnswers}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalacheck.Arbitrary.arbitrary
@@ -51,6 +51,7 @@ class DataRetrievalActionSpec
 
   val sessionRepository: SessionRepository = mock[SessionRepository]
   val arrivalId                            = ArrivalId(1)
+  val eoriNumber                           = arbitrary[EoriNumber].sample.value
   val mrn: MovementReferenceNumber         = arbitrary[MovementReferenceNumber].sample.value
 
   override lazy val app: Application = {
@@ -70,7 +71,7 @@ class DataRetrievalActionSpec
 
     actionProvider(arrivalId)
       .invokeBlock(
-        IdentifierRequest(FakeRequest(GET, "/").asInstanceOf[Request[AnyContent]], ""), {
+        IdentifierRequest(FakeRequest(GET, "/").asInstanceOf[Request[AnyContent]], EoriNumber("")), {
           request: OptionalDataRequest[AnyContent] =>
             f(request)
             Future.successful(Results.Ok)
@@ -85,7 +86,7 @@ class DataRetrievalActionSpec
 
       "where there are no existing answers for this MRN" in {
 
-        when(sessionRepository.get(any())) thenReturn Future.successful(None)
+        when(sessionRepository.get(any(), any())) thenReturn Future.successful(None)
 
         harness(mrn, {
           request =>
@@ -98,7 +99,7 @@ class DataRetrievalActionSpec
 
       "when there are existing answers for this MRN" in {
 
-        when(sessionRepository.get(any())) thenReturn Future.successful(Some(UserAnswers(arrivalId, mrn)))
+        when(sessionRepository.get(any(), any())) thenReturn Future.successful(Some(UserAnswers(arrivalId, mrn, eoriNumber)))
 
         harness(mrn, {
           request =>

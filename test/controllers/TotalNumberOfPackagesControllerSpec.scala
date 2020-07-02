@@ -19,7 +19,7 @@ package controllers
 import base.SpecBase
 import forms.TotalNumberOfPackagesFormProvider
 import matchers.JsonMatchers
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -27,7 +27,7 @@ import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
 import pages.TotalNumberOfPackagesPage
 import play.api.inject.bind
-import play.api.libs.json.{JsNumber, JsObject, Json}
+import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -84,7 +84,7 @@ class TotalNumberOfPackagesControllerSpec extends SpecBase with MockitoSugar wit
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(arrivalId, mrn).set(TotalNumberOfPackagesPage, validAnswer).success.value
+      val userAnswers    = emptyUserAnswers.set(TotalNumberOfPackagesPage, validAnswer).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, totalNumberOfPackagesRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

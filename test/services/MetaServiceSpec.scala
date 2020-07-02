@@ -19,6 +19,7 @@ import java.time.LocalDateTime
 
 import base.SpecBase
 import generators.MessagesModelGenerators
+import models.EoriNumber
 import models.messages.{InterchangeControlReference, MessageSender, Meta}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
@@ -40,14 +41,14 @@ class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCh
   "MetaServiceSpec" - {
 
     "return a Meta model" in {
-      forAll(stringsWithMaxLength(MessageSender.eoriLength), arbitrary[InterchangeControlReference]) {
+      forAll(arbitrary[EoriNumber], arbitrary[InterchangeControlReference]) {
         (eori, interchangeControlReference) =>
           val localDateTime = LocalDateTime.now()
 
           when(mockDateTimeService.currentDateTime).thenReturn(localDateTime)
 
           metaService.build(eori, interchangeControlReference) mustBe Meta(
-            MessageSender("TEST_ENV", eori),
+            MessageSender("TEST_ENV", eori.value),
             interchangeControlReference,
             localDateTime.toLocalDate,
             localDateTime.toLocalTime
