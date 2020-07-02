@@ -28,25 +28,12 @@ class UnloadingRemarksRejectionService @Inject()(connector: UnloadingConnector) 
                                                              ec: ExecutionContext): Future[Option[UnloadingRemarksRejectionMessage]] =
     connector.getSummary(arrivalId) flatMap {
       case Some(summary) =>
-        println(s"*********")
-        println(s"SUMMARY $summary")
-
         summary.messagesLocation.arrivalRejection match {
-          case Some(rejectionLocation) => {
-            println(s"*********")
-            println(s"REJECTION MESSAGE $rejectionLocation")
+          case Some(rejectionLocation) =>
             connector.getRejectionMessage(rejectionLocation)
-          }
-          case _ => {
-            println(s"NO REJECTION")
+          case _ =>
             Future.successful(None)
-          }
         }
-      case _ => {
-
-        println(s"NO SUMMARY")
-
-        Future.successful(None)
-      }
+      case _ => Future.successful(None)
     }
 }

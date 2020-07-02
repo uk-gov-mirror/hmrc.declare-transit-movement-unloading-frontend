@@ -29,7 +29,18 @@ import models.messages.{
   RemarksNonConform,
   UnloadingRemarksRequest
 }
-import models.{ErrorPointer, ErrorType, FunctionalError, GoodsItem, Seals, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
+import models.{
+  ErrorPointer,
+  ErrorType,
+  FunctionalError,
+  GoodsItem,
+  MovementReferenceNumber,
+  Seals,
+  TraderAtDestinationWithEori,
+  TraderAtDestinationWithoutEori,
+  UnloadingPermission,
+  UnloadingRemarksRejectionMessage
+}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
@@ -137,4 +148,16 @@ trait MessagesModelGenerators extends Generators {
       } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, seals, goodsItems)
     }
   }
+
+  implicit lazy val arbitraryUnloadingRemarksRejectionMessage: Arbitrary[UnloadingRemarksRejectionMessage] =
+    Arbitrary {
+
+      for {
+        mrn    <- arbitrary[MovementReferenceNumber].map(_.toString())
+        date   <- arbitrary[LocalDate]
+        action <- arbitrary[Option[String]]
+        reason <- arbitrary[Option[String]]
+        errors <- listWithMaxLength[FunctionalError](5)
+      } yield UnloadingRemarksRejectionMessage(mrn, date, action, reason, errors)
+    }
 }

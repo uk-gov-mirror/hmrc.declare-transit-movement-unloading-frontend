@@ -2,7 +2,7 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
-import models.ArrivalId
+import models.{ArrivalId, MessagesLocation, MessagesSummary}
 import models.messages.UnloadingRemarksRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
@@ -13,10 +13,16 @@ import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 
-class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
-  IntegrationPatience with WireMockSuite with MustMatchers with OptionValues with MessagesModelGenerators with ScalaCheckPropertyChecks {
+class UnloadingConnectorSpec extends FreeSpec
+  with ScalaFutures
+  with IntegrationPatience
+  with WireMockSuite
+  with MustMatchers
+  with OptionValues
+  with MessagesModelGenerators
+  with ScalaCheckPropertyChecks {
 
-  import UnloadingConnectorSpec._
+  import UnloadingConnectorConstants._
 
   override protected def portConfigKey: String = "microservice.services.arrivals-backend.port"
 
@@ -127,19 +133,56 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
         connector.get(arrivalId).futureValue mustBe None
       }
     }
+
+    "getSummary" - {
+
+      "must be return summary of messages" in {
+        val json = Json.obj(
+          "arrivalId" -> arrivalId.value,
+          "messages" -> Json.obj(
+            "IE044" -> s"/movements/arrivals/${arrivalId.value}/messages/3",
+            "IE058" -> s"/movements/arrivals/${arrivalId.value}/messages/5"
+          )
+        )
+
+        val messageAction =
+          MessagesSummary(arrivalId,
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
+
+        server.stubFor(
+          get(urlEqualTo(summaryUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+        connector.getSummary(arrivalId).futureValue mustBe Some(messageAction)
+      }
+
+      "must return 'None' when an error response is returned from getSummary" in {
+        forAll(responseCodes) {
+          code: Int =>
+            server.stubFor(
+              get(summaryUri)
+                .willReturn(aResponse().withStatus(code))
+            )
+
+            connector.getSummary(ArrivalId(1)).futureValue mustBe None
+        }
+      }
+    }
   }
 
 }
 
-object UnloadingConnectorSpec {
+object UnloadingConnectorConstants {
 
-  private val unloadingJson =
+   val unloadingJson =
       Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
         Json.obj(
         "messageType" -> "IE043E",
           "message" -> "<CC043A></CC043A>"))).toString()
 
-  private val jsonMultiple =
+   val jsonMultiple =
       Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
         Json.obj(
           "messageType" -> "IE015E",
@@ -150,17 +193,18 @@ object UnloadingConnectorSpec {
           "message" -> "<CC043A></CC043A>"
           ))).toString()
 
-  private val malFormedJson =
+   val malFormedJson =
     """
       ||{
       |[
       |}
     """.stripMargin
 
-  private val emptyObject: String = JsObject.empty.toString()
-  private val arrivalId = ArrivalId(1)
-  private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-  private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   val emptyObject: String = JsObject.empty.toString()
+   val arrivalId = ArrivalId(1)
+   val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }
