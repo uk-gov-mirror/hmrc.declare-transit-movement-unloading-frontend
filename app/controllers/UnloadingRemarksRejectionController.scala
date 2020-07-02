@@ -31,8 +31,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class UnloadingRemarksRejectionController @Inject()(
   override val messagesApi: MessagesApi,
   identify: IdentifierAction,
-  getData: DataRetrievalActionProvider,
-  requireData: DataRequiredAction,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
   service: UnloadingRemarksRejectionService
@@ -40,17 +38,13 @@ class UnloadingRemarksRejectionController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
-      println(s"**********")
-      println(s"BORKED...")
 
       service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
-        case Some(rejectionMessage) => {
-
+        case Some(rejectionMessage) =>
           val UnloadingRemarksRejectionViewModel(page, json) = UnloadingRemarksRejectionViewModel(rejectionMessage, "appConfig.nctsEnquiriesUrl", arrivalId)
           renderer.render(page, json).map(Ok(_))
-        }
         case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
 
