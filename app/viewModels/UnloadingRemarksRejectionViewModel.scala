@@ -33,7 +33,7 @@ object UnloadingRemarksRejectionViewModel {
         "createArrivalUrl" -> routes.IndexController.onPageLoad(arrivalId).url
       )
 
-    val genericRejectionPage = "arrivalGeneralRejection.njk"
+    val genericRejectionPage = "unloadingRemarksRejection.njk"
 
     new UnloadingRemarksRejectionViewModel(genericRejectionPage, genericJson)
   }
