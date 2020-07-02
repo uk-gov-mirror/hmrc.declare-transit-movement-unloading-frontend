@@ -19,7 +19,7 @@ package controllers
 import base.SpecBase
 import forms.AnythingElseToReportFormProvider
 import matchers.JsonMatchers
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -83,7 +83,7 @@ class AnythingElseToReportControllerSpec extends SpecBase with MockitoSugar with
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(arrivalId, mrn).set(AnythingElseToReportPage, true).success.value
+      val userAnswers    = emptyUserAnswers.set(AnythingElseToReportPage, true).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val request        = FakeRequest(GET, anythingElseToReportRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])

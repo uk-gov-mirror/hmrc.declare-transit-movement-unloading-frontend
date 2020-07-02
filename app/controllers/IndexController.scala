@@ -18,7 +18,7 @@ package controllers
 
 import controllers.actions.{DataRetrievalActionProvider, IdentifierAction}
 import javax.inject.Inject
-import models.{ArrivalId, EoriNumber, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, MovementReferenceNumber, UserAnswers}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
@@ -49,7 +49,7 @@ class IndexController @Inject()(
             case Some(unloadingPermission) =>
               MovementReferenceNumber(unloadingPermission.movementReferenceNumber) match {
                 case Some(mrn) =>
-                  val updatedAnswers = request.userAnswers.getOrElse(UserAnswers(id = arrivalId, mrn = mrn, eoriNumber = Some(EoriNumber(request.eoriNumber))))
+                  val updatedAnswers = request.userAnswers.getOrElse(UserAnswers(id = arrivalId, mrn = mrn, eoriNumber = request.eoriNumber))
                   sessionRepository.set(updatedAnswers).flatMap {
                     _ =>
                       Future.successful(Redirect(nextPage(arrivalId)))

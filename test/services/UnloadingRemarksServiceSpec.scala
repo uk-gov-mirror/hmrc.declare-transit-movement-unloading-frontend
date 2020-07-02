@@ -15,13 +15,13 @@
  */
 
 package services
-import java.time.{LocalDate, ZoneOffset}
+import java.time.LocalDate
 
 import base.SpecBase
 import connectors.UnloadingConnector
 import generators.MessagesModelGenerators
-import models.UnloadingPermission
 import models.messages.{InterchangeControlReference, _}
+import models.{EoriNumber, UnloadingPermission}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary
@@ -63,7 +63,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
     "should return 202 for successful submission" in {
 
       forAll(
-        stringsWithMaxLength(MessageSender.eoriLength),
+        arbitrary[EoriNumber],
         arbitrary[UnloadingPermission],
         arbitrary[Meta],
         arbitrary[RemarksConform],
@@ -119,7 +119,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
     "should return 503 when connector fails" in {
 
       forAll(
-        stringsWithMaxLength(MessageSender.eoriLength),
+        arbitrary[EoriNumber],
         arbitrary[UnloadingPermission],
         arbitrary[Meta],
         arbitrary[RemarksConform],
@@ -173,7 +173,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
     "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
 
-      forAll(stringsWithMaxLength(MessageSender.eoriLength), arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
+      forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
         (eori, unloadingPermission, meta, interchangeControlReference) =>
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
@@ -195,7 +195,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
     "should return None when failed to generate InterchangeControlReference" in {
 
-      forAll(stringsWithMaxLength(MessageSender.eoriLength), arbitrary[UnloadingPermission]) {
+      forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission]) {
         (eori, unloadingPermission) =>
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))

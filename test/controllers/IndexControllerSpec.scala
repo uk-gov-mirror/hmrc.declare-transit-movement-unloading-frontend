@@ -33,7 +33,7 @@ import scala.concurrent.Future
 
 class IndexControllerSpec extends SpecBase {
 
-  private val onwardRoute: String = routes.UnloadingGuidanceController.onPageLoad(arrivalId).url
+  private lazy val onwardRoute: String = routes.UnloadingGuidanceController.onPageLoad(arrivalId).url
 
   "Index Controller" - {
     "must redirect to onward route for a GET when there are no UserAnswers" in {
@@ -58,13 +58,13 @@ class IndexControllerSpec extends SpecBase {
       val result: Future[Result] = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustEqual Some(onwardRoute)
+      redirectLocation(result).value mustEqual onwardRoute
 
       verify(mockSessionRepository).set(userAnswersCaptor.capture())
 
       userAnswersCaptor.getValue.mrn.toString mustBe unloadingPermission.movementReferenceNumber
       userAnswersCaptor.getValue.id mustBe arrivalId
-      userAnswersCaptor.getValue.eoriNumber mustBe Some(EoriNumber("id"))
+      userAnswersCaptor.getValue.eoriNumber mustBe EoriNumber("id")
 
       application.stop()
     }
@@ -77,7 +77,7 @@ class IndexControllerSpec extends SpecBase {
       val result  = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustEqual Some(onwardRoute)
+      redirectLocation(result).value mustEqual onwardRoute
 
       application.stop()
     }
@@ -97,7 +97,7 @@ class IndexControllerSpec extends SpecBase {
       val result  = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.SessionExpiredController.onPageLoad().url)
+      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
 
       application.stop()
     }
@@ -135,7 +135,7 @@ class IndexControllerSpec extends SpecBase {
       val result  = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result) mustEqual Some(routes.SessionExpiredController.onPageLoad().url)
+      redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
 
       application.stop()
     }

@@ -21,7 +21,7 @@ import java.time.{LocalDate, ZoneOffset}
 import base.SpecBase
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
-import models.{NormalMode, UserAnswers}
+import models.NormalMode
 import navigation.{FakeUnloadingPermissionNavigator, NavigatorUnloadingPermission}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -99,7 +99,7 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with MockitoSugar with Nu
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = UserAnswers(arrivalId, mrn).set(DateGoodsUnloadedPage, validAnswer).success.value
+      val userAnswers    = emptyUserAnswers.set(DateGoodsUnloadedPage, validAnswer).success.value
       val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])

@@ -38,6 +38,13 @@ trait ModelGenerators {
       } yield MovementReferenceNumber(year, country.mkString, serial.mkString)
     }
 
+  implicit lazy val arbitraryEoriNumber: Arbitrary[EoriNumber] =
+    Arbitrary {
+      for {
+        number <- stringsWithMaxLength(MessageSender.eoriLength)
+      } yield EoriNumber(number)
+    }
+
   implicit lazy val arbitrarySensitiveGoodsInformation: Arbitrary[SensitiveGoodsInformation] =
     Arbitrary {
       for {

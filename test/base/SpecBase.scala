@@ -19,12 +19,21 @@ package base
 import cats.data.NonEmptyList
 import config.FrontendAppConfig
 import controllers.actions._
-import models.{ArrivalId, GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
+import models.{
+  ArrivalId,
+  EoriNumber,
+  GoodsItem,
+  MovementReferenceNumber,
+  Packages,
+  ProducedDocument,
+  TraderAtDestinationWithoutEori,
+  UnloadingPermission,
+  UserAnswers
+}
 import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice._
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -54,8 +63,8 @@ trait SpecBase
   val arrivalId: ArrivalId = ArrivalId(1)
 
   val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
-
-  def emptyUserAnswers = UserAnswers(arrivalId, mrn, Json.obj())
+  val eoriNumber: EoriNumber       = EoriNumber("id")
+  def emptyUserAnswers             = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
 
   def injector: Injector = app.injector
 

@@ -25,13 +25,11 @@ import queries.Gettable
 
 import scala.util.{Failure, Success, Try}
 
-final case class UserAnswers(
-  id: ArrivalId,
-  mrn: MovementReferenceNumber,
-  data: JsObject                 = Json.obj(),
-  lastUpdated: LocalDateTime     = LocalDateTime.now,
-  eoriNumber: Option[EoriNumber] = None
-) {
+final case class UserAnswers(id: ArrivalId,
+                             mrn: MovementReferenceNumber,
+                             eoriNumber: EoriNumber,
+                             data: JsObject             = Json.obj(),
+                             lastUpdated: LocalDateTime = LocalDateTime.now) {
 
   def get[A](page: Gettable[A])(implicit rds: Reads[A]): Option[A] =
     Reads.optionNoError(Reads.at(page.path)).reads(data).getOrElse(None)
@@ -84,9 +82,9 @@ object UserAnswers {
     (
       (__ \ "_id").read[ArrivalId] and
         (__ \ "mrn").read[MovementReferenceNumber] and
+        (__ \ "eoriNumber").read[EoriNumber] and
         (__ \ "data").read[JsObject] and
-        (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead) and
-        (__ \ "eoriNumber").readNullable[EoriNumber]
+        (__ \ "lastUpdated").read(MongoDateTimeFormats.localDateTimeRead)
     )(UserAnswers.apply _)
   }
 
@@ -97,9 +95,9 @@ object UserAnswers {
     (
       (__ \ "_id").write[ArrivalId] and
         (__ \ "mrn").write[MovementReferenceNumber] and
+        (__ \ "eoriNumber").write[EoriNumber] and
         (__ \ "data").write[JsObject] and
-        (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite) and
-        (__ \ "eoriNumber").writeNullable[EoriNumber]
+        (__ \ "lastUpdated").write(MongoDateTimeFormats.localDateTimeWrite)
     )(unlift(UserAnswers.unapply))
   }
 }
