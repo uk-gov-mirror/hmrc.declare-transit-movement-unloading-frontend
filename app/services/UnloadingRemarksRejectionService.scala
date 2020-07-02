@@ -24,7 +24,8 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingRemarksRejectionService @Inject()(connector: UnloadingConnector) {
 
-  def arrivalRejectionMessage(arrivalId: ArrivalId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[UnloadingRemarksRejectionMessage]] =
+  def unloadingRemarksRejectionMessage(arrivalId: ArrivalId)(implicit hc: HeaderCarrier,
+                                                             ec: ExecutionContext): Future[Option[UnloadingRemarksRejectionMessage]] =
     connector.getSummary(arrivalId) flatMap {
       case Some(summary) =>
         summary.messagesLocation.arrivalRejection match {

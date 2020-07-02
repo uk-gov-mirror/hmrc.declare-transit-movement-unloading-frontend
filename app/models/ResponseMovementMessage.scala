@@ -16,15 +16,13 @@
 
 package models
 
-import com.lucidchart.open.xtract.{__, XmlReader}
-import play.api.libs.json.{Json, OWrites}
+import play.api.libs.json.{Json, Reads}
+import utils.NodeSeqFormat
 
-case class ErrorPointer(value: String)
+import scala.xml.NodeSeq
 
-object ErrorPointer {
+case class ResponseMovementMessage(message: NodeSeq)
 
-  implicit val writes: OWrites[ErrorPointer] = Json.writes[ErrorPointer]
-
-  implicit val xmlReader: XmlReader[ErrorPointer] =
-    __.read[String].map(apply)
+object ResponseMovementMessage extends NodeSeqFormat {
+  implicit val reads: Reads[ResponseMovementMessage] = Json.reads[ResponseMovementMessage]
 }

@@ -289,8 +289,8 @@ totalNumberOfPackages.error.required = Enter the new total number of packages
 totalNumberOfPackages.error.wholeNumber = Total number of packages must only include numbers 0 to 9
 totalNumberOfPackages.error.outOfRange =  Total number of packages must be 9999999 or less
 
-unloadingRemarksRejection.title = There is an error in this unloading remarks notification
-unloadingRemarksRejection.heading = There is an error in this unloading remarks notification
+unloadingRemarksRejection.title = There is a problem with this unloading remarks notification
+unloadingRemarksRejection.heading = There is a problem with this unloading remarks notification
 unloadingRemarksRejection.you.can = You can:
 unloadingRemarksRejection.errorCode = Error code
 unloadingRemarksRejection.pointer = Pointer

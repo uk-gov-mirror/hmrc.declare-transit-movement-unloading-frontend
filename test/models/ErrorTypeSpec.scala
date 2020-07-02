@@ -28,7 +28,7 @@ class ErrorTypeSpec extends FreeSpec with ScalaCheckPropertyChecks with MustMatc
     "read integer as object" in {
 
       forAll(arbitrary[ErrorType]) {
-        errorType =>
+        errorType: ErrorType =>
           val xml = <ErrTypER11>{errorType.code}</ErrTypER11>
           ErrorType.xmlErrorTypeReads.read(xml) mustBe ParseSuccess(errorType)
       }

@@ -16,13 +16,17 @@
 
 package services
 
+import java.time.LocalDate
+
 import base.SpecBase
 import connectors.UnloadingConnector
-import models.{ArrivalId, Movement, MovementMessage}
-import org.mockito.Mockito.when
-import services.UnloadingPermissionServiceSpec.ie043Message
-import scala.concurrent.ExecutionContext.Implicits.global
+import models.ErrorType.DuplicateMrn
+import models.{ErrorPointer, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{reset, when}
+import play.api.inject.bind
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class UnloadingRemarksRejectionServiceSpec extends SpecBase {
@@ -30,11 +34,54 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
   private val mockConnector = mock[UnloadingConnector]
   val service               = new UnloadingRemarksRejectionService(mockConnector)
 
+  override def beforeEach: Unit = {
+    super.beforeEach
+    reset(mockConnector)
+  }
+
   "UnloadingRemarksRejectionService" - {
-    "must return UnloadingRemarksRejection when IE058 message exists" in {
-      when(mockConnector.get(ArrivalId(1)))
-        .thenReturn(Future.successful(Some(Movement(movementReferenceNumber = mrn, Seq(MovementMessage(messageType = "IE043A", message = ie043Message))))))
-      service.arrivalRejectionMessage(ArrivalId(1)).futureValue mustBe a[Some[_]]
+    "must return UnloadingRemarksRejectionMessage for the input arrivalId" in {
+      val errors              = Seq(FunctionalError(DuplicateMrn, ErrorPointer("Duplicate MRN"), None, None))
+      val notificationMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, None, errors)
+      val messagesSummary =
+        MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+
+      when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+      when(mockConnector.getRejectionMessage(any())(any()))
+        .thenReturn(Future.successful(Some(notificationMessage)))
+
+      val application = applicationBuilder(Some(emptyUserAnswers))
+        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+        .build()
+      val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+      unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe Some(notificationMessage)
+    }
+
+    "must return None when getSummary fails to get rejection message" in {
+      val messagesSummary =
+        MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", None))
+      when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+
+      val application = applicationBuilder(Some(emptyUserAnswers))
+        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+        .build()
+      val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+      unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
+    }
+
+    "must return None when getSummary call fails to get MessagesSummary" in {
+
+      when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(None))
+
+      val application = applicationBuilder(Some(emptyUserAnswers))
+        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+        .build()
+      val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+      unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
     }
   }
+
 }

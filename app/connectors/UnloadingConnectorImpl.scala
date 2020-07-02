@@ -16,17 +16,21 @@
 
 package connectors
 
-import com.google.inject.Inject
+import com.lucidchart.open.xtract.XmlReader
 import config.FrontendAppConfig
+import javax.inject.Inject
 import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
-import models.{ArrivalId, MessagesSummary, Movement, UnloadingRemarksRejectionMessage}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import models._
+import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.xml.NodeSeq
 
-class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext) extends UnloadingConnector {
+class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext)
+    extends UnloadingConnector
+    with HttpErrorFunctions {
 
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
@@ -52,26 +56,26 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
         case _ => None
       }
   }
-//  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
-//
-//    val serviceUrl: String = s"${config.destinationUrl}/movements/arrivals/${arrivalId.value}/messages/summary"
-//    http.GET[HttpResponse](serviceUrl) map {
-//      case responseMessage if is2xx(responseMessage.status) => Some(responseMessage.json.as[MessagesSummary])
-//      case _                                                => None
-//    }
-//  }
 
-//  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[ArrivalNotificationRejectionMessage]] = {
-//    val serviceUrl = s"${config.baseDestinationUrl}$rejectionLocation"
-//    http.GET[HttpResponse](serviceUrl) map {
-//      case responseMessage if is2xx(responseMessage.status) =>
-//        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
-//        XmlReader.of[ArrivalNotificationRejectionMessage].read(message).toOption
-//      case _ => None
-//    }
-//  }
-  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]                                = ???
-  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = ???
+  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
+
+    val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/summary"
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) => Some(responseMessage.json.as[MessagesSummary])
+      case _                                                => None
+    }
+  }
+
+  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = {
+    val serviceUrl = s"${config.arrivalsBackend}$rejectionLocation"
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) =>
+        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
+        XmlReader.of[UnloadingRemarksRejectionMessage].read(message).toOption
+      case _ => None
+    }
+  }
+
 }
 
 trait UnloadingConnector {
