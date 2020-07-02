@@ -18,14 +18,15 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.{ArrivalId, MovementReferenceNumber}
+import models.ArrivalId
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
+import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import viewModels.UnloadingRemarksRejectionViewModel
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingRemarksRejectionController @Inject()(
   override val messagesApi: MessagesApi,
@@ -33,15 +34,25 @@ class UnloadingRemarksRejectionController @Inject()(
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
+  renderer: Renderer,
+  service: UnloadingRemarksRejectionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      val json = Json.obj("mrn" -> request.userAnswers.mrn)
+      println(s"**********")
+      println(s"BORKED...")
 
-      renderer.render("unloadingRemarksRejection.njk", json).map(Ok(_))
+      service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
+        case Some(rejectionMessage) => {
+
+          val UnloadingRemarksRejectionViewModel(page, json) = UnloadingRemarksRejectionViewModel(rejectionMessage, "appConfig.nctsEnquiriesUrl", arrivalId)
+          renderer.render(page, json).map(Ok(_))
+        }
+        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+      }
+
   }
 }

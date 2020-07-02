@@ -61,13 +61,23 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/summary"
     http.GET[HttpResponse](serviceUrl) map {
-      case responseMessage if is2xx(responseMessage.status) => Some(responseMessage.json.as[MessagesSummary])
-      case _                                                => None
+      case responseMessage if is2xx(responseMessage.status) => {
+
+        println("************* SUMMARY JSON")
+        println(responseMessage.json)
+
+        Some(responseMessage.json.as[MessagesSummary])
+      }
+      case _ => None
     }
   }
 
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = {
     val serviceUrl = s"${config.arrivalsBackend}$rejectionLocation"
+
+    println(s"**********")
+    println(s"URL - $serviceUrl")
+
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
