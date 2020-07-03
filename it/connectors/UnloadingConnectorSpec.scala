@@ -178,7 +178,7 @@ class UnloadingConnectorSpec extends FreeSpec
     "getRejectionMessage" - {
       "must return valid 'rejection message'" in {
         val genRejectionError     = arbitrary[ErrorType].sample.value
-        val rejectionXml: NodeSeq = <CC008A>
+        val rejectionXml: NodeSeq = <CC058A>
           <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
             <ArrRejDatHEA142>20191018</ArrRejDatHEA142>
             <ArrRejReaHEA242>Incorrect Value</ArrRejReaHEA242>
@@ -188,7 +188,7 @@ class UnloadingConnectorSpec extends FreeSpec
             <ErrPoiER12>Message type</ErrPoiER12>
             <OriAttValER14>GB007A</OriAttValER14>
           </FUNERRER1>
-        </CC008A>
+        </CC058A>
 
         val json = Json.obj("message" -> rejectionXml.toString())
 
@@ -210,10 +210,10 @@ class UnloadingConnectorSpec extends FreeSpec
       }
 
       "must return None for malformed xml'" in {
-        val rejectionXml: NodeSeq = <CC008A>
+        val rejectionXml: NodeSeq = <CC058A>
           <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
           </HEAHEA>
-        </CC008A>
+        </CC058A>
 
         val json = Json.obj("message" -> rejectionXml.toString())
 
