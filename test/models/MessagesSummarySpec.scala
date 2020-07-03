@@ -28,8 +28,8 @@ class MessagesSummarySpec extends FreeSpec with MustMatchers {
 
       val json = Json.obj("arrivalId" -> 123,
                           "messages" -> Json.obj(
-                            "IE007" -> "/movements/arrivals/1234/messages/3",
-                            "IE008" -> "/movements/arrivals/1234/messages/5"
+                            "IE044" -> "/movements/arrivals/1234/messages/3",
+                            "IE058" -> "/movements/arrivals/1234/messages/5"
                           ))
 
       json.as[MessagesSummary] mustBe messageActions
