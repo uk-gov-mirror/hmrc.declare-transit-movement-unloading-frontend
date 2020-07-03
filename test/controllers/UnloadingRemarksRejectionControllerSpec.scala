@@ -20,7 +20,7 @@ import java.time.LocalDate
 
 import base.SpecBase
 import matchers.JsonMatchers
-import models.ErrorType.{DuplicateMrn, InvalidMrn, UnknownMrn}
+import models.ErrorType.{ElementTooLong, ElementTooShort, IncorrectValue, MissingDigit}
 import models.{ErrorPointer, FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -48,11 +48,12 @@ class UnloadingRemarksRejectionControllerSpec extends SpecBase with MockitoSugar
   "UnloadingRemarksRejection Controller" - {
 
     Seq(
-      (UnknownMrn, "Unknown MRN", "movementReferenceNumberRejection.error.unknown"),
-      (DuplicateMrn, "duplicate MRN", "movementReferenceNumberRejection.error.duplicate"),
-      (InvalidMrn, "Invalid MRN", "movementReferenceNumberRejection.error.invalid")
+      (IncorrectValue, "Incorrect Value"),
+      (MissingDigit, "Missing Digit"),
+      (ElementTooLong, "Element Too Long"),
+      (ElementTooShort, "Element Too Short")
     ) foreach {
-      case (errorType, errorPointer, _) =>
+      case (errorType, errorPointer) =>
         s"return OK and the correct $errorPointer Rejection view for a GET when unloading rejection message returns a Some " in {
 
           when(mockRenderer.render(any(), any())(any()))

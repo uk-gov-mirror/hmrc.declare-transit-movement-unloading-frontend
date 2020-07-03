@@ -51,7 +51,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   lazy val referenceDataUrl: String = configuration.get[Service]("microservice.services.reference-data").fullServiceUrl
 
-  lazy val arrivalsBackend: String = configuration.get[Service]("microservice.services.arrivals-backend").fullServiceUrl
+  lazy val arrivalsBackend: String        = configuration.get[Service]("microservice.services.arrivals-backend").fullServiceUrl
+  lazy val arrivalsBackendBaseUrl: String = configuration.get[Service]("microservice.services.arrivals-backend").baseUrl
 
   lazy val environment: String = configuration.get[String]("env")
 

@@ -1,9 +1,11 @@
 package connectors
 
+import java.time.LocalDate
+
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
-import models.{ArrivalId, MessagesLocation, MessagesSummary}
 import models.messages.UnloadingRemarksRequest
+import models.{ArrivalId, ErrorPointer, ErrorType, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -12,6 +14,8 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
+
+import scala.xml.NodeSeq
 
 class UnloadingConnectorSpec extends FreeSpec
   with ScalaFutures
@@ -22,7 +26,7 @@ class UnloadingConnectorSpec extends FreeSpec
   with MessagesModelGenerators
   with ScalaCheckPropertyChecks {
 
-  import UnloadingConnectorConstants._
+  import UnloadingConnectorSpec._
 
   override protected def portConfigKey: String = "microservice.services.arrivals-backend.port"
 
@@ -170,19 +174,84 @@ class UnloadingConnectorSpec extends FreeSpec
         }
       }
     }
+
+    "getRejectionMessage" - {
+      "must return valid 'rejection message'" in {
+        val genRejectionError     = arbitrary[ErrorType].sample.value
+        val rejectionXml: NodeSeq = <CC008A>
+          <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
+            <ArrRejDatHEA142>20191018</ArrRejDatHEA142>
+            <ArrRejReaHEA242>Incorrect Value</ArrRejReaHEA242>
+          </HEAHEA>
+          <FUNERRER1>
+            <ErrTypER11>{genRejectionError.code}</ErrTypER11>
+            <ErrPoiER12>Message type</ErrPoiER12>
+            <OriAttValER14>GB007A</OriAttValER14>
+          </FUNERRER1>
+        </CC008A>
+
+        val json = Json.obj("message" -> rejectionXml.toString())
+
+        server.stubFor(
+          get(urlEqualTo(rejectionUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+        val expectedResult = Some(
+          UnloadingRemarksRejectionMessage(
+            "19IT021300100075E9",
+            LocalDate.of(2019, 10, 18),
+            None,
+            Some("Incorrect Value"),
+            List(FunctionalError(genRejectionError, ErrorPointer("Message type"), None, Some("GB007A")))
+          ))
+        connector.getRejectionMessage(rejectionUri).futureValue mustBe expectedResult
+      }
+
+      "must return None for malformed xml'" in {
+        val rejectionXml: NodeSeq = <CC008A>
+          <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
+          </HEAHEA>
+        </CC008A>
+
+        val json = Json.obj("message" -> rejectionXml.toString())
+
+        server.stubFor(
+          get(urlEqualTo(rejectionUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+
+        connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+      }
+
+      "must return None when an error response is returned from getRejectionMessage" in {
+        forAll(responseCodes) {
+          code: Int =>
+            server.stubFor(
+              get(rejectionUri)
+                .willReturn(aResponse().withStatus(code))
+            )
+
+            connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+        }
+      }
+    }
   }
 
 }
 
-object UnloadingConnectorConstants {
+object UnloadingConnectorSpec {
 
-   val unloadingJson =
+  private val unloadingJson =
       Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
         Json.obj(
         "messageType" -> "IE043E",
           "message" -> "<CC043A></CC043A>"))).toString()
 
-   val jsonMultiple =
+  private val jsonMultiple =
       Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
         Json.obj(
           "messageType" -> "IE015E",
@@ -193,18 +262,19 @@ object UnloadingConnectorConstants {
           "message" -> "<CC043A></CC043A>"
           ))).toString()
 
-   val malFormedJson =
+  private val malFormedJson =
     """
       ||{
       |[
       |}
     """.stripMargin
 
-   val emptyObject: String = JsObject.empty.toString()
-   val arrivalId = ArrivalId(1)
-   val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-   val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-   val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
+   private val arrivalId = ArrivalId(1)
+   private val emptyObject: String = JsObject.empty.toString()
+   private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   private val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
+   private val rejectionUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }

@@ -68,7 +68,7 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
   }
 
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = {
-    val serviceUrl = s"${config.arrivalsBackend}$rejectionLocation"
+    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$rejectionLocation"
 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
