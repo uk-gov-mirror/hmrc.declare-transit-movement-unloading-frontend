@@ -27,7 +27,6 @@ case class UnloadingRemarksRejectionMessage(
   movementReferenceNumber: String,
   rejectionDate: LocalDate,
   action: Option[String],
-  reason: Option[String],
   errors: Seq[FunctionalError]
 )
 
@@ -35,9 +34,8 @@ object UnloadingRemarksRejectionMessage {
 
   implicit val xmlReader: XmlReader[UnloadingRemarksRejectionMessage] = (
     (__ \ "HEAHEA" \ "DocNumHEA5").read[String],
-    (__ \ "HEAHEA" \ "ArrRejDatHEA142").read[LocalDate],
-    (__ \ "HEAHEA" \ "ActToBeTakHEA238").read[String].optional,
-    (__ \ "HEAHEA" \ "ArrRejReaHEA242").read[String].optional,
+    (__ \ "HEAHEA" \ "UnlRemRejDatHEA218").read[LocalDate],
+    (__ \ "HEAHEA" \ "UnlRemRejReaHEA280").read[String].optional,
     (__ \ "FUNERRER1").read(strictReadSeq[FunctionalError])
   ).mapN(apply)
 }

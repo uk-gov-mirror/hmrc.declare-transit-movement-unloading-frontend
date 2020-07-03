@@ -62,7 +62,7 @@ class UnloadingRemarksRejectionControllerSpec extends SpecBase with MockitoSugar
           val errors = Seq(FunctionalError(errorType, ErrorPointer(errorPointer), None, None))
 
           when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
-            .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, None, errors))))
+            .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
 
           val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
             .overrides(

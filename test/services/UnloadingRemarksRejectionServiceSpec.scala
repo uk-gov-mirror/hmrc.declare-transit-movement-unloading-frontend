@@ -42,7 +42,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
   "UnloadingRemarksRejectionService" - {
     "must return UnloadingRemarksRejectionMessage for the input arrivalId" in {
       val errors              = Seq(FunctionalError(DuplicateMrn, ErrorPointer("Duplicate MRN"), None, None))
-      val notificationMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, None, errors)
+      val notificationMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors)
       val messagesSummary =
         MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
 

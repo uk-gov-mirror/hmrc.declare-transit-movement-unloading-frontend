@@ -156,8 +156,7 @@ trait MessagesModelGenerators extends Generators {
         mrn    <- arbitrary[MovementReferenceNumber].map(_.toString())
         date   <- arbitrary[LocalDate]
         action <- arbitrary[Option[String]]
-        reason <- arbitrary[Option[String]]
         errors <- listWithMaxLength[FunctionalError](5)
-      } yield UnloadingRemarksRejectionMessage(mrn, date, action, reason, errors)
+      } yield UnloadingRemarksRejectionMessage(mrn, date, action, errors)
     }
 }
