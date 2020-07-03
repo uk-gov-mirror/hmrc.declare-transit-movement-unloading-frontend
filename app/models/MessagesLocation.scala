@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{__, Reads}
 
-case class MessagesLocation(arrivalNotification: String, arrivalRejection: Option[String] = None)
+case class MessagesLocation(unloadingRemarks: String, unloadingRemarksRejection: Option[String] = None)
 
 object MessagesLocation {
 
@@ -27,5 +27,6 @@ object MessagesLocation {
   implicit val reads: Reads[MessagesLocation] = {
     ((__ \ "IE044").read[String] and
       (__ \ "IE058").readNullable[String])(MessagesLocation.apply _)
+
   }
 }
