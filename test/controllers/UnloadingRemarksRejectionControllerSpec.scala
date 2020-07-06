@@ -19,14 +19,16 @@ package controllers
 import java.time.LocalDate
 
 import base.SpecBase
+import generators.MessagesModelGenerators
 import matchers.JsonMatchers
-import models.ErrorType.{ElementTooLong, ElementTooShort, IncorrectValue, MissingDigit}
-import models.{ErrorPointer, FunctionalError, UnloadingRemarksRejectionMessage}
+import models.{FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
@@ -36,7 +38,13 @@ import services.UnloadingRemarksRejectionService
 
 import scala.concurrent.Future
 
-class UnloadingRemarksRejectionControllerSpec extends SpecBase with MockitoSugar with JsonMatchers with BeforeAndAfterEach {
+class UnloadingRemarksRejectionControllerSpec
+    extends SpecBase
+    with MockitoSugar
+    with JsonMatchers
+    with BeforeAndAfterEach
+    with ScalaCheckPropertyChecks
+    with MessagesModelGenerators {
 
   private val mockUnloadingRemarksRejectionService = mock[UnloadingRemarksRejectionService]
 
@@ -47,46 +55,40 @@ class UnloadingRemarksRejectionControllerSpec extends SpecBase with MockitoSugar
 
   "UnloadingRemarksRejection Controller" - {
 
-    Seq(
-      (IncorrectValue, "Incorrect Value"),
-      (MissingDigit, "Missing Digit"),
-      (ElementTooLong, "Element Too Long"),
-      (ElementTooShort, "Element Too Short")
-    ) foreach {
-      case (errorType, errorPointer) =>
-        s"return OK and the correct $errorPointer Rejection view for a GET when unloading rejection message returns a Some " in {
+    s"return OK and the Rejection view for a GET when unloading rejection message returns a Some " in {
 
-          when(mockRenderer.render(any(), any())(any()))
-            .thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any()))
+        .thenReturn(Future.successful(Html("")))
 
-          val errors = Seq(FunctionalError(errorType, ErrorPointer(errorPointer), None, None))
+      val functionalError = arbitrary[FunctionalError].sample.value
 
-          when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
-            .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
+      val errors = Seq(functionalError)
 
-          val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(
-              bind[UnloadingRemarksRejectionService].toInstance(mockUnloadingRemarksRejectionService)
-            )
-            .build()
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
 
-          val request        = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
-          val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-          val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        .overrides(
+          bind[UnloadingRemarksRejectionService].toInstance(mockUnloadingRemarksRejectionService)
+        )
+        .build()
 
-          val result = route(application, request).value
+      val request        = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-          status(result) mustEqual OK
+      val result = route(application, request).value
 
-          verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+      status(result) mustEqual OK
 
-          val expectedJson = Json.obj("mrn" -> mrn)
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-          templateCaptor.getValue mustEqual "unloadingRemarksRejection.njk"
-          jsonCaptor.getValue must containJson(expectedJson)
+      val expectedJson = Json.obj("mrn" -> mrn)
 
-          application.stop()
-        }
+      templateCaptor.getValue mustEqual "unloadingRemarksRejection.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
     }
 
     "redirect to 'Technical difficulties' page when unloading rejection message returns a None" in {
