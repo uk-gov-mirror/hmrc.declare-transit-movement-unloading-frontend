@@ -86,6 +86,18 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     }
   }
 
+  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[NodeSeq]] = {
+    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadinRemarksLocation"
+
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) =>
+        Some(responseMessage.json.as[ResponseMovementMessage].message)
+      case _ =>
+        Logger.error(s"getUnloadingRemarksMessage failed to return data")
+        None
+    }
+  }
+
 }
 
 trait UnloadingConnector {
@@ -93,5 +105,6 @@ trait UnloadingConnector {
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
+  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[NodeSeq]]
 
 }

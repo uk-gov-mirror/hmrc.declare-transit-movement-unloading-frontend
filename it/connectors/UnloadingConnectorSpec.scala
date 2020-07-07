@@ -239,6 +239,36 @@ class UnloadingConnectorSpec extends FreeSpec
         }
       }
     }
+
+    "getUnloadingRemarksMessage" - {
+      "must return valid 'unloading remarks message'" in {
+        val sampleXml: NodeSeq = <sample>test</sample>
+
+        val json = Json.obj("message" -> sampleXml.toString())
+
+        server.stubFor(
+          get(urlEqualTo(unloadingRemarksUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+
+        val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue
+        result mustBe Some(sampleXml)
+      }
+
+      "must return None when an error response is returned from getRejectionMessage" in {
+        forAll(responseCodes) {
+          code: Int =>
+            server.stubFor(
+              get(unloadingRemarksUri)
+                .willReturn(aResponse().withStatus(code))
+            )
+
+            connector.getUnloadingRemarksMessage(rejectionUri).futureValue mustBe None
+        }
+      }
+    }
   }
 
 }
@@ -275,6 +305,7 @@ object UnloadingConnectorSpec {
    private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
    private val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
    private val rejectionUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
+   private val unloadingRemarksUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }
