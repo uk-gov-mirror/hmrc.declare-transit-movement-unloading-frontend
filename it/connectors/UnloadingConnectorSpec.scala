@@ -178,10 +178,10 @@ class UnloadingConnectorSpec extends FreeSpec
     "getRejectionMessage" - {
       "must return valid 'rejection message'" in {
         val genRejectionError     = arbitrary[ErrorType].sample.value
-        val rejectionXml: NodeSeq = <CC058A>
-          <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
-            <ArrRejDatHEA142>20191018</ArrRejDatHEA142>
-            <ArrRejReaHEA242>Incorrect Value</ArrRejReaHEA242>
+        val rejectionXml: NodeSeq =             <CC058A>
+          <HEAHEA>
+            <DocNumHEA5>19IT021300100075E9</DocNumHEA5>
+            <UnlRemRejDatHEA218>20191018</UnlRemRejDatHEA218>
           </HEAHEA>
           <FUNERRER1>
             <ErrTypER11>{genRejectionError.code}</ErrTypER11>
@@ -203,10 +203,10 @@ class UnloadingConnectorSpec extends FreeSpec
             "19IT021300100075E9",
             LocalDate.of(2019, 10, 18),
             None,
-            Some("Incorrect Value"),
             List(FunctionalError(genRejectionError, ErrorPointer("Message type"), None, Some("GB007A")))
           ))
-        connector.getRejectionMessage(rejectionUri).futureValue mustBe expectedResult
+        val result = connector.getRejectionMessage(rejectionUri).futureValue
+        result mustBe expectedResult
       }
 
       "must return None for malformed xml'" in {

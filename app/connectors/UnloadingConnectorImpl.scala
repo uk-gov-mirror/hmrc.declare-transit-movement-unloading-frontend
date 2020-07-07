@@ -82,7 +82,6 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
         XmlReader.of[UnloadingRemarksRejectionMessage].read(message).toOption
       case _ =>
         Logger.error(s"Get Rejection Message failed to return data")
-
         None
     }
   }
