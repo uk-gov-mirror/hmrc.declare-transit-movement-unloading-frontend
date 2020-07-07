@@ -16,19 +16,22 @@
 
 package viewModels
 import controllers.routes
-import models.{ArrivalId, UnloadingRemarksRejectionMessage}
+import models.{ArrivalId, CheckMode, FunctionalError, UnloadingRemarksRejectionMessage}
 import play.api.libs.json.{JsObject, Json}
 
 case class UnloadingRemarksRejectionViewModel(page: String, json: JsObject)
 
 object UnloadingRemarksRejectionViewModel {
 
+  def errorDetails(errors: Seq[FunctionalError], arrivalId: ArrivalId): Seq[ErrorDetails] =
+    errors.map(error => ErrorDetails(error, routes.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId, CheckMode).url))
+
   def apply(rejectionMessage: UnloadingRemarksRejectionMessage, enquiriesUrl: String, arrivalId: ArrivalId): UnloadingRemarksRejectionViewModel = {
 
     def genericJson: JsObject =
       Json.obj(
         "mrn"              -> rejectionMessage.movementReferenceNumber,
-        "errors"           -> rejectionMessage.errors,
+        "errors"           -> errorDetails(rejectionMessage.errors, arrivalId),
         "contactUrl"       -> enquiriesUrl,
         "createArrivalUrl" -> routes.IndexController.onPageLoad(arrivalId).url
       )

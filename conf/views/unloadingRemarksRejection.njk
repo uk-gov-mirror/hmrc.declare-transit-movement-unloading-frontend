@@ -33,7 +33,7 @@
                      {{ messages("unloadingRemarksRejection.errorCode") }}
                       </dt>
                       <dd class="govuk-summary-list__value">
-                      {{ error.errorType }}
+                      {{ error.error.errorType }}
                       </dd>
                   </div>
                   <div class="govuk-summary-list__row">
@@ -41,7 +41,12 @@
                      {{ messages("unloadingRemarksRejection.pointer") }}
                       </dt>
                       <dd class="govuk-summary-list__value">
-                      {{ error.pointer.value }}
+                      {{ error.error.pointer.value }}
+                      </dd>
+                      <dd class="govuk-summary-list__actions">
+                                          <a class="govuk-link" href={{error.changeUrl}}> {{ messages("site.edit") }}
+                                          <span class="govuk-visually-hidden">{{ messages("site.edit.hidden") }}</span>
+                                          </a>
                       </dd>
                   </div>
               </dl>
