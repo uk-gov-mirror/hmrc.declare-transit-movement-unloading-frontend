@@ -19,7 +19,6 @@ package models
 import com.lucidchart.open.xtract.{__, XmlReader}
 import play.api.libs.json.{Json, OWrites}
 import cats.syntax.all._
-//TODO - ADD TESTS
 final case class FunctionalError(
   errorType: ErrorType,
   pointer: ErrorPointer,

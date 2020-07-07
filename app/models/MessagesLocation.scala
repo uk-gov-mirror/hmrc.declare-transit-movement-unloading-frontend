@@ -23,7 +23,6 @@ case class MessagesLocation(unloadingRemarks: String, unloadingRemarksRejection:
 object MessagesLocation {
 
   import play.api.libs.functional.syntax._
-  // TODO: update Message codes
   implicit val reads: Reads[MessagesLocation] = {
     ((__ \ "IE044").read[String] and
       (__ \ "IE058").readNullable[String])(MessagesLocation.apply _)

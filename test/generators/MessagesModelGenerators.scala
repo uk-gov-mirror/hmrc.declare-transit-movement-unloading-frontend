@@ -18,7 +18,7 @@ package generators
 
 import java.time.{LocalDate, LocalTime}
 
-import models.ErrorType.{GenericError, MRNError}
+import models.ErrorType.GenericError
 import models.messages.{
   Header,
   InterchangeControlReference,
@@ -65,11 +65,6 @@ trait MessagesModelGenerators extends Generators {
     }
   }
 
-  implicit lazy val mrnErrorType: Arbitrary[MRNError] =
-    Arbitrary {
-      Gen.oneOf(ErrorType.mrnValues)
-    }
-
   implicit lazy val genericErrorType: Arbitrary[GenericError] =
     Arbitrary {
       Gen.oneOf(ErrorType.genericValues)
@@ -78,9 +73,8 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryErrorType: Arbitrary[ErrorType] =
     Arbitrary {
       for {
-        genericError      <- arbitrary[GenericError]
-        mrnRejectionError <- arbitrary[MRNError]
-        errorType         <- Gen.oneOf(Seq(genericError, mrnRejectionError))
+        genericError <- arbitrary[GenericError]
+        errorType    <- Gen.oneOf(Seq(genericError))
       } yield errorType
     }
 

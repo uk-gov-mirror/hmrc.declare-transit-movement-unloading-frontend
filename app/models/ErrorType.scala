@@ -28,7 +28,6 @@ sealed trait ErrorType {
 object ErrorType extends Enumerable.Implicits {
 
   sealed abstract class GenericError(val code: Int) extends ErrorType
-  sealed abstract class MRNError(val code: Int) extends ErrorType
 
   case object IncorrectValue extends GenericError(12)
   case object MissingValue extends GenericError(13)
@@ -41,16 +40,6 @@ object ErrorType extends Enumerable.Implicits {
   case object MissingDigit extends GenericError(38)
   case object ElementTooLong extends GenericError(39)
   case object ElementTooShort extends GenericError(40)
-
-  case object UnknownMrn extends MRNError(90)
-  case object DuplicateMrn extends MRNError(91)
-  case object InvalidMrn extends MRNError(93)
-
-  val mrnValues = Seq(
-    UnknownMrn,
-    DuplicateMrn,
-    InvalidMrn
-  )
 
   val genericValues = Seq(
     IncorrectValue,
@@ -68,7 +57,6 @@ object ErrorType extends Enumerable.Implicits {
 
   implicit val writes: Writes[ErrorType] = Writes[ErrorType] {
     case genericError: GenericError => JsNumber(genericError.code)
-    case mrnError: MRNError         => JsNumber(mrnError.code)
   }
 
   implicit val xmlErrorTypeReads: XmlReader[ErrorType] = {
@@ -77,7 +65,7 @@ object ErrorType extends Enumerable.Implicits {
 
         case class ErrorTypeParseError(message: String) extends ParseError
 
-        (mrnValues ++ genericValues).find(x => x.code.toString == xml.text) match {
+        genericValues.find(x => x.code.toString == xml.text) match {
           case Some(errorType) => ParseSuccess(errorType)
           case None            => ParseFailure(ErrorTypeParseError(s"Invalid or missing ErrorType: ${xml.text}"))
         }

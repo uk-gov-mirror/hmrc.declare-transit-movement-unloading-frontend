@@ -22,6 +22,7 @@ import javax.inject.Inject
 import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
 import models._
+import play.api.Logger
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
@@ -53,7 +54,10 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
       .GET[Movement](url)
       .map(x => Some(x))
       .recover {
-        case _ => None
+        case _ =>
+          Logger.error(s"Get failed to return data")
+
+          None
       }
   }
 
@@ -63,7 +67,9 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
         Some(responseMessage.json.as[MessagesSummary])
-      case _ => None
+      case _ =>
+        Logger.error(s"Get Summary failed to return data")
+        None
     }
   }
 
@@ -74,7 +80,10 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XmlReader.of[UnloadingRemarksRejectionMessage].read(message).toOption
-      case _ => None
+      case _ =>
+        Logger.error(s"Get Rejection Message failed to return data")
+
+        None
     }
   }
 

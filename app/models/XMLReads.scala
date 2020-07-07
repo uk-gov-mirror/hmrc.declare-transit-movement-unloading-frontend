@@ -29,7 +29,6 @@ object XMLReads {
 
   case class LocalDateParseFailure(message: String) extends ParseError
   case class LocalTimeParseFailure(message: String) extends ParseError
-//TODO - TESTS REQUIRED
   implicit val xmlDateReads: XmlReader[LocalDate] = {
     new XmlReader[LocalDate] {
       override def read(xml: NodeSeq): ParseResult[LocalDate] =

@@ -17,7 +17,7 @@
 package models
 
 import play.api.libs.json.{__, Reads}
-//TODO Add tests
+
 case class MessagesSummary(arrivalId: ArrivalId, messagesLocation: MessagesLocation)
 
 object MessagesSummary {
