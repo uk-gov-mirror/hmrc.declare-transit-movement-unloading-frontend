@@ -19,8 +19,8 @@ package controllers
 import controllers.actions._
 import javax.inject.Inject
 import models.ArrivalId
+import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UnloadingRemarksRejectionService
@@ -39,13 +39,23 @@ class UnloadingRemarksRejectionController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
+  val Log = Logger(getClass)
+
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
       service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
-        case Some(rejectionMessage) =>
-          val UnloadingRemarksRejectionViewModel(page, json) = UnloadingRemarksRejectionViewModel(rejectionMessage, "appConfig.nctsEnquiriesUrl", arrivalId)
-          renderer.render(page, json).map(Ok(_))
-        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+        case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
+          rejectionMessage.errors.head.originalAttributeValue match {
+            case Some(originalAttrValue) =>
+              val UnloadingRemarksRejectionViewModel(page, json) =
+                UnloadingRemarksRejectionViewModel(originalAttrValue, "appConfig.nctsEnquiriesUrl", arrivalId)
+              renderer.render(page, json).map(Ok(_))
+
+            case None =>
+              Log.debug("UnloadingRemarksRejectionMessage:originalAttributeValue is None")
+              Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+          }
+        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad())) //TODO need to handle multiple errors
       }
 
   }

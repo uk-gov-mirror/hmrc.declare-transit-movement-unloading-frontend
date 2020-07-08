@@ -1,9 +1,9 @@
 {% extends "includes/layout.njk" %}
 
-{% from "govuk/components/back-link/macro.njk"        import govukBackLink %}
-{% from "macros/title.njk"                            import title %}
-{% from "govuk/components/button/macro.njk"           import govukButton %}
-{% from "govuk/components/summary-list/macro.njk"     import govukSummaryList %}
+{% from "govuk/components/back-link/macro.njk"     import govukBackLink %}
+{% from "govuk/components/summary-list/macro.njk"  import govukSummaryList %}
+{% from "govuk/components/button/macro.njk"        import govukButton %}
+{% from "macros/title.njk"                         import title %}
 {% from "macros/section.njk"             import section as sectionMacro %}
 
 {% block pageTitle %}
@@ -30,11 +30,10 @@
           {{ sectionMacro(section.sectionTitle, section.rows) }}
         {% endfor %}
 
-        <p class="govuk-body">{{ messages("unloadingRemarksRejection.you.can") }}</p>
-            <ol class="govuk-list govuk-list--bullet">
-           <li> <a class="govuk-link" href={{createArrivalUrl}} >{{ messages("unloadingRemarksRejection.create.unloadingRemarks") }}</a>
-           <li> <a class="govuk-link" href={{contactUrl}} target="_blank">{{ messages("unloadingRemarksRejection.contact") }}</a> </li>
-            </ol>
+        <p class="govuk-body">{{ messages("unloadingRemarksRejection.contact.message") }}
+        <a class="govuk-link" href={{contactUrl}} target="_blank">{{ messages("unloadingRemarksRejection.contact") }}</a>
+        </p>
+
       </div>
     </div>
   </div>

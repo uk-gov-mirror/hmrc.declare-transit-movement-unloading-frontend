@@ -16,7 +16,7 @@
 
 package viewModels
 import controllers.routes
-import models.{ArrivalId, CheckMode, UnloadingRemarksRejectionMessage}
+import models.{ArrivalId, CheckMode}
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
@@ -27,16 +27,14 @@ case class UnloadingRemarksRejectionViewModel(page: String, json: JsObject)
 
 object UnloadingRemarksRejectionViewModel {
 
-  def apply(rejectionMessage: UnloadingRemarksRejectionMessage, enquiriesUrl: String, arrivalId: ArrivalId)(
-    implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
+  def apply(originalValue: String, enquiriesUrl: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
 
-    val section = Seq(Section(Seq(vehicleNameRegistrationReference(arrivalId, rejectionMessage.errors.head.originalAttributeValue.getOrElse("")))))
+    val section = Seq(Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue))))
 
     def genericJson: JsObject =
       Json.obj(
-        "sections"         -> Json.toJson(section),
-        "contactUrl"       -> enquiriesUrl,
-        "createArrivalUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        "sections"   -> Json.toJson(section),
+        "contactUrl" -> enquiriesUrl
       )
 
     val genericRejectionPage = "unloadingRemarksRejection.njk"
@@ -46,13 +44,13 @@ object UnloadingRemarksRejectionViewModel {
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
     Row(
-      key   = Key(msg"vehicleNameRegistrationReference.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+      key   = Key(msg"changeVehicle.reference.label", classes = Seq("govuk-!-width-one-half")),
       value = Value(lit"$value"),
       actions = List(
         Action(
           content            = msg"site.edit",
           href               = routes.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId, CheckMode).url,
-          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"vehicleNameRegistrationReference.checkYourAnswersLabel"))
+          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeVehicle.reference.label"))
         )
       )
     )

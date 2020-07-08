@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package controllersmel
+package controllers
 
 import java.time.LocalDate
 
 import base.SpecBase
-import controllers.routes
 import generators.MessagesModelGenerators
 import matchers.JsonMatchers
 import models.{FunctionalError, UnloadingRemarksRejectionMessage}
@@ -31,7 +30,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.inject.bind
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -56,7 +55,7 @@ class UnloadingRemarksRejectionControllerSpec
 
   "UnloadingRemarksRejection Controller" - {
 
-    s"return OK and the Rejection view for a GET when unloading rejection message returns a Some " in {
+    "return OK and the Rejection view for a GET when unloading rejection message returns a Some" in {
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
@@ -84,10 +83,34 @@ class UnloadingRemarksRejectionControllerSpec
 
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      val expectedJson = Json.obj("mrn" -> mrn)
-
       templateCaptor.getValue mustEqual "unloadingRemarksRejection.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+    "redirect to 'Technical difficulties' page when unloading rejection message's originalAttributeValue is None" in {
+
+      when(mockRenderer.render(any(), any())(any()))
+        .thenReturn(Future.successful(Html("")))
+
+      val functionalError = arbitrary[FunctionalError].sample.value
+
+      val errors = Seq(functionalError.copy(originalAttributeValue = None))
+
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        .overrides(
+          bind[UnloadingRemarksRejectionService].toInstance(mockUnloadingRemarksRejectionService)
+        )
+        .build()
+
+      val request = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
 
       application.stop()
     }
