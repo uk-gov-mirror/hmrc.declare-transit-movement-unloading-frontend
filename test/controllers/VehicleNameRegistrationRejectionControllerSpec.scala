@@ -89,6 +89,54 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       application.stop()
     }
 
+    "must go to technical difficulties when the error attributes are none" in {
+
+      val mockRejectionService = mock[UnloadingRemarksRejectionService]
+
+      val originalValue    = "some reference"
+      val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, None))
+      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors)
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+
+      val application = applicationBuilder(Some(emptyUserAnswers))
+        .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+        .build()
+      val request = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
+
+      application.stop()
+    }
+
+    "must go to technical difficulties when there is no rejection message" in {
+
+      val mockRejectionService = mock[UnloadingRemarksRejectionService]
+
+      val originalValue    = "some reference"
+      val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors)
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(None))
+
+      val application = applicationBuilder(Some(emptyUserAnswers))
+        .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+        .build()
+      val request = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
+
+      application.stop()
+    }
+
     "must return a Bad Request and errors when invalid data is submitted" in {
 
       when(mockRenderer.render(any(), any())(any()))
