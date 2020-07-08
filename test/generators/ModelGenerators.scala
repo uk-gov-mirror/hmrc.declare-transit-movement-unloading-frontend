@@ -128,7 +128,7 @@ trait ModelGenerators {
   implicit lazy val arbitrarySeals: Arbitrary[Seals] =
     Arbitrary {
       for {
-        numberOfSeals <- choose(min = 1: Int, Seals.maxSeals: Int)
+        numberOfSeals <- choose(min = 1: Int, 10: Int)
         sealId        <- listWithMaxSize(numberOfSeals, stringsWithMaxLength(Seals.sealIdLength))
       } yield Seals(numberOfSeals, sealId)
     }
@@ -142,7 +142,7 @@ trait ModelGenerators {
         description               <- stringsWithMaxLength(Packages.kindOfPackageLength)
         grossMass                 <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //BigDecimal.RoundingMode.DOWN
         netMass                   <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //todo does this need to be a bigDecimal
-        producedDocuments         <- nonEmptyListWithMaxSize(GoodsItem.maxDocuments: Int, arbitrary[ProducedDocument])
+        producedDocuments         <- nonEmptyListWithMaxSize(9: Int, arbitrary[ProducedDocument])
         containers                <- listWithMaxSize(GoodsItem.maxContainers, stringsWithMaxLength(GoodsItem.containerLength))
         packages                  <- arbitrary[Packages] //todo should this be a nonEmptySeq
         sensitiveGoodsInformation <- listWithMaxLength[SensitiveGoodsInformation](GoodsItem.maxSensitiveGoods: Int)

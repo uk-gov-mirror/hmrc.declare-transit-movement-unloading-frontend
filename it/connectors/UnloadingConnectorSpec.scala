@@ -43,9 +43,7 @@ class UnloadingConnectorSpec extends FreeSpec
           post(postUri)
             .willReturn(status(ACCEPTED)))
 
-        val unloadingRemarksRequestObject = arbitrary[UnloadingRemarksRequest]
-
-        val unloadingRemarksRequest: UnloadingRemarksRequest = unloadingRemarksRequestObject .sample.get
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.get
 
         val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
 

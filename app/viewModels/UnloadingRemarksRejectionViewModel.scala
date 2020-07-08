@@ -16,7 +16,7 @@
 
 package viewModels
 import controllers.routes
-import models.{ArrivalId, CheckMode}
+import models.ArrivalId
 import play.api.i18n.Messages
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
@@ -49,7 +49,7 @@ object UnloadingRemarksRejectionViewModel {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = routes.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId, CheckMode).url,
+          href               = routes.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeVehicle.reference.label"))
         )
       )
