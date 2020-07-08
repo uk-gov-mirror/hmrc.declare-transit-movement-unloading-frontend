@@ -4,6 +4,7 @@
 {% from "macros/title.njk"                            import title %}
 {% from "govuk/components/button/macro.njk"           import govukButton %}
 {% from "govuk/components/summary-list/macro.njk"     import govukSummaryList %}
+{% from "macros/section.njk"             import section as sectionMacro %}
 
 {% block pageTitle %}
   {{ title(messages("unloadingRemarksRejection.title")) }}
@@ -25,27 +26,8 @@
 
         <p class="govuk-body">{{ messages("unloadingRemarksRejection.conflicting.information") }}</p>
 
-   {% for error in errors %}
-
-          <dl class="govuk-summary-list">
-                  <div class="govuk-summary-list__row">
-                      <dt class="govuk-summary-list__key">
-                     {{ messages("unloadingRemarksRejection.errorCode") }}
-                      </dt>
-                      <dd class="govuk-summary-list__value">
-                      {{ error.errorType }}
-                      </dd>
-                  </div>
-                  <div class="govuk-summary-list__row">
-                      <dt class="govuk-summary-list__key">
-                     {{ messages("unloadingRemarksRejection.pointer") }}
-                      </dt>
-                      <dd class="govuk-summary-list__value">
-                      {{ error.pointer.value }}
-                      </dd>
-                  </div>
-              </dl>
-
+        {% for section in sections %}
+          {{ sectionMacro(section.sectionTitle, section.rows) }}
         {% endfor %}
 
         <p class="govuk-body">{{ messages("unloadingRemarksRejection.you.can") }}</p>
