@@ -257,7 +257,7 @@ class UnloadingConnectorSpec extends FreeSpec
         result mustBe Some(sampleXml)
       }
 
-      "must return None when an error response is returned from getRejectionMessage" in {
+      "must return None when an error response is returned from getUnloadingRemarksMessage" in {
         forAll(responseCodes) {
           code: Int =>
             server.stubFor(
