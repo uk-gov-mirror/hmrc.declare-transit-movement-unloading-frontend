@@ -16,22 +16,22 @@
 
 package viewModels
 import controllers.routes
-import models.{ArrivalId, CheckMode, FunctionalError, UnloadingRemarksRejectionMessage}
+import models.{ArrivalId, CheckMode, UnloadingRemarksRejectionMessage}
+import pages._
 import play.api.libs.json.{JsObject, Json}
+import uk.gov.hmrc.viewmodels.SummaryList._
+import uk.gov.hmrc.viewmodels._
 
 case class UnloadingRemarksRejectionViewModel(page: String, json: JsObject)
 
 object UnloadingRemarksRejectionViewModel {
-
-  def errorDetails(errors: Seq[FunctionalError], arrivalId: ArrivalId): Seq[ErrorDetails] =
-    errors.map(error => ErrorDetails(error, routes.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId, CheckMode).url))
 
   def apply(rejectionMessage: UnloadingRemarksRejectionMessage, enquiriesUrl: String, arrivalId: ArrivalId): UnloadingRemarksRejectionViewModel = {
 
     def genericJson: JsObject =
       Json.obj(
         "mrn"              -> rejectionMessage.movementReferenceNumber,
-        "errors"           -> errorDetails(rejectionMessage.errors, arrivalId),
+        "errors"           -> rejectionMessage.errors,
         "contactUrl"       -> enquiriesUrl,
         "createArrivalUrl" -> routes.IndexController.onPageLoad(arrivalId).url
       )
@@ -40,5 +40,18 @@ object UnloadingRemarksRejectionViewModel {
 
     new UnloadingRemarksRejectionViewModel(genericRejectionPage, genericJson)
   }
-
+//  val vehicleNameRegistrationReference: Option[Row] = userAnswers.get(VehicleNameRegistrationReferencePage) map {
+//    answer =>
+//      Row(
+//        key = Key(msg"vehicleNameRegistrationReference.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
+//        value = Value(lit"$answer"),
+//        actions = List(
+//          Action(
+//            content = msg"site.edit",
+//            href = routes.VehicleNameRegistrationReferenceController.onPageLoad(userAnswers.id, CheckMode).url,
+//            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"vehicleNameRegistrationReference.checkYourAnswersLabel"))
+//          )
+//        )
+//      )
+//  }
 }
