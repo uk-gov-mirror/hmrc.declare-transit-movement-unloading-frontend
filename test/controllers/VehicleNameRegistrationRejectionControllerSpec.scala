@@ -195,5 +195,32 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       userAnswersCaptor.getValue.mrn mustBe mrn
       application.stop()
     }
+
+    "must redirect to technical difficulties page for a POST" in {
+      val mockSessionRepository = mock[SessionRepository]
+      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
+
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(None))
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+
+      val application = applicationBuilder(userAnswers = None)
+        .overrides(
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
+        )
+        .build()
+
+      val request =
+        FakeRequest(POST, vehicleNameRegistrationRejectionRoute)
+          .withFormUrlEncodedBody(("value", "answer"))
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
+
+      application.stop()
+    }
   }
 }
