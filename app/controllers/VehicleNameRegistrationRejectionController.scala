@@ -80,7 +80,7 @@ class VehicleNameRegistrationRejectionController @Inject()(
                 for {
                   updatedAnswers <- Future.fromTry(userAnswers.set(VehicleNameRegistrationReferencePage, value))
                   _              <- sessionRepository.set(updatedAnswers)
-                } yield Redirect(routes.CheckYourAnswersController.onPageLoad(arrivalId))
+                } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
 
               case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }

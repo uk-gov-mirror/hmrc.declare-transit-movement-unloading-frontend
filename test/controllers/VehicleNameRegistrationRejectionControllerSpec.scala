@@ -187,7 +187,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
       status(result) mustEqual SEE_OTHER
 
-      redirectLocation(result).value mustEqual routes.CheckYourAnswersController.onPageLoad(arrivalId).url
+      redirectLocation(result).value mustEqual routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url
       verify(mockSessionRepository, times(1)).set(userAnswersCaptor.capture())
 
       userAnswersCaptor.getValue.data mustBe Json.obj("vehicleNameRegistrationReference" -> "answer")
