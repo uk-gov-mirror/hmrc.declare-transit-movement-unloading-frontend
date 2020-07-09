@@ -50,8 +50,7 @@ class UnloadingRemarksRejectionController @Inject()(
         case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
           rejectionMessage.errors.head.originalAttributeValue match {
             case Some(originalAttrValue) =>
-              val unloadingRemarksRejectionViewModel =
-                UnloadingRemarksRejectionViewModel(originalAttrValue, arrivalId)
+              val unloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(originalAttrValue, arrivalId)
               def json: JsObject =
                 Json.obj(
                   "sections"   -> Json.toJson(unloadingRemarksRejectionViewModel.sections),
@@ -63,7 +62,7 @@ class UnloadingRemarksRejectionController @Inject()(
               Log.debug("UnloadingRemarksRejectionMessage:originalAttributeValue is None")
               Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
-        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad())) //TODO need to handle multiple errors
+        case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad())) //TODO need to handle multiple errors
       }
 
   }

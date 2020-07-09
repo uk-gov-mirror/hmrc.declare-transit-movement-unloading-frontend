@@ -115,6 +115,32 @@ class UnloadingRemarksRejectionControllerSpec
       application.stop()
     }
 
+    "redirect to 'Technical difficulties' page when unloading rejection message's has more than one errors" in {
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      val functionalError = arbitrary[FunctionalError].sample.value
+
+      val errors = Seq(functionalError, functionalError)
+
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        .overrides(
+          bind[UnloadingRemarksRejectionService].toInstance(mockUnloadingRemarksRejectionService)
+        )
+        .build()
+
+      val request = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+
+      val result = route(application, request).value
+
+      status(result) mustEqual SEE_OTHER
+
+      application.stop()
+    }
+
     "redirect to 'Technical difficulties' page when unloading rejection message returns a None" in {
 
       when(mockRenderer.render(any(), any())(any()))

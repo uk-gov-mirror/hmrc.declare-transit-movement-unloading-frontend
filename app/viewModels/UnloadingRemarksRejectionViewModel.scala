@@ -26,9 +26,10 @@ case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
 
 object UnloadingRemarksRejectionViewModel {
 
+  //TODO add logic for multiple rejection errors
   def apply(originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel =
     UnloadingRemarksRejectionViewModel(Seq(Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue)))))
-//TODO add logic for multiple rejection errors
+
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
     Row(
       key   = Key(msg"changeVehicle.reference.label", classes = Seq("govuk-!-width-one-half")),
