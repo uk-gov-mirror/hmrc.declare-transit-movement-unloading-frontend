@@ -77,7 +77,7 @@ class SectionSpec extends FreeSpec with MustMatchers with NunjucksSupport with G
       Json.toJson(section) mustBe expectedSection
     }
 
-    "must serialise empty section" in {
+    "must serialise empty sections" in {
       Json.toJson(Section(None, Nil)) mustBe Json.obj("sectionTitle" -> JsNull, "rows" -> Json.arr())
     }
   }
