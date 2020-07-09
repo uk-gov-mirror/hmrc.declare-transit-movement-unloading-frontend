@@ -25,7 +25,7 @@ import utils.Format.dateFormatted
 
 class UnloadingRemarksRejectionMessageSpec extends SpecBase with ScalaCheckDrivenPropertyChecks with MessagesModelGenerators {
 
-  "ArrivalNotificationRejectionMessage" - {
+  "UnloadingRemarksRejectionMessage" - {
     "must deserialize from XML with minimal answers" in {
       forAll(arbitrary[UnloadingRemarksRejectionMessage], arbitrary[FunctionalError]) {
         (rejectionMessage, functionalError) =>
@@ -52,9 +52,9 @@ class UnloadingRemarksRejectionMessageSpec extends SpecBase with ScalaCheckDrive
             </CC058A>
           }
 
-          val result = XmlReader.of[UnloadingRemarksRejectionMessage].read(xml).toOption.value
+          val result = XmlReader.of[UnloadingRemarksRejectionMessage].read(xml)
 
-          result mustEqual minimalRejectionMessage
+          result.toOption.value mustEqual minimalRejectionMessage
       }
     }
 

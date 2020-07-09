@@ -147,7 +147,7 @@ trait MessagesModelGenerators extends Generators {
     Arbitrary {
 
       for {
-        mrn    <- arbitrary[MovementReferenceNumber].map(_.toString())
+        mrn    <- arbitrary[MovementReferenceNumber]
         date   <- arbitrary[LocalDate]
         action <- arbitrary[Option[String]]
         errors <- listWithMaxLength[FunctionalError](5)

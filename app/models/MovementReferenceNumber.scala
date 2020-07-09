@@ -16,6 +16,7 @@
 
 package models
 
+import com.lucidchart.open.xtract.{__ => XmlPath, XmlReader}
 import models.MovementReferenceNumber._
 import play.api.libs.json._
 import play.api.mvc.PathBindable
@@ -70,6 +71,10 @@ object MovementReferenceNumber {
   implicit lazy val writes: Writes[MovementReferenceNumber] = Writes {
     mrn =>
       JsString(mrn.toString)
+  }
+
+  implicit val xmlReader: XmlReader[MovementReferenceNumber] = {
+    (XmlPath \ "DocNumHEA5").read[String] map (MovementReferenceNumber(_).get) // TODO needs to handle get
   }
 
   implicit def pathBindable: PathBindable[MovementReferenceNumber] = new PathBindable[MovementReferenceNumber] {

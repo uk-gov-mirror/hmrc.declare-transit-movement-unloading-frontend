@@ -23,7 +23,7 @@ import forms.VehicleNameRegistrationReferenceFormProvider
 import generators.MessagesModelGenerators
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
-import models.{ErrorPointer, FunctionalError, NormalMode, UnloadingRemarksRejectionMessage}
+import models.{ErrorPointer, FunctionalError, UnloadingRemarksRejectionMessage, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -34,6 +34,7 @@ import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -56,7 +57,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
       val originalValue    = "some reference"
       val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
-      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors)
+      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
@@ -79,8 +80,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
       val expectedJson = Json.obj(
         "form"      -> filledForm,
-        "arrivalId" -> arrivalId,
-        "mode"      -> NormalMode
+        "arrivalId" -> arrivalId
       )
 
       templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
@@ -93,9 +93,8 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
       val mockRejectionService = mock[UnloadingRemarksRejectionService]
 
-      val originalValue    = "some reference"
       val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, None))
-      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors)
+      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
@@ -116,10 +115,6 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
     "must go to technical difficulties when there is no rejection message" in {
 
       val mockRejectionService = mock[UnloadingRemarksRejectionService]
-
-      val originalValue    = "some reference"
-      val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
-      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(None))
@@ -156,8 +151,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
       val expectedJson = Json.obj(
         "form"      -> boundForm,
-        "arrivalId" -> arrivalId,
-        "mode"      -> NormalMode
+        "arrivalId" -> arrivalId
       )
 
       templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
@@ -166,9 +160,24 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       application.stop()
     }
 
-    "must redirect to Session Expired for a POST if no existing data is found" in {
+    "must redirect to check your answers page for a POST" in {
+      val mockSessionRepository = mock[SessionRepository]
+      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
 
-      val application = applicationBuilder(userAnswers = None).build()
+      val originalValue     = "some reference"
+      val errors            = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+      val rejectionMessage  = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+      val userAnswersCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
+
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+
+      val application = applicationBuilder(userAnswers = None)
+        .overrides(
+          bind[SessionRepository].toInstance(mockSessionRepository),
+          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
+        )
+        .build()
 
       val request =
         FakeRequest(POST, vehicleNameRegistrationRejectionRoute)
@@ -179,7 +188,11 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.CheckYourAnswersController.onPageLoad(arrivalId).url
+      verify(mockSessionRepository, times(1)).set(userAnswersCaptor.capture())
 
+      userAnswersCaptor.getValue.data mustBe Json.obj("vehicleNameRegistrationReference" -> "answer")
+      userAnswersCaptor.getValue.id mustBe arrivalId
+      userAnswersCaptor.getValue.mrn mustBe mrn
       application.stop()
     }
   }

@@ -19,13 +19,15 @@ package controllers
 import controllers.actions._
 import forms.VehicleNameRegistrationReferenceFormProvider
 import javax.inject.Inject
-import models.{ArrivalId, Mode}
+import models.{ArrivalId, UserAnswers}
+import pages.VehicleNameRegistrationReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -46,40 +48,49 @@ class VehicleNameRegistrationRejectionController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = identify.async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
-      rejectionService.unloadingRemarksRejectionMessage(arrivalId) flatMap {
-        case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
-          rejectionMessage.errors.head.originalAttributeValue match {
-            case Some(originalAttrValue) =>
-              val json = Json.obj(
-                "form"      -> form.fill(originalAttrValue),
-                "arrivalId" -> arrivalId,
-                "mode"      -> mode
-              )
-              renderer.render("vehicleNameRegistrationReference.njk", json).map(Ok(_))
-            case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
-          }
+      getRejectedValue(arrivalId) flatMap {
+        case Some(originalAttrValue) =>
+          val json = Json.obj(
+            "form"      -> form.fill(originalAttrValue),
+            "arrivalId" -> arrivalId
+          )
+          renderer.render("vehicleNameRegistrationReference.njk", json).map(Ok(_))
         case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
   }
 
-  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = identify.async {
+  def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
       form
         .bindFromRequest()
         .fold(
           formWithErrors => {
-
             val json = Json.obj(
               "form"      -> formWithErrors,
-              "arrivalId" -> arrivalId,
-              "mode"      -> mode
+              "arrivalId" -> arrivalId
             )
-
             renderer.render("vehicleNameRegistrationReference.njk", json).map(BadRequest(_))
           },
-          value => Future.successful(Redirect(routes.CheckYourAnswersController.onPageLoad(arrivalId)))
+          value =>
+            rejectionService.unloadingRemarksRejectionMessage(arrivalId) flatMap {
+              case Some(rejectionMessage) =>
+                val userAnswers = UserAnswers(arrivalId, rejectionMessage.movementReferenceNumber, request.eoriNumber)
+                for {
+                  updatedAnswers <- Future.fromTry(userAnswers.set(VehicleNameRegistrationReferencePage, value))
+                  _              <- sessionRepository.set(updatedAnswers)
+                } yield Redirect(routes.CheckYourAnswersController.onPageLoad(arrivalId))
+
+              case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+          }
         )
   }
+
+  private def getRejectedValue(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[String]] =
+    rejectionService.unloadingRemarksRejectionMessage(arrivalId) map {
+      case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
+        rejectionMessage.errors.head.originalAttributeValue
+      case _ => None
+    }
 }

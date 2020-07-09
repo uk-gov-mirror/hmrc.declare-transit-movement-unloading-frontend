@@ -65,7 +65,7 @@ class UnloadingRemarksRejectionControllerSpec
       val errors = Seq(functionalError)
 
       when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
-        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
         .overrides(
@@ -98,7 +98,7 @@ class UnloadingRemarksRejectionControllerSpec
       val errors = Seq(functionalError.copy(originalAttributeValue = None))
 
       when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
-        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
         .overrides(

@@ -29,8 +29,8 @@ POST       /:arrivalId/vehicle-name-registration-reference                  cont
 GET        /:arrivalId/change-vehicle-name-registration-reference           controllers.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)
 POST       /:arrivalId/change-vehicle-name-registration-reference           controllers.VehicleNameRegistrationReferenceController.onSubmit(arrivalId: ArrivalId, mode: Mode = CheckMode)
 
-GET        /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
-POST       /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onSubmit(arrivalId: ArrivalId, mode: Mode = NormalMode)
+GET        /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onSubmit(arrivalId: ArrivalId)
 
 GET        /:arrivalId/vehicle-registration-country                         controllers.VehicleRegistrationCountryController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
 POST       /:arrivalId/vehicle-registration-country                         controllers.VehicleRegistrationCountryController.onSubmit(arrivalId: ArrivalId, mode: Mode = NormalMode)

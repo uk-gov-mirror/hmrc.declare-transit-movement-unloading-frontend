@@ -24,7 +24,7 @@ import models.XMLReads._
 import cats.syntax.all._
 
 case class UnloadingRemarksRejectionMessage(
-  movementReferenceNumber: String,
+  movementReferenceNumber: MovementReferenceNumber,
   rejectionDate: LocalDate,
   action: Option[String],
   errors: Seq[FunctionalError]
@@ -33,7 +33,7 @@ case class UnloadingRemarksRejectionMessage(
 object UnloadingRemarksRejectionMessage {
 
   implicit val xmlReader: XmlReader[UnloadingRemarksRejectionMessage] = (
-    (__ \ "HEAHEA" \ "DocNumHEA5").read[String],
+    (__ \ "HEAHEA").read[MovementReferenceNumber],
     (__ \ "HEAHEA" \ "UnlRemRejDatHEA218").read[LocalDate],
     (__ \ "HEAHEA" \ "UnlRemRejReaHEA280").read[String].optional,
     (__ \ "FUNERRER1").read(strictReadSeq[FunctionalError])

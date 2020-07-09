@@ -5,7 +5,7 @@ import java.time.LocalDate
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
 import models.messages.UnloadingRemarksRequest
-import models.{ArrivalId, ErrorPointer, ErrorType, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
+import models.{ArrivalId, ErrorPointer, ErrorType, FunctionalError, MessagesLocation, MessagesSummary, MovementReferenceNumber, UnloadingRemarksRejectionMessage}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -198,7 +198,7 @@ class UnloadingConnectorSpec extends FreeSpec
         )
         val expectedResult = Some(
           UnloadingRemarksRejectionMessage(
-            "19IT021300100075E9",
+            MovementReferenceNumber("19IT021300100075E9").get,
             LocalDate.of(2019, 10, 18),
             None,
             List(FunctionalError(genRejectionError, ErrorPointer("Message type"), None, Some("GB007A")))
