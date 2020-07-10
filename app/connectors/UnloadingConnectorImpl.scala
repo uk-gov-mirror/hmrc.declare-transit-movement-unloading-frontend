@@ -33,7 +33,7 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: NodeSeq)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
-    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.value}/messages/"
+    val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
     val headers = Seq(("Content-Type", "application/xml"))
 
@@ -46,11 +46,11 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     */
   def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]] = {
 
-    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.value}/messages/"
+    val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
     http
       .GET[Movement](url)
-      .map(x => Some(x))
+      .map(Some(_))
       .recover {
         case _ =>
           Logger.error(s"Get failed to return data")

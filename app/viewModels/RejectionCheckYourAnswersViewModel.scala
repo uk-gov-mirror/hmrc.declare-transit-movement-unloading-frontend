@@ -22,19 +22,16 @@ import pages.VehicleNameRegistrationReferencePage
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels._
-import utils.CheckYourAnswersHelper
 import viewModels.sections.Section
 
 case class RejectionCheckYourAnswersViewModel(sections: Seq[Section])
 
 object RejectionCheckYourAnswersViewModel {
 
-  def apply(userAnswers: UserAnswers)(implicit messages: Messages): RejectionCheckYourAnswersViewModel = {
-    val checkYourAnswersRow = new CheckYourAnswersHelper(userAnswers)
+  def apply(userAnswers: UserAnswers)(implicit messages: Messages): RejectionCheckYourAnswersViewModel =
     RejectionCheckYourAnswersViewModel(
-      Seq(Section(checkYourAnswersRow.vehicleNameRegistrationReference.toSeq))
+      Seq(Section(vehicleNameRegistrationReference(userAnswers).toSeq))
     )
-  }
 
   def vehicleNameRegistrationReference(userAnswers: UserAnswers): Option[Row] = userAnswers.get(VehicleNameRegistrationReferencePage) map {
     answer =>
