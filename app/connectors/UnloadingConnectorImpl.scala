@@ -19,8 +19,6 @@ package connectors
 import com.lucidchart.open.xtract.XmlReader
 import config.FrontendAppConfig
 import javax.inject.Inject
-import models.XMLWrites._
-import models.messages.UnloadingRemarksRequest
 import models._
 import play.api.Logger
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
@@ -33,13 +31,13 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     extends UnloadingConnector
     with HttpErrorFunctions {
 
-  def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def post(arrivalId: ArrivalId, unloadingRemarksRequest: NodeSeq)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
     val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.value}/messages/"
 
     val headers = Seq(("Content-Type", "application/xml"))
 
-    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
+    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toString, headers)
   }
 
   /**
@@ -102,7 +100,7 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 
 trait UnloadingConnector {
   def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]]
-  def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
+  def post(arrivalId: ArrivalId, unloadingRemarksRequest: NodeSeq)(implicit hc: HeaderCarrier): Future[HttpResponse]
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
   def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[NodeSeq]]

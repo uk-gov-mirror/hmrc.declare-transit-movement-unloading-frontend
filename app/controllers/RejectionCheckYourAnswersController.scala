@@ -18,24 +18,29 @@ package controllers
 
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
+import handlers.ErrorHandler
 import models.ArrivalId
+import pages.VehicleNameRegistrationReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
+import services.UnloadingRemarksService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewModels.RejectionCheckYourAnswersViewModel
 import viewModels.sections.Section
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class RejectionCheckYourAnswersController @Inject()(
   override val messagesApi: MessagesApi,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
   requireData: DataRequiredAction,
+  unloadingRemarksService: UnloadingRemarksService,
   val controllerComponents: MessagesControllerComponents,
+  errorHandler: ErrorHandler,
   renderer: Renderer
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -59,7 +64,20 @@ class RejectionCheckYourAnswersController @Inject()(
 
   def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      ???
+      request.userAnswers.get(VehicleNameRegistrationReferencePage) match {
+        case Some(registrationValue) =>
+          unloadingRemarksService.resubmit(arrivalId, registrationValue) flatMap {
+            case Some(status) =>
+              status match {
+                case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+                case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
+                case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+              }
+            case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
+          }
+        case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+      }
+
   }
 
 }

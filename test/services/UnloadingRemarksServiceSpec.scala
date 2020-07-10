@@ -38,15 +38,12 @@ import scala.concurrent.Future
 
 class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
-  private val mockRemarksService = mock[RemarksService]
-
-  private val mockMetaService = mock[MetaService]
-
-  private val mockUnloadingRemarksRequestService = mock[UnloadingRemarksRequestService]
-
-  private val mockInterchangeControlReferenceIdRepository = mock[InterchangeControlReferenceIdRepository]
-
-  private val mockUnloadingConnector: UnloadingConnector = mock[UnloadingConnector]
+  private val mockRemarksService                                                 = mock[RemarksService]
+  private val mockMetaService                                                    = mock[MetaService]
+  private val mockUnloadingRemarksRequestService                                 = mock[UnloadingRemarksRequestService]
+  private val mockInterchangeControlReferenceIdRepository                        = mock[InterchangeControlReferenceIdRepository]
+  private val mockUnloadingConnector: UnloadingConnector                         = mock[UnloadingConnector]
+  private val mockUnloadingRemarksMessageService: UnloadingRemarksMessageService = mock[UnloadingRemarksMessageService]
 
   override lazy val app: Application = applicationBuilder(Some(emptyUserAnswers))
     .overrides(bind[RemarksService].toInstance(mockRemarksService))
@@ -54,158 +51,185 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
     .overrides(bind[UnloadingRemarksRequestService].toInstance(mockUnloadingRemarksRequestService))
     .overrides(bind[InterchangeControlReferenceIdRepository].toInstance(mockInterchangeControlReferenceIdRepository))
     .overrides(bind[UnloadingConnector].toInstance(mockUnloadingConnector))
+    .overrides(bind[UnloadingRemarksMessageService].toInstance(mockUnloadingRemarksMessageService))
     .build()
 
   private val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
 
   "UnloadingRemarksServiceSpec" - {
 
-    "should return 202 for successful submission" in {
+    "Unloading Remarks Submission" - {
 
-      forAll(
-        arbitrary[EoriNumber],
-        arbitrary[UnloadingPermission],
-        arbitrary[Meta],
-        arbitrary[RemarksConform],
-        arbitrary[InterchangeControlReference],
-        arbitrary[LocalDate]
-      ) {
-        (eori, unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
-          {
-            val userAnswersUpdated =
-              emptyUserAnswers
-                .set(DateGoodsUnloadedPage, localDate)
-                .success
-                .value
+      "should return 202 for successful submission" in {
 
+        forAll(
+          arbitrary[EoriNumber],
+          arbitrary[UnloadingPermission],
+          arbitrary[Meta],
+          arbitrary[RemarksConform],
+          arbitrary[InterchangeControlReference],
+          arbitrary[LocalDate]
+        ) {
+          (eori, unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
+            {
+              val userAnswersUpdated =
+                emptyUserAnswers
+                  .set(DateGoodsUnloadedPage, localDate)
+                  .success
+                  .value
+
+              when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+                .thenReturn(Future.successful(interchangeControlReference))
+
+              when(mockMetaService.build(eori, interchangeControlReference))
+                .thenReturn(meta)
+
+              when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
+                .thenReturn(Future.successful(unloadingRemarks))
+
+              val unloadingRemarksRequest = UnloadingRemarksRequest(
+                meta,
+                header(unloadingPermission),
+                unloadingPermission.traderAtDestination,
+                unloadingPermission.presentationOffice,
+                unloadingRemarks,
+                seals = None,
+                unloadingPermission.goodsItems
+              )
+
+              when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
+                .thenReturn(
+                  unloadingRemarksRequest
+                )
+
+              when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(HttpResponse(ACCEPTED)))
+
+              arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
+
+              reset(mockInterchangeControlReferenceIdRepository)
+              reset(mockMetaService)
+              reset(mockRemarksService)
+              reset(mockUnloadingRemarksRequestService)
+              reset(mockUnloadingConnector)
+            }
+        }
+      }
+
+      //TODO: Do we need to be more specific for different connector failures?
+      "should return 503 when connector fails" in {
+
+        forAll(
+          arbitrary[EoriNumber],
+          arbitrary[UnloadingPermission],
+          arbitrary[Meta],
+          arbitrary[RemarksConform],
+          arbitrary[InterchangeControlReference],
+          arbitrary[LocalDate]
+        ) {
+          (eori, unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
+            {
+              val userAnswersUpdated =
+                emptyUserAnswers
+                  .set(DateGoodsUnloadedPage, localDate)
+                  .success
+                  .value
+
+              when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+                .thenReturn(Future.successful(interchangeControlReference))
+
+              when(mockMetaService.build(eori, interchangeControlReference))
+                .thenReturn(meta)
+
+              when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
+                .thenReturn(Future.successful(unloadingRemarks))
+
+              val unloadingRemarksRequest = UnloadingRemarksRequest(
+                meta,
+                header(unloadingPermission),
+                unloadingPermission.traderAtDestination,
+                unloadingPermission.presentationOffice,
+                unloadingRemarks,
+                seals = None,
+                unloadingPermission.goodsItems
+              )
+
+              when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
+                .thenReturn(
+                  unloadingRemarksRequest
+                )
+
+              when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
+
+              arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
+
+              reset(mockInterchangeControlReferenceIdRepository)
+              reset(mockMetaService)
+              reset(mockRemarksService)
+              reset(mockUnloadingRemarksRequestService)
+              reset(mockUnloadingConnector)
+            }
+        }
+      }
+
+      "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
+
+        forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
+          (eori, unloadingPermission, meta, interchangeControlReference) =>
             when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
               .thenReturn(Future.successful(interchangeControlReference))
 
             when(mockMetaService.build(eori, interchangeControlReference))
               .thenReturn(meta)
 
-            when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
-              .thenReturn(Future.successful(unloadingRemarks))
+            when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
+              .thenReturn(Future.failed(new Throwable))
 
-            val unloadingRemarksRequest = UnloadingRemarksRequest(
-              meta,
-              header(unloadingPermission),
-              unloadingPermission.traderAtDestination,
-              unloadingPermission.presentationOffice,
-              unloadingRemarks,
-              seals = None,
-              unloadingPermission.goodsItems
-            )
-
-            when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
-              .thenReturn(
-                unloadingRemarksRequest
-              )
-
-            when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(HttpResponse(ACCEPTED)))
-
-            arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
+            arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
             reset(mockInterchangeControlReferenceIdRepository)
             reset(mockMetaService)
             reset(mockRemarksService)
-            reset(mockUnloadingRemarksRequestService)
-            reset(mockUnloadingConnector)
-          }
+
+        }
       }
-    }
 
-    //TODO: Do we need to be more specific for different connector failures?
-    "should return 503 when connector fails" in {
+      "should return None when failed to generate InterchangeControlReference" in {
 
-      forAll(
-        arbitrary[EoriNumber],
-        arbitrary[UnloadingPermission],
-        arbitrary[Meta],
-        arbitrary[RemarksConform],
-        arbitrary[InterchangeControlReference],
-        arbitrary[LocalDate]
-      ) {
-        (eori, unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
-          {
-            val userAnswersUpdated =
-              emptyUserAnswers
-                .set(DateGoodsUnloadedPage, localDate)
-                .success
-                .value
-
+        forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission]) {
+          (eori, unloadingPermission) =>
             when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
-              .thenReturn(Future.successful(interchangeControlReference))
+              .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))
 
-            when(mockMetaService.build(eori, interchangeControlReference))
-              .thenReturn(meta)
-
-            when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
-              .thenReturn(Future.successful(unloadingRemarks))
-
-            val unloadingRemarksRequest = UnloadingRemarksRequest(
-              meta,
-              header(unloadingPermission),
-              unloadingPermission.traderAtDestination,
-              unloadingPermission.presentationOffice,
-              unloadingRemarks,
-              seals = None,
-              unloadingPermission.goodsItems
-            )
-
-            when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
-              .thenReturn(
-                unloadingRemarksRequest
-              )
-
-            when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
-
-            arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
+            arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
             reset(mockInterchangeControlReferenceIdRepository)
-            reset(mockMetaService)
-            reset(mockRemarksService)
-            reset(mockUnloadingRemarksRequestService)
-            reset(mockUnloadingConnector)
-          }
+        }
       }
     }
 
-    "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
+    "Unloading Remarks Re-submission" - {
 
-      forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
-        (eori, unloadingPermission, meta, interchangeControlReference) =>
-          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
-            .thenReturn(Future.successful(interchangeControlReference))
+      "should return 202 for successful submission" in {
+        val inputXml = <xml>sample</xml>
+        when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(Some(inputXml))
+        when(mockUnloadingConnector.post(any(), any())(any())) thenReturn Future.successful(HttpResponse(ACCEPTED))
 
-          when(mockMetaService.build(eori, interchangeControlReference))
-            .thenReturn(meta)
+        val result = arrivalNotificationService.resubmit(arrivalId, "updatedValue")
+        result.futureValue.value mustBe ACCEPTED
 
-          when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
-            .thenReturn(Future.failed(new Throwable))
+        reset(mockUnloadingRemarksMessageService)
+        reset(mockUnloadingConnector)
+      }
 
-          arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
+      "should return None if service return unloading remarks value as None" in {
+        when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(None)
 
-          reset(mockInterchangeControlReferenceIdRepository)
-          reset(mockMetaService)
-          reset(mockRemarksService)
+        val result = arrivalNotificationService.resubmit(arrivalId, "updatedValue")
+        result.futureValue mustBe None
 
+        reset(mockUnloadingRemarksMessageService)
       }
     }
-
-    "should return None when failed to generate InterchangeControlReference" in {
-
-      forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission]) {
-        (eori, unloadingPermission) =>
-          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
-            .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))
-
-          arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
-
-          reset(mockInterchangeControlReferenceIdRepository)
-      }
-    }
-
   }
 
 }

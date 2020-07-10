@@ -16,22 +16,24 @@
 
 package services
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.UnloadingConnector
+import models.XMLWrites._
 import models.messages.{Meta, UnloadingRemarksRequest}
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.XMLTransformer
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.xml.NodeSeq
 
-class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
-                                        metaService: MetaService,
+class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         remarksService: RemarksService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
+                                        unloadingRemarksMessageService: UnloadingRemarksMessageService,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
   def submit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
@@ -51,7 +53,7 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
                     unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
 
                   unloadingConnector
-                    .post(arrivalId, unloadingRemarksRequest)
+                    .post(arrivalId, unloadingRemarksRequest.toXml)
                     .flatMap(response => Future.successful(Some(response.status)))
                     .recover {
                       case ex =>
@@ -66,5 +68,14 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
           Logger.error(s"$ex")
           None
       }
+
+  def resubmit(arrivalId: ArrivalId, registrationNumber: String)(implicit hc: HeaderCarrier): Future[Option[Int]] =
+    unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
+      case Some(unloadingRemarksXml) =>
+        val updatedXml: NodeSeq = XMLTransformer.updateXmlNode("CorValTOC4", registrationNumber, unloadingRemarksXml)
+        unloadingConnector.post(arrivalId, updatedXml).map(response => Some(response.status))
+
+      case _ => Future.successful(None)
+    }
 
 }
