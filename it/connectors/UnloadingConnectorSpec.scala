@@ -14,6 +14,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
+import models.XMLWrites._
 
 import scala.xml.NodeSeq
 
@@ -45,7 +46,7 @@ class UnloadingConnectorSpec extends FreeSpec
 
         val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.get
 
-        val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
+        val result = connector.post(arrivalId, unloadingRemarksRequest.toXml).futureValue
 
         result.status mustBe ACCEPTED
       }
@@ -61,7 +62,7 @@ class UnloadingConnectorSpec extends FreeSpec
               post(postUri)
                 .willReturn(aResponse().withStatus(errorResponseCode)))
 
-            connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
+            connector.post(arrivalId, unloadingRemarksRequest.toXml).futureValue.status mustBe errorResponseCode
         }
       }
     }
