@@ -18,29 +18,17 @@ package viewModels
 import controllers.routes
 import models.ArrivalId
 import play.api.i18n.Messages
-import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels._
 import viewModels.sections.Section
 
-case class UnloadingRemarksRejectionViewModel(page: String, json: JsObject)
+case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
 
 object UnloadingRemarksRejectionViewModel {
 
-  def apply(originalValue: String, enquiriesUrl: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
-
-    val section = Seq(Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue))))
-
-    def genericJson: JsObject =
-      Json.obj(
-        "sections"   -> Json.toJson(section),
-        "contactUrl" -> enquiriesUrl
-      )
-
-    val genericRejectionPage = "unloadingRemarksRejection.njk"
-
-    new UnloadingRemarksRejectionViewModel(genericRejectionPage, genericJson)
-  }
+  //TODO add logic for multiple rejection errors
+  def apply(originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel =
+    UnloadingRemarksRejectionViewModel(Seq(Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue)))))
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
     Row(

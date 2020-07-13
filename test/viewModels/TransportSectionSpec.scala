@@ -52,7 +52,7 @@ class TransportSectionSpec extends SpecBase {
         data.head.rows.head.value.content mustBe Literal("France")
       }
 
-      "no section if identity and country don't exist" in {
+      "no sections if identity and country don't exist" in {
 
         val noTransport        = unloadingPermission.copy(transportCountry = None, transportIdentity = None)
         val data: Seq[Section] = TransportSection(emptyUserAnswers, None)(noTransport, new UnloadingSummaryRow(emptyUserAnswers))
