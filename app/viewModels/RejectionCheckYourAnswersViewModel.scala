@@ -30,10 +30,10 @@ object RejectionCheckYourAnswersViewModel {
 
   def apply(userAnswers: UserAnswers)(implicit messages: Messages): RejectionCheckYourAnswersViewModel =
     RejectionCheckYourAnswersViewModel(
-      Seq(Section(vehicleNameRegistrationReference(userAnswers).toSeq))
+      Seq(Section(vehicleNameRegistrationRejection(userAnswers).toSeq))
     )
 
-  def vehicleNameRegistrationReference(userAnswers: UserAnswers): Option[Row] = userAnswers.get(VehicleNameRegistrationReferencePage) map {
+  def vehicleNameRegistrationRejection(userAnswers: UserAnswers): Option[Row] = userAnswers.get(VehicleNameRegistrationReferencePage) map {
     answer =>
       Row(
         key   = Key(msg"vehicleNameRegistrationReference.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
@@ -42,7 +42,8 @@ object RejectionCheckYourAnswersViewModel {
           Action(
             content            = msg"site.edit",
             href               = routes.VehicleNameRegistrationRejectionController.onPageLoad(userAnswers.id).url,
-            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"vehicleNameRegistrationReference.checkYourAnswersLabel"))
+            visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"vehicleNameRegistrationReference.checkYourAnswersLabel")),
+            attributes         = Map("id" -> "change-vehicle-registration-rejection")
           )
         )
       )

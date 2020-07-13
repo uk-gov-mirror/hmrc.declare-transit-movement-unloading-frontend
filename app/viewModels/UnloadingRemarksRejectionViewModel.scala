@@ -50,7 +50,8 @@ object UnloadingRemarksRejectionViewModel {
         Action(
           content            = msg"site.edit",
           href               = routes.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId).url,
-          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeVehicle.reference.label"))
+          visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeVehicle.reference.label")),
+          attributes         = Map("id" -> "change-vehicle-registration-rejection")
         )
       )
     )
