@@ -19,11 +19,12 @@ package controllers
 import controllers.actions._
 import forms.VehicleNameRegistrationReferenceFormProvider
 import javax.inject.Inject
+import models.requests.IdentifierRequest
 import models.{ArrivalId, UserAnswers}
 import pages.VehicleNameRegistrationReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request}
 import renderer.Renderer
 import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
@@ -62,7 +63,7 @@ class VehicleNameRegistrationRejectionController @Inject()(
   }
 
   def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
-    implicit request =>
+    implicit request: IdentifierRequest[AnyContent] =>
       form
         .bindFromRequest()
         .fold(
@@ -87,10 +88,14 @@ class VehicleNameRegistrationRejectionController @Inject()(
         )
   }
 
-  private def getRejectedValue(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[String]] =
-    rejectionService.unloadingRemarksRejectionMessage(arrivalId) map {
-      case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
-        rejectionMessage.errors.head.originalAttributeValue
-      case _ => None
+  private def getRejectedValue(arrivalId: ArrivalId)(implicit hc: HeaderCarrier, request: IdentifierRequest[AnyContent]): Future[Option[String]] =
+    sessionRepository.get(arrivalId, request.eoriNumber) flatMap {
+      case Some(userAnswers: UserAnswers) => Future.successful(userAnswers.get(VehicleNameRegistrationReferencePage))
+      case None =>
+        rejectionService.unloadingRemarksRejectionMessage(arrivalId) map {
+          case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
+            rejectionMessage.errors.head.originalAttributeValue
+          case _ => None
+        }
     }
 }

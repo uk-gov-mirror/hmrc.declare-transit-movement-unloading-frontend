@@ -28,6 +28,7 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
+import pages.VehicleNameRegistrationReferencePage
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
@@ -53,7 +54,46 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
     "must populate the value from the rejection service original value attribute" in {
 
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
+      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
+      val mockSessionRepository = mock[SessionRepository]
+      val originalValue         = "some reference"
+      val errors                = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+      val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+      when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
+      val application = applicationBuilder(Some(emptyUserAnswers))
+        .overrides(
+          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
+        )
+        .build()
+      val request        = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+      val result         = route(application, request).value
+
+      status(result) mustEqual OK
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val filledForm = form.bind(Map("value" -> originalValue))
+      val expectedJson = Json.obj(
+        "form"      -> filledForm,
+        "arrivalId" -> arrivalId
+      )
+
+      templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+    "must populate the value from the User answers attribute" in {
+
+      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
+      val mockSessionRepository = mock[SessionRepository]
 
       val originalValue    = "some reference"
       val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
@@ -61,16 +101,19 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+      when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+      val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, originalValue).get
+      val application = applicationBuilder(Some(userAnswers))
+        .overrides(
+          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService),
+          bind[SessionRepository].toInstance(mockSessionRepository)
+        )
         .build()
-      val request = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
-
+      val request        = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-
-      val result = route(application, request).value
+      val result         = route(application, request).value
 
       status(result) mustEqual OK
 
