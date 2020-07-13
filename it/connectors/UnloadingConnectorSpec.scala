@@ -4,8 +4,9 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
+import models.XMLWrites._
+import models._
 import models.messages.UnloadingRemarksRequest
-import models.{ArrivalId, ErrorPointer, ErrorType, FunctionalError, MessagesLocation, MessagesSummary, MovementReferenceNumber, UnloadingRemarksRejectionMessage}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
@@ -14,7 +15,6 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
-import models.XMLWrites._
 
 import scala.xml.NodeSeq
 
