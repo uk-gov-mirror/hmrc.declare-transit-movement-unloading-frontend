@@ -124,7 +124,7 @@ class UnloadingRemarksRejectionControllerSpec
       val errors = Seq(functionalError, functionalError)
 
       when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
-        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn.toString, LocalDate.now, None, errors))))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
         .overrides(
