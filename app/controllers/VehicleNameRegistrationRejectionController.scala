@@ -20,11 +20,11 @@ import controllers.actions._
 import forms.VehicleNameRegistrationReferenceFormProvider
 import javax.inject.Inject
 import models.requests.IdentifierRequest
-import models.{ArrivalId, UserAnswers}
+import models.{ArrivalId, EoriNumber, UserAnswers}
 import pages.VehicleNameRegistrationReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
@@ -51,7 +51,7 @@ class VehicleNameRegistrationRejectionController @Inject()(
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
-      getRejectedValue(arrivalId) flatMap {
+      getRejectedValue(arrivalId, request.eoriNumber) flatMap {
         case Some(originalAttrValue) =>
           val json = Json.obj(
             "form"      -> form.fill(originalAttrValue),
@@ -88,8 +88,8 @@ class VehicleNameRegistrationRejectionController @Inject()(
         )
   }
 
-  private def getRejectedValue(arrivalId: ArrivalId)(implicit hc: HeaderCarrier, request: IdentifierRequest[AnyContent]): Future[Option[String]] =
-    sessionRepository.get(arrivalId, request.eoriNumber) flatMap {
+  private[controllers] def getRejectedValue(arrivalId: ArrivalId, eoriNumber: EoriNumber)(implicit hc: HeaderCarrier): Future[Option[String]] =
+    sessionRepository.get(arrivalId, eoriNumber) flatMap {
       case Some(userAnswers: UserAnswers) => Future.successful(userAnswers.get(VehicleNameRegistrationReferencePage))
       case None =>
         rejectionService.unloadingRemarksRejectionMessage(arrivalId) map {

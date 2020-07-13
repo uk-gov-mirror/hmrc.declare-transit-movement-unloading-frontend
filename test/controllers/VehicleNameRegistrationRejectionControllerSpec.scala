@@ -90,71 +90,6 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       application.stop()
     }
 
-    "must populate the value from the User answers attribute" in {
-
-      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-      val mockSessionRepository = mock[SessionRepository]
-
-      val originalValue    = "some reference"
-      val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
-      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
-      when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
-
-      val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, originalValue).get
-      val application = applicationBuilder(Some(userAnswers))
-        .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService),
-          bind[SessionRepository].toInstance(mockSessionRepository)
-        )
-        .build()
-      val request        = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-      val result         = route(application, request).value
-
-      status(result) mustEqual OK
-
-      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
-
-      val filledForm = form.bind(Map("value" -> originalValue))
-
-      val expectedJson = Json.obj(
-        "form"      -> filledForm,
-        "arrivalId" -> arrivalId
-      )
-
-      templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
-      jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
-    }
-
-    "must go to technical difficulties when the error attributes are none" in {
-
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
-
-      val errors           = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, None))
-      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
-
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
-        .build()
-      val request = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
-
-      application.stop()
-    }
-
     "must go to technical difficulties when there is no rejection message" in {
 
       val mockRejectionService = mock[UnloadingRemarksRejectionService]
@@ -264,6 +199,94 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
 
       application.stop()
+    }
+
+    "getRejectedValue" - {
+      "must return Some(value) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
+        val mockRejectionService  = mock[UnloadingRemarksRejectionService]
+        val mockSessionRepository = mock[SessionRepository]
+        val originalValue         = "some reference"
+        val errors                = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+        val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+        when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+        when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
+
+        val application = applicationBuilder(Some(emptyUserAnswers))
+          .overrides(
+            bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService),
+            bind[SessionRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+
+        val result = controller.getRejectedValue(arrivalId, eoriNumber)
+        result.futureValue mustBe Some("some reference")
+
+      }
+      "must return Some(value) when there is a previously saved answers" in {
+        val mockSessionRepository = mock[SessionRepository]
+        val originalValue         = "some reference"
+        val userAnswers           = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, originalValue).get
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+        when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(Some(userAnswers)))
+
+        val application = applicationBuilder(Some(userAnswers))
+          .overrides(
+            bind[SessionRepository].toInstance(mockSessionRepository)
+          )
+          .build()
+
+        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+
+        val result = controller.getRejectedValue(arrivalId, eoriNumber)
+        result.futureValue mustBe Some("some reference")
+      }
+      "must return None when there is no previously saved answers and UnloadingRemarksRejectionMessage returns 'None'" in {
+        val mockSessionRepository = mock[SessionRepository]
+        val mockRejectionService  = mock[UnloadingRemarksRejectionService]
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+        when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(None))
+        when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
+
+        val application = applicationBuilder(Some(emptyUserAnswers))
+          .overrides(
+            bind[SessionRepository].toInstance(mockSessionRepository),
+            bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
+          )
+          .build()
+
+        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+
+        val result = controller.getRejectedValue(arrivalId, eoriNumber)
+        result.futureValue mustBe None
+      }
+      "must return None when there is no previously saved answers and UnloadingRemarksRejectionMessage.originalAttributeValue is 'None'" in {
+        val mockSessionRepository = mock[SessionRepository]
+        val mockRejectionService  = mock[UnloadingRemarksRejectionService]
+        val errors                = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, None))
+        val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+
+        when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+        when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+        when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
+
+        val application = applicationBuilder(Some(emptyUserAnswers))
+          .overrides(
+            bind[SessionRepository].toInstance(mockSessionRepository),
+            bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
+          )
+          .build()
+
+        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+
+        val result = controller.getRejectedValue(arrivalId, eoriNumber)
+        result.futureValue mustBe None
+      }
     }
   }
 }
