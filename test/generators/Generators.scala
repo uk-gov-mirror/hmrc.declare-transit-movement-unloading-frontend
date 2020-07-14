@@ -165,4 +165,7 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       LocalDateTime.of(2100, 1, 1, 0, 0, 0)
     )
   }
+
+  val localDateGen: Gen[LocalDate] = datesBetween(LocalDate.of(1900, 1, 1), LocalDate.now)
+
 }

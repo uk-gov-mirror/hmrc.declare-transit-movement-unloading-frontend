@@ -20,6 +20,7 @@ import java.util.InvalidPropertiesFormatException
 
 import com.lucidchart.open.xtract.{XmlReader, __ => XmlPath}
 import models.MovementReferenceNumber._
+import play.api.Logger
 import play.api.libs.json._
 import play.api.mvc.PathBindable
 
@@ -76,8 +77,13 @@ object MovementReferenceNumber {
   }
 
   implicit val xmlReader: XmlReader[MovementReferenceNumber] = {
-    (XmlPath \ "DocNumHEA5").read[String] map (MovementReferenceNumber(_).getOrElse(
-      throw new InvalidPropertiesFormatException("DocNumHEA5: MRN not in right format"))) // TODO needs to handle get
+    (XmlPath \ "DocNumHEA5").read[String] map {
+      mrn =>
+        MovementReferenceNumber(mrn).getOrElse {
+          Logger.error(s"DocNumHEA5: MRN not in right format mrn:$mrn")
+          throw new InvalidPropertiesFormatException("DocNumHEA5: MRN not in right format")
+        }
+    } // TODO needs to handle get
   }
 
   implicit def pathBindable: PathBindable[MovementReferenceNumber] = new PathBindable[MovementReferenceNumber] {

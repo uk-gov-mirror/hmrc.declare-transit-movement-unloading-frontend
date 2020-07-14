@@ -44,6 +44,7 @@ import models.{
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
+import utils.Format.dateFormatted
 
 trait MessagesModelGenerators extends Generators {
 
@@ -59,9 +60,9 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryInterchangeControlReference: Arbitrary[InterchangeControlReference] = {
     Arbitrary {
       for {
-        dateTime <- stringsWithMaxLength(4: Int)
-        index    <- choose(min = 1: Int, 1000: Int)
-      } yield InterchangeControlReference(dateTime, index)
+        date  <- localDateGen
+        index <- Gen.posNum[Int]
+      } yield InterchangeControlReference(dateFormatted(date), index)
     }
   }
 
@@ -101,7 +102,7 @@ trait MessagesModelGenerators extends Generators {
           messageSender,
           interchangeControlReference,
           date,
-          time,
+          LocalTime.of(time.getHour, time.getMinute),
           None,
           None,
           None,
