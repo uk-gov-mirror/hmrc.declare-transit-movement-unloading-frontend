@@ -15,7 +15,9 @@
  */
 
 package models.messages
-import models.{LanguageCode, LanguageCodeEnglish, XMLWrites}
+import cats.syntax.all._
+import com.lucidchart.open.xtract.{__, XmlReader}
+import models.{LanguageCodeEnglish, XMLWrites}
 
 import scala.xml.NodeSeq
 
@@ -50,4 +52,13 @@ object Header {
         <TotGroMasHEA307>{escapeXml(header.grossMass)}</TotGroMasHEA307>
       </HEAHEA>
   }
+
+  implicit val reads: XmlReader[Header] = (
+    (__ \ "DocNumHEA5").read[String],
+    (__ \ "IdeOfMeaOfTraAtDHEA78").read[String].optional,
+    (__ \ "NatOfMeaOfTraAtDHEA80").read[String].optional,
+    (__ \ "TotNumOfIteHEA305").read[Int],
+    (__ \ "TotNumOfPacHEA306").read[Int],
+    (__ \ "TotGroMasHEA307").read[String]
+  ).mapN(apply)
 }
