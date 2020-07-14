@@ -17,6 +17,10 @@
 package models.messages
 import java.time.LocalDate
 
+import com.lucidchart.open.xtract.XmlReader.strictReadSeq
+import com.lucidchart.open.xtract.{__, XmlReader}
+import models.XMLReads._
+import cats.syntax.all._
 import models.{LanguageCodeEnglish, XMLWrites}
 import utils.Format
 
@@ -40,6 +44,8 @@ object RemarksConform {
       <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
     </UNLREMREM>)
   }
+
+  implicit val xmlReads: XmlReader[RemarksConform] = (__ \ "UnlDatREM67").read[LocalDate] map apply
 }
 
 case class RemarksConformWithSeals(unloadingDate: LocalDate) extends Remarks {
@@ -57,6 +63,8 @@ object RemarksConformWithSeals {
       <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
     </UNLREMREM>)
   }
+
+  implicit val xmlReader: XmlReader[RemarksConformWithSeals] = (__ \ "UnlDatREM67").read[LocalDate] map apply
 }
 
 case class RemarksNonConform(
@@ -106,4 +114,11 @@ object RemarksNonConform {
 
     })
   }
+
+  implicit val reads: XmlReader[RemarksNonConform] = (
+    (__ \ "StaOfTheSeaOKREM19").read[Int].optional,
+    (__ \ "UnlRemREM53").read[String].optional,
+    (__ \ "UnlDatREM67").read[LocalDate],
+    (__ \ "RESOFCON534").read(strictReadSeq[ResultsOfControl])
+  ) mapN apply
 }

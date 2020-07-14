@@ -25,7 +25,7 @@ object ControlIndicator {
   }
 }
 
-sealed trait IndicatorValue {
+sealed trait IndicatorValue extends Serializable {
   val value: String
 }
 

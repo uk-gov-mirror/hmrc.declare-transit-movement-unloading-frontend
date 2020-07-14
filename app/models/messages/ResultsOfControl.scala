@@ -15,14 +15,9 @@
  */
 
 package models.messages
-import java.time.LocalDate
-
-import com.lucidchart.open.xtract.{__, XmlReader}
-import com.lucidchart.open.xtract.XmlReader.strictReadSeq
-import models.{FunctionalError, LanguageCodeEnglish, MovementReferenceNumber, UnloadingRemarksRejectionMessage, XMLWrites}
-import play.api.libs.json._
-import models.XMLReads._
 import cats.syntax.all._
+import com.lucidchart.open.xtract.{__, XmlReader}
+import models.{LanguageCodeEnglish, XMLWrites}
 
 sealed trait ResultsOfControl extends Product with Serializable {
   val controlIndicator: ControlIndicator
@@ -32,10 +27,12 @@ object ResultsOfControl {
 
   val descriptionLength    = 140
   val correctedValueLength = 27
+
+  implicit val xmlReader: XmlReader[ResultsOfControl] = ResultsOfControlDifferentValues.xmlReader orElse ResultsOfControlOther.xmlReader
 }
 
 case class ResultsOfControlOther(description: String) extends ResultsOfControl {
-  val controlIndicator = ControlIndicator(OtherThingsToReport)
+  val controlIndicator: ControlIndicator = ControlIndicator(OtherThingsToReport)
 }
 
 object ResultsOfControlSealsBroken extends ResultsOfControlOther("Some seals are broken")
@@ -50,14 +47,12 @@ object ResultsOfControlOther {
       </RESOFCON534>)
   }
 
-  implicit val xmlReader: XmlReader[ResultsOfControlOther] = {
-    (__ \ "DesTOC2").read[String].map(ResultsOfControlOther(_))
-  }
+  implicit val xmlReader: XmlReader[ResultsOfControlOther] = (__ \ "DesTOC2").read[String] map apply
 
 }
 
 case class ResultsOfControlDifferentValues(pointerToAttribute: PointerToAttribute, correctedValue: String) extends ResultsOfControl {
-  val controlIndicator = ControlIndicator(DifferentValuesFound)
+  val controlIndicator: ControlIndicator = ControlIndicator(DifferentValuesFound)
 }
 
 object ResultsOfControlDifferentValues {
@@ -71,13 +66,6 @@ object ResultsOfControlDifferentValues {
   }
 
   implicit val xmlReader: XmlReader[ResultsOfControlDifferentValues] =
-    ((__ \ "PoiToTheAttTOC5").read[String] map {
-      case TransportIdentity.value => PointerToAttribute(TransportIdentity)
-      case TransportCountry.value  => PointerToAttribute(TransportCountry)
-      case NumberOfItems.value     => PointerToAttribute(NumberOfItems)
-      case NumberOfPackages.value  => PointerToAttribute(NumberOfPackages)
-      case GrossMass.value         => PointerToAttribute(GrossMass)
-    }, (__ \ "CorValTOC4").read[String])
-      .mapN(apply(_, _))
+    (__.read[PointerToAttribute], (__ \ "CorValTOC4").read[String]).mapN(apply)
 
 }
