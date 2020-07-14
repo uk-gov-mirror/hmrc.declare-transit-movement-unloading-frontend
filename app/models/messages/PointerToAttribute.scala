@@ -24,6 +24,7 @@ object PointerToAttribute {
   implicit val writes: XMLWrites[PointerToAttribute] = {
     XMLWrites(pointerToAttribute => <PoiToTheAttTOC5>{pointerToAttribute.pointer.value}</PoiToTheAttTOC5>)
   }
+
 }
 
 sealed trait PointerIdentity {

@@ -15,7 +15,14 @@
  */
 
 package models.messages
-import models.{LanguageCodeEnglish, XMLWrites}
+import java.time.LocalDate
+
+import com.lucidchart.open.xtract.{__, XmlReader}
+import com.lucidchart.open.xtract.XmlReader.strictReadSeq
+import models.{FunctionalError, LanguageCodeEnglish, MovementReferenceNumber, UnloadingRemarksRejectionMessage, XMLWrites}
+import play.api.libs.json._
+import models.XMLReads._
+import cats.syntax.all._
 
 sealed trait ResultsOfControl extends Product with Serializable {
   val controlIndicator: ControlIndicator
@@ -42,6 +49,11 @@ object ResultsOfControlOther {
         <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
       </RESOFCON534>)
   }
+
+  implicit val xmlReader: XmlReader[ResultsOfControlOther] = {
+    (__ \ "DesTOC2").read[String].map(ResultsOfControlOther(_))
+  }
+
 }
 
 case class ResultsOfControlDifferentValues(pointerToAttribute: PointerToAttribute, correctedValue: String) extends ResultsOfControl {
@@ -57,4 +69,15 @@ object ResultsOfControlDifferentValues {
       <CorValTOC4>{resultsOfControl.correctedValue}</CorValTOC4>
     </RESOFCON534>)
   }
+
+  implicit val xmlReader: XmlReader[ResultsOfControlDifferentValues] =
+    ((__ \ "PoiToTheAttTOC5").read[String] map {
+      case TransportIdentity.value => PointerToAttribute(TransportIdentity)
+      case TransportCountry.value  => PointerToAttribute(TransportCountry)
+      case NumberOfItems.value     => PointerToAttribute(NumberOfItems)
+      case NumberOfPackages.value  => PointerToAttribute(NumberOfPackages)
+      case GrossMass.value         => PointerToAttribute(GrossMass)
+    }, (__ \ "CorValTOC4").read[String])
+      .mapN(apply(_, _))
+
 }
