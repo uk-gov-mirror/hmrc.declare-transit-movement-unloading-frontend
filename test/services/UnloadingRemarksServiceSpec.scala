@@ -201,7 +201,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
         when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(Some(unloadingRemarksRequest))
         when(mockUnloadingConnector.post(any(), any())(any())) thenReturn Future.successful(HttpResponse(ACCEPTED))
 
-        val result = arrivalNotificationService.resubmit(arrivalId, "updatedValue")
+        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, "updatedValue")
         result.futureValue.value mustBe ACCEPTED
 
         reset(mockUnloadingRemarksMessageService)
@@ -211,7 +211,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       "should return None if service return unloading remarks value as None" in {
         when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(None)
 
-        val result = arrivalNotificationService.resubmit(arrivalId, "updatedValue")
+        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, "updatedValue")
         result.futureValue mustBe None
 
         reset(mockUnloadingRemarksMessageService)

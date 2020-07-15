@@ -57,7 +57,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
       val mockUnloadingRemarksService = mock[UnloadingRemarksService]
       val userAnswers                 = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").toOption
 
-      when(mockUnloadingRemarksService.resubmit(any(), any())(any()))
+      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any()))
         .thenReturn(Future.successful(Some(ACCEPTED)))
 
       val application =
@@ -81,7 +81,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
     "must redirect to Technical difficulties page on submission failure" in {
       val mockUnloadingRemarksService = mock[UnloadingRemarksService]
 
-      when(mockUnloadingRemarksService.resubmit(any(), any())(any()))
+      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any()))
         .thenReturn(Future.successful(None))
 
       val application =
@@ -112,7 +112,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
         .build()
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockUnloadingRemarksService.resubmit(any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
+      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 
@@ -134,7 +134,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      when(mockUnloadingRemarksService.resubmit(any(), any())(any())).thenReturn(Future.successful(None))
+      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any())).thenReturn(Future.successful(None))
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 

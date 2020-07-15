@@ -66,17 +66,23 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
           None
       }
 
-  def resubmit(arrivalId: ArrivalId, registrationNumber: String)(implicit hc: HeaderCarrier): Future[Option[Int]] =
+  def resubmit(arrivalId: ArrivalId, eori: EoriNumber, registrationNumber: String)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
       case Some(unloadingRemarksRequest) =>
-        val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-          case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = registrationNumber)
-          case x                                                                                       => x
-        }
-        val updatedUnloadingRemarks = unloadingRemarksRequest.copy(resultOfControl = resultOfControl)
+        interchangeControlReferenceIdRepository
+          .nextInterchangeControlReferenceId()
+          .flatMap {
+            interchangeControlReference =>
+              val meta: Meta = metaService.build(eori, interchangeControlReference)
 
-        unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
+              val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+                case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = registrationNumber)
+                case x                                                                                       => x
+              }
+              val updatedUnloadingRemarks = unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
 
+              unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
+          }
       case _ => Future.successful(None)
     }
 

@@ -66,7 +66,7 @@ class RejectionCheckYourAnswersController @Inject()(
     implicit request =>
       request.userAnswers.get(VehicleNameRegistrationReferencePage) match {
         case Some(registrationValue) =>
-          unloadingRemarksService.resubmit(arrivalId, registrationValue) flatMap {
+          unloadingRemarksService.resubmit(arrivalId, request.eoriNumber, registrationValue) flatMap {
             case Some(status) =>
               status match {
                 case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
