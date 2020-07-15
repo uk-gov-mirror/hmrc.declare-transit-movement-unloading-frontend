@@ -23,7 +23,7 @@ import models.messages._
 import models.{Index, Seals, UnloadingPermission}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import pages.NewSealNumberPage
+import pages.{NewSealNumberPage, VehicleNameRegistrationReferencePage}
 
 class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
@@ -177,6 +177,49 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
+                seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3"))),
+                unloadingPermission.goodsItems
+              )
+        }
+      }
+
+      "when unloading remarks don't conform and stateOfSeals is NOT OK and seals and result control exist in UserAnswers" in {
+
+        forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
+          (unloadingPermission, meta, localDateTime) =>
+            val unloadingRemarks = RemarksNonConform(
+              stateOfSeals = Some(0),
+              Some("unloading remarks"),
+              localDateTime.toLocalDate
+            )
+
+            val userAnswersUpdated =
+              emptyUserAnswers
+                .set(NewSealNumberPage(Index(0)), "seal 2")
+                .success
+                .value
+                .set(NewSealNumberPage(Index(1)), "seal 1")
+                .success
+                .value
+                .set(NewSealNumberPage(Index(2)), "seal 3")
+                .success
+                .value
+                .set(VehicleNameRegistrationReferencePage, "reference")
+                .success
+                .value
+
+            unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated) mustBe
+              UnloadingRemarksRequest(
+                meta,
+                header(unloadingPermission),
+                unloadingPermission.traderAtDestination,
+                unloadingPermission.presentationOffice,
+                unloadingRemarks,
+                Seq(
+                  ResultsOfControlDifferentValues(
+                    PointerToAttribute(TransportIdentity),
+                    "reference"
+                  )),
                 seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3"))),
                 unloadingPermission.goodsItems
               )

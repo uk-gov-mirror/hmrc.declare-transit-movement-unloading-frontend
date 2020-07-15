@@ -119,58 +119,43 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       //TODO: Do we need to be more specific for different connector failures?
       "should return 503 when connector fails" in {
 
-        forAll(
-          arbitrary[EoriNumber],
-          arbitrary[UnloadingPermission],
-          arbitrary[Meta],
-          arbitrary[RemarksConform],
-          arbitrary[InterchangeControlReference],
-          arbitrary[LocalDate]
-        ) {
-          (eori, unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
-            {
-              val userAnswersUpdated =
-                emptyUserAnswers
-                  .set(DateGoodsUnloadedPage, localDate)
-                  .success
-                  .value
+        val eori                        = arbitrary[EoriNumber].sample.value
+        val unloadingPermission         = arbitrary[UnloadingPermission].sample.value
+        val meta                        = arbitrary[Meta].sample.value
+        val unloadingRemarks            = arbitrary[RemarksConform].sample.value
+        val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
+        val localDate                   = arbitrary[LocalDate].sample.value
+        val userAnswersUpdated =
+          emptyUserAnswers
+            .set(DateGoodsUnloadedPage, localDate)
+            .success
+            .value
 
-              when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
-                .thenReturn(Future.successful(interchangeControlReference))
+        when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+          .thenReturn(Future.successful(interchangeControlReference))
 
-              when(mockMetaService.build(eori, interchangeControlReference))
-                .thenReturn(meta)
+        when(mockMetaService.build(eori, interchangeControlReference))
+          .thenReturn(meta)
 
-              when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
-                .thenReturn(Future.successful(unloadingRemarks))
+        when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
+          .thenReturn(Future.successful(unloadingRemarks))
 
-              val unloadingRemarksRequest = UnloadingRemarksRequest(
-                meta,
-                header(unloadingPermission),
-                unloadingPermission.traderAtDestination,
-                unloadingPermission.presentationOffice,
-                unloadingRemarks,
-                Nil,
-                seals = None,
-                unloadingPermission.goodsItems
-              )
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
 
-              when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
-                .thenReturn(
-                  unloadingRemarksRequest
-                )
+        when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
+          .thenReturn(
+            unloadingRemarksRequest
+          )
 
-              when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
+        when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
 
-              arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
+        arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
 
-              reset(mockInterchangeControlReferenceIdRepository)
-              reset(mockMetaService)
-              reset(mockRemarksService)
-              reset(mockUnloadingRemarksRequestService)
-              reset(mockUnloadingConnector)
-            }
-        }
+        reset(mockInterchangeControlReferenceIdRepository)
+        reset(mockMetaService)
+        reset(mockRemarksService)
+        reset(mockUnloadingRemarksRequestService)
+        reset(mockUnloadingConnector)
       }
 
       "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
