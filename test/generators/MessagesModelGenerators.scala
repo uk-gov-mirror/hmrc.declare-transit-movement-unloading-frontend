@@ -117,13 +117,7 @@ trait MessagesModelGenerators extends Generators {
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))
-      } yield
-        Header(movementReferenceNumber.toString,
-               transportIdentity.map(escapeXml),
-               transportCountry.map(_.mkString),
-               numberOfItems,
-               numberOfPackages,
-               grossMass.toString)
+      } yield Header(movementReferenceNumber.toString, transportIdentity, transportCountry.map(_.mkString), numberOfItems, numberOfPackages, grossMass.toString)
     }
   }
 

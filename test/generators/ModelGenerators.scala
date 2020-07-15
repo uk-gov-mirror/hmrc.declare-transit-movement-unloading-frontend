@@ -81,7 +81,7 @@ trait ModelGenerators {
         postCode        <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.postCodeLength))
         city            <- Gen.option(stringsWithMaxLength(TraderAtDestinationWithEori.Constants.cityLength))
         countryCode     <- Gen.option(Gen.pick(2, 'A' to 'Z'))
-      } yield TraderAtDestinationWithEori(eori, name.map(escapeXml), streetAndNumber, postCode, city, countryCode.map(_.mkString))
+      } yield TraderAtDestinationWithEori(eori, name, streetAndNumber, postCode, city, countryCode.map(_.mkString))
     }
 
   implicit lazy val arbitraryTraderWithoutEori: Arbitrary[TraderAtDestinationWithoutEori] =
@@ -92,7 +92,7 @@ trait ModelGenerators {
         postCode        <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.postCodeLength)
         city            <- stringsWithMaxLength(TraderAtDestinationWithoutEori.Constants.cityLength)
         countryCode     <- Gen.pick(2, 'A' to 'Z')
-      } yield TraderAtDestinationWithoutEori(escapeXml(name), streetAndNumber, postCode, city, countryCode.mkString)
+      } yield TraderAtDestinationWithoutEori(name, streetAndNumber, postCode, city, countryCode.mkString)
     }
 
   //TODO: Check spec and add correct max sizes as constants
