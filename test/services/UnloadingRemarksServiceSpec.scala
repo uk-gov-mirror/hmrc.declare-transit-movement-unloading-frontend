@@ -93,6 +93,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = None,
                 unloadingPermission.goodsItems
               )
@@ -149,6 +150,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = None,
                 unloadingPermission.goodsItems
               )

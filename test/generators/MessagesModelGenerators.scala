@@ -27,6 +27,7 @@ import models.messages.{
   RemarksConform,
   RemarksConformWithSeals,
   RemarksNonConform,
+  ResultsOfControl,
   UnloadingRemarksRequest
 }
 import models.{
@@ -138,9 +139,10 @@ trait MessagesModelGenerators extends Generators {
         traderDestination  <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
         presentationOffice <- Gen.pick(UnloadingRemarksRequest.presentationOfficeLength, 'A' to 'Z')
         remarks            <- Gen.oneOf(arbitrary[RemarksConform], arbitrary[RemarksConformWithSeals], arbitrary[RemarksNonConform])
+        resultOfControl    <- listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)
         seals              <- Gen.option(arbitrary[Seals])
         goodsItems         <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
-      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, seals, goodsItems)
+      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, resultOfControl, seals, goodsItems)
     }
   }
 

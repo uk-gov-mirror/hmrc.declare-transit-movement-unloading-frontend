@@ -238,13 +238,11 @@ trait ModelGenerators {
         stateOfSeals    <- Gen.option(choose(min = 0: Int, 1: Int))
         date            <- arbitrary[LocalDate]
         unloadingRemark <- Gen.option(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength))
-        resultOfControl <- listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)
       } yield
         RemarksNonConform(
           stateOfSeals    = stateOfSeals,
           unloadingRemark = unloadingRemark,
-          unloadingDate   = date,
-          resultOfControl = resultOfControl
+          unloadingDate   = date
         )
     }
   }

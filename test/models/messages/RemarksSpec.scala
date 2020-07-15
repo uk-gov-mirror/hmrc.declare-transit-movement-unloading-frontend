@@ -29,8 +29,6 @@ import scala.xml.{Elem, Node, NodeSeq}
 
 class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks with OptionValues {
 
-  import RemarksSpec._
-
   "RemarksSpec" - {
 
     "must serialize" - {
@@ -97,11 +95,6 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
                 <UnlRemREM53>{remarks}</UnlRemREM53>
             }
 
-            val resultsOfControl: Seq[Node] = remarksNonConform.resultOfControl.flatMap {
-              resultsOfControl =>
-                resultsOfControlNode(resultsOfControl)
-            }
-
             val xml: NodeSeq =
               <UNLREMREM>
                 {stateOfSeals.getOrElse(NodeSeq.Empty)}
@@ -110,7 +103,7 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
                 <ConREM65>0</ConREM65>
                 <UnlComREM66>1</UnlComREM66>
                 <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
-              </UNLREMREM> +: resultsOfControl
+              </UNLREMREM>
 
             remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
         }
@@ -120,10 +113,7 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
 
         forAll(arbitrary[RemarksNonConform]) {
           remarksNonConform =>
-            val xml = remarksNonConform.toXml
-            println("---------------" + xml)
-            println("---------------" + remarksNonConform)
-            val result = XmlReader.of[RemarksNonConform].read(xml) //.toOption.value
+            val result = XmlReader.of[RemarksNonConform].read(remarksNonConform.toXml).toOption.value
             result mustBe remarksNonConform
         }
       }

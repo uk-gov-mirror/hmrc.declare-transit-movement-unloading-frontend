@@ -48,6 +48,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = None,
                 unloadingPermission.goodsItems
               )
@@ -67,6 +68,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = None,
                 unloadingPermission.goodsItems
               )
@@ -80,8 +82,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
             val unloadingRemarks = RemarksNonConform(
               None,
               Some("unloading remarks"),
-              localDateTime.toLocalDate,
-              Nil
+              localDateTime.toLocalDate
             )
 
             unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, emptyUserAnswers) mustBe
@@ -91,6 +92,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = None,
                 unloadingPermission.goodsItems
               )
@@ -104,8 +106,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
             val unloadingRemarks = RemarksNonConform(
               stateOfSeals = Some(1),
               Some("unloading remarks"),
-              localDateTime.toLocalDate,
-              Nil
+              localDateTime.toLocalDate
             )
 
             unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, emptyUserAnswers) mustBe
@@ -115,6 +116,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = None,
                 unloadingPermission.goodsItems
               )
@@ -128,8 +130,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
             val unloadingRemarks = RemarksNonConform(
               stateOfSeals = Some(0),
               Some("unloading remarks"),
-              localDateTime.toLocalDate,
-              Nil
+              localDateTime.toLocalDate
             )
 
             unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, emptyUserAnswers) mustBe
@@ -139,6 +140,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = unloadingPermission.seals,
                 unloadingPermission.goodsItems
               )
@@ -152,8 +154,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
             val unloadingRemarks = RemarksNonConform(
               stateOfSeals = Some(0),
               Some("unloading remarks"),
-              localDateTime.toLocalDate,
-              Nil
+              localDateTime.toLocalDate
             )
 
             val userAnswersUpdated =
@@ -175,6 +176,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
+                Nil,
                 seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3"))),
                 unloadingPermission.goodsItems
               )

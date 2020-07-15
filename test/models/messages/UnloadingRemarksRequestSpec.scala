@@ -15,17 +15,24 @@
  */
 
 package models.messages
+import com.lucidchart.open.xtract.XmlReader
 import generators.MessagesModelGenerators
 import models.{TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori}
 import org.scalacheck.Arbitrary._
-import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import models.XMLWrites._
 
 import scala.xml.{Node, NodeSeq}
 import scala.xml.Utility.trim
 
-class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with MessagesModelGenerators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
+class UnloadingRemarksRequestSpec
+    extends FreeSpec
+    with MustMatchers
+    with MessagesModelGenerators
+    with ScalaCheckPropertyChecks
+    with StreamlinedXmlEquality
+    with OptionValues {
 
   "UnloadingRemarksRequestSpec" - {
 
@@ -42,11 +49,22 @@ class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with Messag
                 <RefNumRES1>{unloadingRemarksRequest.presentationOffice}</RefNumRES1>
               </CUSOFFPREOFFRES>
               {unloadingRemarkNode(unloadingRemarksRequest.unloadingRemark)}
+              {resultOfControlNode(unloadingRemarksRequest.resultOfControl)}
               {unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty)}
               {unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten}
             </CC044A>
 
           unloadingRemarksRequest.toXml.map(trim) mustBe expectedResult.map(trim)
+      }
+
+    }
+
+    "must de-serialise xml to UnloadingRemarks" in {
+
+      forAll(arbitrary[UnloadingRemarksRequest]) {
+        unloadingRemarksRequest =>
+          val result = XmlReader.of[UnloadingRemarksRequest].read(unloadingRemarksRequest.toXml)
+          result.toOption.value mustBe unloadingRemarksRequest
       }
 
     }
@@ -66,4 +84,9 @@ class UnloadingRemarksRequestSpec extends FreeSpec with MustMatchers with Messag
     case remarksNonConform: RemarksNonConform             => remarksNonConform.toXml
   }
 
+  def resultOfControlNode(resultsOfControl: Seq[ResultsOfControl]): NodeSeq =
+    resultsOfControl.flatMap {
+      case y: ResultsOfControlOther           => y.toXml
+      case y: ResultsOfControlDifferentValues => y.toXml
+    }
 }
