@@ -19,6 +19,7 @@ import com.google.inject.Inject
 import connectors.UnloadingConnector
 import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
+import pages.VehicleNameRegistrationReferencePage
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
@@ -31,7 +32,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingRemarksMessageService: UnloadingRemarksMessageService,
-                                        resultOfControlService:ResultOfControlService,
+                                        resultOfControlService: ResultOfControlService,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
   def submit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
@@ -69,29 +70,28 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
   def resubmit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
       case Some(unloadingRemarksRequest) =>
-
-        val updatedUnloadingRemarks = getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers)
-
-        unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
-
+        getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
+          case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
+          case _                             => Future.successful(None)
+        }
       case _ => Future.successful(None)
     }
 
-  private def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest, eori: EoriNumber, userAnswers: UserAnswers): Future[Option[UnloadingRemarksRequest]] = {
-   interchangeControlReferenceIdRepository
+  private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,
+                                                         eori: EoriNumber,
+                                                         userAnswers: UserAnswers): Future[Option[UnloadingRemarksRequest]] =
+    interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()
       .map {
         interchangeControlReference =>
           val meta: Meta = metaService.build(eori, interchangeControlReference)
-          val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
-
-          val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = "registrationNumber")
-            case x => x
+          userAnswers.get(VehicleNameRegistrationReferencePage) map {
+            registrationNumber =>
+              val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+                case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = registrationNumber)
+                case x                                                                                       => x
+              }
+              unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
           }
-       unloadingRemarksRequest.resultOfControl.pa
-          unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
-
       }
-  }
 }

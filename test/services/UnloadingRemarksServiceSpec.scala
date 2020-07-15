@@ -26,7 +26,7 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import pages.DateGoodsUnloadedPage
+import pages.{DateGoodsUnloadedPage, VehicleNameRegistrationReferencePage}
 import play.api.Application
 import play.api.http.Status._
 import play.api.inject.bind
@@ -208,8 +208,11 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
         when(mockMetaService.build(eoriNumber, interchangeControlReference))
           .thenReturn(meta)
 
-        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, "updatedValue")
+        val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "new registration").get
+
+        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, userAnswers)
         result.futureValue.value mustBe ACCEPTED
+        verify(mockUnloadingRemarksMessageService).unloadingRemarksMessage(any())(any(), any())
 
         reset(mockUnloadingRemarksMessageService)
         reset(mockUnloadingConnector)
@@ -218,10 +221,34 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       "should return None if service return unloading remarks value as None" in {
         when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(None)
 
-        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, "updatedValue")
+        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, emptyUserAnswers)
         result.futureValue mustBe None
 
         reset(mockUnloadingRemarksMessageService)
+      }
+
+      "getUpdatedUnloadingRemarkRequest" - {
+
+        "must return updated UnloadingRemarksRequest for the input UserAnswer" in {
+          val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
+          val meta                        = arbitrary[Meta].sample.value
+          val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
+
+          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+            .thenReturn(Future.successful(interchangeControlReference))
+          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+            .thenReturn(meta)
+          val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "new registration").get
+
+          val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = "new registration")
+            case x                                                                                       => x
+          }
+          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          result.futureValue.value.resultOfControl mustBe expectedResultOfControl
+
+        }
+
       }
     }
   }
