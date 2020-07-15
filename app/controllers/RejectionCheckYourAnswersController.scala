@@ -64,18 +64,14 @@ class RejectionCheckYourAnswersController @Inject()(
 
   def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      request.userAnswers.get(VehicleNameRegistrationReferencePage) match {
-        case Some(registrationValue) =>
-          unloadingRemarksService.resubmit(arrivalId, request.eoriNumber, registrationValue) flatMap {
-            case Some(status) =>
-              status match {
-                case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
-                case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
-                case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
-              }
-            case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
+      unloadingRemarksService.resubmit(arrivalId, request.eoriNumber, request.userAnswers) flatMap {
+        case Some(status) =>
+          status match {
+            case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+            case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
+            case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
-        case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+        case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
       }
 
   }

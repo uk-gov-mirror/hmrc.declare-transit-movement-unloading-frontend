@@ -78,31 +78,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
       application.stop()
     }
 
-    "must redirect to Technical difficulties page on submission failure" in {
-      val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-
-      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any()))
-        .thenReturn(Future.successful(None))
-
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(
-            bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService)
-          )
-          .build()
-
-      val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
-
-      application.stop()
-    }
-
-    "return UNAUTHORIZED when backend returns 401" in {
+     "return UNAUTHORIZED when backend returns 401" in {
 
       val mockUnloadingRemarksService = mock[UnloadingRemarksService]
       val userAnswers                 = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").toOption

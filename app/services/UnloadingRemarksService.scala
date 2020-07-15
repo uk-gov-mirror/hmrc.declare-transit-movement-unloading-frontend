@@ -31,6 +31,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingRemarksMessageService: UnloadingRemarksMessageService,
+                                        resultOfControlService:ResultOfControlService,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
   def submit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
@@ -38,27 +39,26 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()
       .flatMap {
-        interchangeControlReference =>
-          {
-            remarksService
-              .build(userAnswers, unloadingPermission)
-              .flatMap {
-                unloadingRemarks =>
-                  val meta: Meta = metaService.build(eori, interchangeControlReference)
+        interchangeControlReference => {
+          remarksService
+            .build(userAnswers, unloadingPermission)
+            .flatMap {
+              unloadingRemarks =>
+                val meta: Meta = metaService.build(eori, interchangeControlReference)
 
-                  val unloadingRemarksRequest: UnloadingRemarksRequest =
-                    unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
+                val unloadingRemarksRequest: UnloadingRemarksRequest =
+                  unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
 
-                  unloadingConnector
-                    .post(arrivalId, unloadingRemarksRequest)
-                    .flatMap(response => Future.successful(Some(response.status)))
-                    .recover {
-                      case ex =>
-                        Logger.error(s"$ex")
-                        Some(SERVICE_UNAVAILABLE)
-                    }
-              }
-          }
+                unloadingConnector
+                  .post(arrivalId, unloadingRemarksRequest)
+                  .flatMap(response => Future.successful(Some(response.status)))
+                  .recover {
+                    case ex =>
+                      Logger.error(s"$ex")
+                      Some(SERVICE_UNAVAILABLE)
+                  }
+            }
+        }
       }
       .recover {
         case ex =>
@@ -66,24 +66,32 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
           None
       }
 
-  def resubmit(arrivalId: ArrivalId, eori: EoriNumber, registrationNumber: String)(implicit hc: HeaderCarrier): Future[Option[Int]] =
+  def resubmit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
       case Some(unloadingRemarksRequest) =>
-        interchangeControlReferenceIdRepository
-          .nextInterchangeControlReferenceId()
-          .flatMap {
-            interchangeControlReference =>
-              val meta: Meta = metaService.build(eori, interchangeControlReference)
 
-              val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-                case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = registrationNumber)
-                case x                                                                                       => x
-              }
-              val updatedUnloadingRemarks = unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
+        val updatedUnloadingRemarks = getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers)
 
-              unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
-          }
+        unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
+
       case _ => Future.successful(None)
     }
 
+  private def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest, eori: EoriNumber, userAnswers: UserAnswers): Future[Option[UnloadingRemarksRequest]] = {
+   interchangeControlReferenceIdRepository
+      .nextInterchangeControlReferenceId()
+      .map {
+        interchangeControlReference =>
+          val meta: Meta = metaService.build(eori, interchangeControlReference)
+          val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
+
+          val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = "registrationNumber")
+            case x => x
+          }
+       unloadingRemarksRequest.resultOfControl.pa
+          unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
+
+      }
+  }
 }
