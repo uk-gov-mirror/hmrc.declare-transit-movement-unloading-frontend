@@ -17,17 +17,14 @@
 package services
 import com.google.inject.Inject
 import connectors.UnloadingConnector
-import models.XMLWrites._
-import models.messages.{Meta, UnloadingRemarksRequest}
+import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
 import uk.gov.hmrc.http.HeaderCarrier
-import utils.XMLTransformer
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.NodeSeq
 
 class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         remarksService: RemarksService,
@@ -53,7 +50,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                     unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
 
                   unloadingConnector
-                    .post(arrivalId, unloadingRemarksRequest.toXml)
+                    .post(arrivalId, unloadingRemarksRequest)
                     .flatMap(response => Future.successful(Some(response.status)))
                     .recover {
                       case ex =>
@@ -71,9 +68,14 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
 
   def resubmit(arrivalId: ArrivalId, registrationNumber: String)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
-      case Some(unloadingRemarksXml) =>
-        val updatedXml: NodeSeq = XMLTransformer.updateXmlNode("CorValTOC4", registrationNumber, unloadingRemarksXml)
-        unloadingConnector.post(arrivalId, updatedXml).map(response => Some(response.status))
+      case Some(unloadingRemarksRequest) =>
+        val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+          case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = registrationNumber)
+          case x                                                                                       => x
+        }
+        val updatedUnloadingRemarks = unloadingRemarksRequest.copy(resultOfControl = resultOfControl)
+
+        unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
 
       case _ => Future.successful(None)
     }

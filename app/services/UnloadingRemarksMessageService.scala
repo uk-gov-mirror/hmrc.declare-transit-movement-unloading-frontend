@@ -19,14 +19,14 @@ package services
 import com.google.inject.Inject
 import connectors.UnloadingConnector
 import models.ArrivalId
+import models.messages.UnloadingRemarksRequest
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.NodeSeq
 
 class UnloadingRemarksMessageService @Inject()(connector: UnloadingConnector) {
 
-  def unloadingRemarksMessage(arrivalId: ArrivalId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[NodeSeq]] =
+  def unloadingRemarksMessage(arrivalId: ArrivalId)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Option[UnloadingRemarksRequest]] =
     connector.getSummary(arrivalId) flatMap {
       case Some(summary) =>
         connector.getUnloadingRemarksMessage(summary.messagesLocation.unloadingRemarks)

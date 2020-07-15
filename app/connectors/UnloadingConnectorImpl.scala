@@ -20,6 +20,8 @@ import com.lucidchart.open.xtract.XmlReader
 import config.FrontendAppConfig
 import javax.inject.Inject
 import models._
+import models.XMLWrites._
+import models.messages.UnloadingRemarksRequest
 import play.api.Logger
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -31,13 +33,13 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     extends UnloadingConnector
     with HttpErrorFunctions {
 
-  def post(arrivalId: ArrivalId, unloadingRemarksRequest: NodeSeq)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
+  def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
     val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
     val headers = Seq(("Content-Type", "application/xml"))
 
-    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toString, headers)
+    http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
   /**
@@ -84,12 +86,13 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     }
   }
 
-  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[NodeSeq]] = {
+  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]] = {
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadinRemarksLocation"
 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
-        Some(responseMessage.json.as[ResponseMovementMessage].message)
+        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
+        XmlReader.of[UnloadingRemarksRequest].read(message).toOption
       case _ =>
         Logger.error(s"getUnloadingRemarksMessage failed to return data")
         None
@@ -100,9 +103,9 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
 
 trait UnloadingConnector {
   def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]]
-  def post(arrivalId: ArrivalId, unloadingRemarksRequest: NodeSeq)(implicit hc: HeaderCarrier): Future[HttpResponse]
+  def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
-  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[NodeSeq]]
+  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]]
 
 }

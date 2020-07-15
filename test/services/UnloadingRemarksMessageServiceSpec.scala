@@ -16,20 +16,20 @@
 
 package services
 
-import java.time.LocalDate
-
 import base.SpecBase
 import connectors.UnloadingConnector
-import models.ErrorType.IncorrectValue
-import models.{ErrorPointer, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
+import generators.MessagesModelGenerators
+import models.messages.UnloadingRemarksRequest
+import models.{MessagesLocation, MessagesSummary}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import play.api.inject.bind
+import org.scalacheck.Arbitrary.arbitrary
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UnloadingRemarksMessageServiceSpec extends SpecBase {
+class UnloadingRemarksMessageServiceSpec extends SpecBase with MessagesModelGenerators {
 
   private val mockConnector = mock[UnloadingConnector]
   val service               = new UnloadingRemarksMessageService(mockConnector)
@@ -41,20 +41,21 @@ class UnloadingRemarksMessageServiceSpec extends SpecBase {
 
   "UnloadingRemarksMessageService" - {
     "must return UnloadingRemarksMessage for the input arrivalId" in {
-      val sampleXml = <xml>test</xml>
+
+      val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
       val messagesSummary =
         MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
 
       when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
       when(mockConnector.getUnloadingRemarksMessage(any())(any()))
-        .thenReturn(Future.successful(Some(sampleXml)))
+        .thenReturn(Future.successful(Some(unloadingRemarksRequest)))
 
       val application = applicationBuilder(Some(emptyUserAnswers))
         .overrides(bind[UnloadingConnector].toInstance(mockConnector))
         .build()
       val unloadingRemarksMessageService = application.injector.instanceOf[UnloadingRemarksMessageService]
 
-      unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId).futureValue mustBe Some(sampleXml)
+      unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId).futureValue.value mustBe unloadingRemarksRequest
     }
 
     "must return None when getSummary call fails to get MessagesSummary" in {

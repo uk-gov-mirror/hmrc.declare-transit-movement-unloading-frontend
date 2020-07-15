@@ -4,8 +4,8 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
-import models.XMLWrites._
 import models._
+import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
@@ -44,9 +44,9 @@ class UnloadingConnectorSpec extends FreeSpec
           post(postUri)
             .willReturn(status(ACCEPTED)))
 
-        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.get
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
 
-        val result = connector.post(arrivalId, unloadingRemarksRequest.toXml).futureValue
+        val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
 
         result.status mustBe ACCEPTED
       }
@@ -62,7 +62,7 @@ class UnloadingConnectorSpec extends FreeSpec
               post(postUri)
                 .willReturn(aResponse().withStatus(errorResponseCode)))
 
-            connector.post(arrivalId, unloadingRemarksRequest.toXml).futureValue.status mustBe errorResponseCode
+            connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
         }
       }
     }
@@ -91,8 +91,8 @@ class UnloadingConnectorSpec extends FreeSpec
 
           val movement = connector.get(arrivalId).futureValue
           movement.get.messages.length mustBe 2
-          movement.get.messages(0).messageType mustBe "IE015E"
-          movement.get.messages(0).message mustBe "<CC015A></CC015A>"
+          movement.get.messages.head.messageType mustBe "IE015E"
+          movement.get.messages.head.message mustBe "<CC015A></CC015A>"
           movement.get.messages(1).messageType mustBe "IE043E"
           movement.get.messages(1).message mustBe "<CC043A></CC043A>"
         }
@@ -241,9 +241,9 @@ class UnloadingConnectorSpec extends FreeSpec
 
     "getUnloadingRemarksMessage" - {
       "must return valid 'unloading remarks message'" in {
-        val sampleXml: NodeSeq = <sample>test</sample>
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
 
-        val json = Json.obj("message" -> sampleXml.toString())
+        val json = Json.obj("message" -> unloadingRemarksRequest.toXml.toString())
 
         server.stubFor(
           get(urlEqualTo(unloadingRemarksUri))
@@ -252,8 +252,8 @@ class UnloadingConnectorSpec extends FreeSpec
             )
         )
 
-        val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue
-        result mustBe Some(sampleXml)
+        val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue.value
+        result mustBe unloadingRemarksRequest
       }
 
       "must return None when an error response is returned from getUnloadingRemarksMessage" in {

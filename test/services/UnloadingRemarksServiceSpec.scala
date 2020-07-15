@@ -197,8 +197,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
     "Unloading Remarks Re-submission" - {
 
       "should return 202 for successful submission" in {
-        val inputXml = <xml>sample</xml>
-        when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(Some(inputXml))
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
+        when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(Some(unloadingRemarksRequest))
         when(mockUnloadingConnector.post(any(), any())(any())) thenReturn Future.successful(HttpResponse(ACCEPTED))
 
         val result = arrivalNotificationService.resubmit(arrivalId, "updatedValue")
