@@ -36,14 +36,10 @@ object Remarks {
       val confirm     = (__ \ "ConREM65")
       val stateOfSeal = (__ \ "StaOfTheSeaOKREM19")
 
-      if (confirm(xml).text == "0") {
-        RemarksNonConform.xmlReader.read(xml)
-      } else {
-        if (stateOfSeal(xml).nonEmpty) {
-          RemarksConformWithSeals.xmlReader.read(xml)
-        } else {
-          RemarksConform.xmlReader.read(xml)
-        }
+      (confirm(xml).text, stateOfSeal(xml).nonEmpty) match {
+        case ("0", _)    => RemarksNonConform.xmlReader.read(xml)
+        case ("1", true) => RemarksConformWithSeals.xmlReader.read(xml)
+        case _           => RemarksConform.xmlReader.read(xml)
       }
   }
 }

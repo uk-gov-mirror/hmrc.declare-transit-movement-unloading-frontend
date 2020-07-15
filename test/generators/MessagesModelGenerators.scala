@@ -19,17 +19,7 @@ package generators
 import java.time.{LocalDate, LocalTime}
 
 import models.ErrorType.GenericError
-import models.messages.{
-  Header,
-  InterchangeControlReference,
-  MessageSender,
-  Meta,
-  RemarksConform,
-  RemarksConformWithSeals,
-  RemarksNonConform,
-  ResultsOfControl,
-  UnloadingRemarksRequest
-}
+import models.messages._
 import models.{
   ErrorPointer,
   ErrorType,
@@ -121,13 +111,19 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryHeader: Arbitrary[Header] = {
     Arbitrary {
       for {
-        movementReferenceNumber <- stringsWithMaxLength(UnloadingPermission.movementReferenceNumberLength)
+        movementReferenceNumber <- arbitrary[MovementReferenceNumber]
         transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
         transportCountry        <- Gen.option(Gen.pick(UnloadingPermission.transportCountryLength, 'A' to 'Z'))
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))
-      } yield Header(movementReferenceNumber, transportIdentity, transportCountry.map(_.mkString), numberOfItems, numberOfPackages, grossMass.toString)
+      } yield
+        Header(movementReferenceNumber.toString,
+               transportIdentity.map(escapeXml),
+               transportCountry.map(_.mkString),
+               numberOfItems,
+               numberOfPackages,
+               grossMass.toString)
     }
   }
 
