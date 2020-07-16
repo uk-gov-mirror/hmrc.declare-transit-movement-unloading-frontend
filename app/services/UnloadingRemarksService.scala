@@ -89,8 +89,9 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
           userAnswers.get(VehicleNameRegistrationReferencePage) map {
             registrationNumber =>
               val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-                case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = registrationNumber)
-                case x                                                                                       => x
+                case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == TransportIdentity =>
+                  differentValues.copy(correctedValue = registrationNumber)
+                case roc: ResultsOfControl => roc
               }
               unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
           }
