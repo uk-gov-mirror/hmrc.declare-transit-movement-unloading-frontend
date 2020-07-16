@@ -16,7 +16,7 @@
 
 package connectors
 
-import com.lucidchart.open.xtract.XmlReader
+import com.lucidchart.open.xtract.{ParseFailure, ParseSuccess, PartialParseSuccess, XmlReader}
 import config.FrontendAppConfig
 import javax.inject.Inject
 import models._
@@ -79,25 +79,36 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
-        XmlReader.of[UnloadingRemarksRejectionMessage].read(message).toOption
+        readXml[UnloadingRemarksRejectionMessage](message)
       case _ =>
         Logger.error(s"Get Rejection Message failed to return data")
         None
     }
   }
 
-  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]] = {
-    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadinRemarksLocation"
+  def getUnloadingRemarksMessage(unloadingRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]] = {
+    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingRemarksLocation"
 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
-        XmlReader.of[UnloadingRemarksRequest].read(message).toOption
+        readXml[UnloadingRemarksRequest](message)
       case _ =>
         Logger.error(s"getUnloadingRemarksMessage failed to return data")
         None
     }
   }
+
+  private def readXml[T](message: NodeSeq)(implicit r: XmlReader[T]): Option[T] =
+    XmlReader.of[T].read(message) match {
+      case ParseSuccess(model) => Some(model)
+      case PartialParseSuccess(_, errors) =>
+        Logger.error(s"Failed to read xml as UnloadingRemarkRequest with errors: $errors")
+        None
+      case ParseFailure(errors) =>
+        Logger.error(s"Failed to read xml as UnloadingRemarkRequest with errors: $errors")
+        None
+    }
 
 }
 

@@ -4,8 +4,8 @@ import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
-import models._
 import models.XMLWrites._
+import models._
 import models.messages.UnloadingRemarksRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
