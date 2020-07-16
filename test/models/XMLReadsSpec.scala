@@ -73,11 +73,9 @@ class XMLReadsSpec extends SpecBase with Generators {
         val timeFormatted       = Format.timeFormatted(time)
         val timeFormattedParsed = LocalTime.parse(timeFormatted, timeFormatter)
 
-        val xml = <testXml>
-          {timeFormatted}
-        </testXml>
+        val xml = <testXml>{timeFormatted}</testXml>
 
-        val result = XmlReader.of[LocalTime].read(xml) //.toOption.value
+        val result = XmlReader.of[LocalTime].read(xml).toOption.value
 
         result mustBe timeFormattedParsed
       }
