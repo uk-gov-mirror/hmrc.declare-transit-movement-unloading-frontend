@@ -19,7 +19,8 @@ package models
 import java.time.{LocalDate, LocalTime}
 
 import base.SpecBase
-import com.lucidchart.open.xtract.{ParseFailure, ParseSuccess, XmlReader}
+import cats.syntax.all._
+import com.lucidchart.open.xtract.{__, ParseFailure, ParseSuccess, XmlReader}
 import generators.Generators
 import models.XMLReads._
 import org.scalacheck.Arbitrary.arbitrary
@@ -29,6 +30,15 @@ import utils.Format.timeFormatter
 import scala.xml.NodeSeq
 
 class XMLReadsSpec extends SpecBase with Generators {
+
+  case class Sample(name: String, age: Int)
+
+  object Sample {
+    implicit val xmlReader: XmlReader[Sample] = (
+      (__ \ "name").read[String],
+      (__ \ "age").read[Int]
+    ).mapN(apply)
+  }
 
   "XMLReads" - {
 
@@ -63,9 +73,11 @@ class XMLReadsSpec extends SpecBase with Generators {
         val timeFormatted       = Format.timeFormatted(time)
         val timeFormattedParsed = LocalTime.parse(timeFormatted, timeFormatter)
 
-        val xml = <testXml>{timeFormatted}</testXml>
+        val xml = <testXml>
+          {timeFormatted}
+        </testXml>
 
-        val result = XmlReader.of[LocalTime].read(xml).toOption.value
+        val result = XmlReader.of[LocalTime].read(xml) //.toOption.value
 
         result mustBe timeFormattedParsed
       }
@@ -78,6 +90,8 @@ class XMLReadsSpec extends SpecBase with Generators {
 
         result mustBe an[ParseFailure]
       }
+    }
+    "strictReadOptionSeq" - {
 
       "must return ParseSuccess(Some(_)) for valid xml sequence" in {
         val xml = NodeSeq.fromSeq(
@@ -92,6 +106,30 @@ class XMLReadsSpec extends SpecBase with Generators {
         val xml = NodeSeq.Empty
         strictReadOptionSeq[String].read(xml) mustBe ParseSuccess(None)
       }
+    }
+
+    "readAs" - {
+
+      "must return Some for a valid xml" in {
+        val name = arbitrary[String].sample.value
+        val age  = arbitrary[Int].sample.value
+
+        val xml = <xml><name>{name}</name><age>{age}</age></xml>
+        XMLReads.readAs[Sample](xml) mustBe Some(Sample(name, age))
+      }
+
+      "must return None for malformed xml" in {
+        val xml = <test></test>
+        XMLReads.readAs[Sample](xml) mustBe None
+      }
+
+      "must return None for a partial xml" in {
+        val name = arbitrary[String].sample.value
+
+        val xml = <xml><name>{name}</name></xml>
+        XMLReads.readAs[Sample](xml) mustBe None
+      }
+
     }
   }
 

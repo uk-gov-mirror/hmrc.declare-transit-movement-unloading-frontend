@@ -16,7 +16,6 @@
 
 package connectors
 
-import com.lucidchart.open.xtract.{ParseFailure, ParseSuccess, PartialParseSuccess, XmlReader}
 import config.FrontendAppConfig
 import javax.inject.Inject
 import models._
@@ -28,6 +27,7 @@ import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.NodeSeq
+import models.XMLReads
 
 class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext)
     extends UnloadingConnector
@@ -79,7 +79,7 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
-        readXml[UnloadingRemarksRejectionMessage](message)
+        XMLReads.readAs[UnloadingRemarksRejectionMessage](message)
       case _ =>
         Logger.error(s"Get Rejection Message failed to return data")
         None
@@ -92,24 +92,12 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     http.GET[HttpResponse](serviceUrl) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
-        readXml[UnloadingRemarksRequest](message)
+        XMLReads.readAs[UnloadingRemarksRequest](message)
       case _ =>
         Logger.error(s"getUnloadingRemarksMessage failed to return data")
         None
     }
   }
-
-  private def readXml[T](message: NodeSeq)(implicit r: XmlReader[T]): Option[T] =
-    XmlReader.of[T].read(message) match {
-      case ParseSuccess(model) => Some(model)
-      case PartialParseSuccess(_, errors) =>
-        Logger.error(s"Failed to read xml as UnloadingRemarkRequest with errors: $errors")
-        None
-      case ParseFailure(errors) =>
-        Logger.error(s"Failed to read xml as UnloadingRemarkRequest with errors: $errors")
-        None
-    }
-
 }
 
 trait UnloadingConnector {
