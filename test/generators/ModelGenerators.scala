@@ -144,7 +144,7 @@ trait ModelGenerators {
         netMass                   <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //todo does this need to be a bigDecimal
         producedDocuments         <- nonEmptyListWithMaxSize(9: Int, arbitrary[ProducedDocument])
         containers                <- listWithMaxSize(GoodsItem.maxContainers, stringsWithMaxLength(GoodsItem.containerLength))
-        packages                  <- arbitrary[Packages] //todo should this be a nonEmptySeq
+        packages                  <- listWithMaxLength[Packages](9: Int) //todo should this be a nonEmptySeq
         sensitiveGoodsInformation <- listWithMaxLength[SensitiveGoodsInformation](GoodsItem.maxSensitiveGoods: Int)
       } yield
         GoodsItem(

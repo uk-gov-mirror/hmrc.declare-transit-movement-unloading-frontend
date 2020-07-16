@@ -33,7 +33,7 @@ final case class GoodsItem(
   netMass: Option[String], //todo does this need to be a bigDecimal
   producedDocuments: NonEmptyList[ProducedDocument],
   containers: Seq[String],
-  packages: Packages, //todo should this be a nonEmptySeq
+  packages: Seq[Packages], //todo should this be a nonEmptySeq
   sensitiveGoodsInformation: Seq[SensitiveGoodsInformation]
 )
 
@@ -56,7 +56,7 @@ object GoodsItem {
     (__ \ "PRODOCDC2").read[NonEmptyList[ProducedDocument]](NonEmptyListOps.nonEmptyListReader),
     (__ \ "CONNR2" \ "ConNumNR21").read(strictReadSeq[String]), //TODO:Check this is the correct node values
     //TODO: If the above isn't available a Some(Vector()) is returned
-    (__ \ "PACGS2").read[Packages], //todo should this be a nonEmptySeq
+    (__ \ "PACGS2").read(strictReadSeq[Packages]), //todo should this be a nonEmptySeq
     (__ \ "SGICODSD2").read(seq[SensitiveGoodsInformation])
   ).mapN(apply)
 
@@ -93,7 +93,7 @@ object GoodsItem {
         {netMass}
         {goodsItem.producedDocuments.toList.map(x => x.toXml)}
         {containers}
-        {goodsItem.packages.toXml}
+        {goodsItem.packages.map(_.toXml)}
         {goodsItem.sensitiveGoodsInformation.map(x => x.toXml)}
       </GOOITEGDS>
   }

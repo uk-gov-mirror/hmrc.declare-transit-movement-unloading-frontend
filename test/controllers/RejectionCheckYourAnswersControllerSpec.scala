@@ -78,7 +78,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
       application.stop()
     }
 
-     "return UNAUTHORIZED when backend returns 401" in {
+    "return UNAUTHORIZED when backend returns 401" in {
 
       val mockUnloadingRemarksService = mock[UnloadingRemarksService]
       val userAnswers                 = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").toOption
