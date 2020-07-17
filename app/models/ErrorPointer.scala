@@ -18,43 +18,29 @@ package models
 
 import com.lucidchart.open.xtract.{__, XmlReader}
 
-sealed abstract class ErrorPointer() extends Serializable {
-  val value = ""
-}
+sealed abstract class ErrorPointer(val value: String)
 
 object ErrorPointer {
 
   implicit val xmlReader: XmlReader[ErrorPointer] =
     __.read[String].map {
-      case GrossMassPointer.value           => GrossMassPointer
-      case NumberOfItemsPointer.value       => NumberOfItemsPointer
-      case UnloadingDatePointer.value       => UnloadingDatePointer
-      case VehicleRegistrationPointer.value => VehicleRegistrationPointer
-      case NumberOfPackagesPointer.value    => NumberOfPackagesPointer
-      case _                                => DefaultPointer
+      pointer =>
+        values.find(_.value.equalsIgnoreCase(pointer)).getOrElse(DefaultPointer)
     }
 
-  val values = Seq(GrossMassPointer, NumberOfItemsPointer, UnloadingDatePointer, VehicleRegistrationPointer, NumberOfPackagesPointer, DefaultPointer)
+  val values = Seq(
+    GrossMassPointer,
+    NumberOfItemsPointer,
+    UnloadingDatePointer,
+    VehicleRegistrationPointer,
+    NumberOfPackagesPointer,
+    DefaultPointer
+  )
 }
 
-object GrossMassPointer extends ErrorPointer {
-  override val value = "HEA.Total gross mass"
-}
-
-object NumberOfItemsPointer extends ErrorPointer {
-  override val value = "HEA.Total number of items"
-}
-
-object UnloadingDatePointer extends ErrorPointer {
-  override val value = "REM.Unloading Date"
-}
-
-object VehicleRegistrationPointer extends ErrorPointer {
-  override val value = "HEA.Identity of means of transport at departure (exp/trans)"
-}
-
-object NumberOfPackagesPointer extends ErrorPointer {
-  override val value = "HEA.Total number of packages"
-}
-
-object DefaultPointer extends ErrorPointer
+object GrossMassPointer extends ErrorPointer("HEA.Total gross mass")
+object NumberOfItemsPointer extends ErrorPointer("HEA.Total number of items")
+object UnloadingDatePointer extends ErrorPointer("REM.Unloading Date")
+object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of transport at departure (exp/trans)")
+object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages")
+object DefaultPointer extends ErrorPointer("")

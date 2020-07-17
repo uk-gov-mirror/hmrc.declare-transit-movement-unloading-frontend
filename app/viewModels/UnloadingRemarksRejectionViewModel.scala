@@ -16,7 +16,17 @@
 
 package viewModels
 import controllers.routes
-import models.{ArrivalId, FunctionalError}
+import models.{
+  ArrivalId,
+  DefaultPointer,
+  ErrorPointer,
+  FunctionalError,
+  GrossMassPointer,
+  NumberOfItemsPointer,
+  NumberOfPackagesPointer,
+  UnloadingDatePointer,
+  VehicleRegistrationPointer
+}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels._
@@ -27,18 +37,14 @@ case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
 object UnloadingRemarksRejectionViewModel {
 
   //TODO add logic for multiple rejection errors
-  def apply(error: FunctionalError, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
-    error.pointer match {
-      case
-    }
+  def apply(errorPointer: ErrorPointer, originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel =
+    editRejectedPage(arrivalId, originalValue, errorPointer)
 
-    //Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue)))
-    UnloadingRemarksRejectionViewModel(Seq())
-  }
+  UnloadingRemarksRejectionViewModel(Seq())
 
-  private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
+  private def editRejectedPage(arrivalId: ArrivalId, value: String, errorPointer: ErrorPointer): Row =
     Row(
-      key   = Key(msg"changeVehicle.reference.label", classes = Seq("govuk-!-width-one-half")),
+      key   = Key(msg"${errorPointer.toString}.label", classes = Seq("govuk-!-width-one-half")),
       value = Value(lit"$value"),
       actions = List(
         Action(

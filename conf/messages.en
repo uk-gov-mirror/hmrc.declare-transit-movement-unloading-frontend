@@ -295,3 +295,12 @@ unloadingRemarksRejection.contact.message = If this information is correct, you 
 unloadingRemarksRejection.conflicting.information = There is conflicting information that must be fixed before you can continue.
 unloadingRemarksRejection.contact = contact the New Computerised Transit System helpdesk to fix this(opens in a new tab)
 unloadingRemarksRejection.create.unloadingRemarks = create new unloading remarks
+
+VehicleRegistrationPointer.label = Name, registration or reference
+VehicleRegistrationPointer.change.hidden = name, registration or reference
+GrossMassPointer.label = Total gross mass in kilograms
+GrossMassPointer.change.hidden = total gross mass in kilograms
+NumberOfItemsPointer.label = Total number of items
+NumberOfItemsPointer.change.hidden = total number of items
+NumberOfPackagesPointer.label = Total number of packages
+NumberOfPackagesPointer.change.hidden = total number of packages
