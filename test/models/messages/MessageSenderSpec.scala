@@ -16,15 +16,22 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.{ParseFailure, XmlReader}
 import generators.MessagesModelGenerators
 import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.NodeSeq
 
-class MessageSenderSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with StreamlinedXmlEquality with MessagesModelGenerators {
+class MessageSenderSpec
+    extends FreeSpec
+    with MustMatchers
+    with ScalaCheckPropertyChecks
+    with StreamlinedXmlEquality
+    with MessagesModelGenerators
+    with OptionValues {
 
   "MessageSender" - {
 
@@ -36,6 +43,25 @@ class MessageSenderSpec extends FreeSpec with MustMatchers with ScalaCheckProper
 
           messageSender.toXml mustEqual expectedResult
       }
+    }
+
+    "must deserialize from xml" in {
+
+      forAll(arbitrary[MessageSender]) {
+        messageSender =>
+          val xml    = messageSender.toXml
+          val result = XmlReader.of[MessageSender].read(xml).toOption.value
+
+          result mustBe messageSender
+      }
+    }
+
+    "must fail to deserialize from xml if invalid format" in {
+
+      val invalidXml = <MesSenMES3>Invalid format</MesSenMES3>
+      val result     = XmlReader.of[MessageSender].read(invalidXml)
+
+      result mustBe an[ParseFailure]
     }
   }
 }

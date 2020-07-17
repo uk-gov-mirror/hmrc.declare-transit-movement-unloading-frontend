@@ -21,13 +21,13 @@ import org.scalatest.{FreeSpec, MustMatchers}
 import pages.{GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
 
-class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with SpecBase {
+class UnloadingSummaryViewModelSpec extends SpecBase {
 
   private val transportCountry = None
 
   "UnloadingSummaryViewModel" - {
 
-    "seals section should" - {
+    "seals sections should" - {
       "display no seals" in {
 
         val data = UnloadingSummaryViewModel(emptyUserAnswers, transportCountry)(unloadingPermission)
@@ -62,7 +62,7 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
       }
     }
 
-    "vehicle section should" - {
+    "vehicle sections should" - {
 
       "display transportIdentity" in {
 
@@ -100,7 +100,7 @@ class UnloadingSummaryViewModelSpec extends FreeSpec with MustMatchers with Spec
 
     }
 
-    "items section should" - {
+    "items sections should" - {
 
       "display total mass with single item" in {
 

@@ -74,7 +74,7 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
                   x => <CONNR2>{x}</CONNR2>
                 }
               }
-              {packages(goodsItem.packages)}
+              {goodsItem.packages.map(packages)}
               {sensitiveGoodsInformation(goodsItem)}
               </GOOITEGDS>
           }
@@ -135,7 +135,7 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
               {netMass.getOrElse(NodeSeq.Empty)}
               {goodsItem.producedDocuments.toList.map(x => x.toXml)}
               {containers}
-              {goodsItem.packages.toXml}
+              {goodsItem.packages.map(_.toXml)}
               {goodsItem.sensitiveGoodsInformation.map(x => x.toXml)}
             </GOOITEGDS>
           }

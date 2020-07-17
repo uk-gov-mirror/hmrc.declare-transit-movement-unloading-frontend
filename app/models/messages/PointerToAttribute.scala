@@ -15,6 +15,7 @@
  */
 
 package models.messages
+import com.lucidchart.open.xtract.{__, XmlReader}
 import models.XMLWrites
 
 //TODO: Can we get rid of PointerToAttribute (use PointerIdentity)
@@ -24,9 +25,18 @@ object PointerToAttribute {
   implicit val writes: XMLWrites[PointerToAttribute] = {
     XMLWrites(pointerToAttribute => <PoiToTheAttTOC5>{pointerToAttribute.pointer.value}</PoiToTheAttTOC5>)
   }
+
+  implicit val reads: XmlReader[PointerToAttribute] = (__ \ "PoiToTheAttTOC5").read[String] map {
+    case TransportIdentity.value => PointerToAttribute(TransportIdentity)
+    case TransportCountry.value  => PointerToAttribute(TransportCountry)
+    case NumberOfItems.value     => PointerToAttribute(NumberOfItems)
+    case NumberOfPackages.value  => PointerToAttribute(NumberOfPackages)
+    case GrossMass.value         => PointerToAttribute(GrossMass)
+  }
+
 }
 
-sealed trait PointerIdentity {
+sealed trait PointerIdentity extends Serializable {
   val value: String
 }
 

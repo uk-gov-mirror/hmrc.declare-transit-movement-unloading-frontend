@@ -16,14 +16,22 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.{ParseFailure, XmlReader}
+import generators.MessagesModelGenerators
 import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.NodeSeq
 
-class InterchangeControlReferenceSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
+class InterchangeControlReferenceSpec
+    extends FreeSpec
+    with MustMatchers
+    with ScalaCheckPropertyChecks
+    with StreamlinedXmlEquality
+    with MessagesModelGenerators
+    with OptionValues {
 
   "InterchangeControlReference" - {
     "must convert to xml and convert to correct format" in {
@@ -36,6 +44,25 @@ class InterchangeControlReferenceSpec extends FreeSpec with MustMatchers with Sc
 
           result mustEqual expectedResult
       }
+    }
+
+    "must deserialize from xml" in {
+
+      forAll(arbitrary[InterchangeControlReference]) {
+        interchangeControlReference =>
+          val xml    = interchangeControlReference.toXml
+          val result = XmlReader.of[InterchangeControlReference].read(xml).toOption.value
+
+          result mustBe interchangeControlReference
+      }
+    }
+
+    "must fail to deserialize from xml if invalid format" in {
+
+      val invalidXml = <IntConRefMES11>Invalid format</IntConRefMES11>
+      val result     = XmlReader.of[InterchangeControlReference].read(invalidXml)
+
+      result mustBe an[ParseFailure]
     }
   }
 }

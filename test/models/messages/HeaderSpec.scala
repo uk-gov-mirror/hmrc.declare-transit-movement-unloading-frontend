@@ -16,15 +16,16 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.XmlReader
 import generators.MessagesModelGenerators
 import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.NodeSeq
 
-class HeaderSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality {
+class HeaderSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality with OptionValues {
 
   "HeaderSpec" - {
 
@@ -51,6 +52,16 @@ class HeaderSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyCheck
           </HEAHEA>
 
           header.toXml mustEqual expectedResult
+      }
+
+    }
+
+    "must deserialize Xml to Header" in {
+      forAll(arbitrary[Header]) {
+        header =>
+          val result = XmlReader.of[Header].read(header.toXml).toOption.value
+
+          result mustBe header
       }
 
     }

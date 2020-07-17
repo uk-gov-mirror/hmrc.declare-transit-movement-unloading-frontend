@@ -16,10 +16,10 @@
 
 package services
 import com.google.inject.Inject
-import config.FrontendAppConfig
 import connectors.UnloadingConnector
-import models.messages.{Meta, UnloadingRemarksRequest}
+import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
+import pages.VehicleNameRegistrationReferencePage
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
@@ -27,11 +27,12 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
-                                        metaService: MetaService,
+class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         remarksService: RemarksService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
+                                        unloadingRemarksMessageService: UnloadingRemarksMessageService,
+                                        resultOfControlService: ResultOfControlService,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
   def submit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
@@ -67,4 +68,32 @@ class UnloadingRemarksService @Inject()(config: FrontendAppConfig,
           None
       }
 
+  def resubmit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers)(implicit hc: HeaderCarrier): Future[Option[Int]] =
+    unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
+      case Some(unloadingRemarksRequest) =>
+        getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
+          case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
+          case _                             => Future.successful(None)
+        }
+      case _ => Future.successful(None)
+    }
+
+  private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,
+                                                         eori: EoriNumber,
+                                                         userAnswers: UserAnswers): Future[Option[UnloadingRemarksRequest]] =
+    interchangeControlReferenceIdRepository
+      .nextInterchangeControlReferenceId()
+      .map {
+        interchangeControlReference =>
+          val meta: Meta = metaService.build(eori, interchangeControlReference)
+          userAnswers.get(VehicleNameRegistrationReferencePage) map {
+            registrationNumber =>
+              val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+                case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == TransportIdentity =>
+                  differentValues.copy(correctedValue = registrationNumber)
+                case roc: ResultsOfControl => roc
+              }
+              unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
+          }
+      }
 }

@@ -17,6 +17,9 @@
 package models.messages
 import java.time.LocalDate
 
+import cats.syntax.all._
+import com.lucidchart.open.xtract.{__, XmlReader}
+import models.XMLReads._
 import models.{LanguageCodeEnglish, XMLWrites}
 import utils.Format
 
@@ -25,6 +28,20 @@ import scala.xml.NodeSeq
 sealed trait Remarks {
   val conform: String //1 if no unloading remarks, 0 if unloading remarks are present OR any seals changed/updated OR any data changed
   val unloadingCompleted: String = "1"
+}
+
+object Remarks {
+  implicit lazy val xmlReader: XmlReader[Remarks] = XmlReader {
+    xml =>
+      val confirm     = (__ \ "ConREM65")
+      val stateOfSeal = (__ \ "StaOfTheSeaOKREM19")
+
+      (confirm(xml).text, stateOfSeal(xml).nonEmpty) match {
+        case ("0", _)    => RemarksNonConform.xmlReader.read(xml)
+        case ("1", true) => RemarksConformWithSeals.xmlReader.read(xml)
+        case _           => RemarksConform.xmlReader.read(xml)
+      }
+  }
 }
 
 case class RemarksConform(unloadingDate: LocalDate) extends Remarks {
@@ -40,6 +57,8 @@ object RemarksConform {
       <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
     </UNLREMREM>)
   }
+
+  implicit val xmlReader: XmlReader[RemarksConform] = (__ \ "UnlDatREM67").read[LocalDate] map apply
 }
 
 case class RemarksConformWithSeals(unloadingDate: LocalDate) extends Remarks {
@@ -57,31 +76,24 @@ object RemarksConformWithSeals {
       <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
     </UNLREMREM>)
   }
+
+  implicit val xmlReader: XmlReader[RemarksConformWithSeals] = (__ \ "UnlDatREM67").read[LocalDate] map apply
 }
 
 case class RemarksNonConform(
   stateOfSeals: Option[Int],
   unloadingRemark: Option[String], //TODO: Can we have non conform with no results of control and unloading remarks
-  unloadingDate: LocalDate,
-  resultOfControl: Seq[ResultsOfControl]
+  unloadingDate: LocalDate
 ) extends Remarks {
   val conform = "0"
 }
 
 object RemarksNonConform {
 
-  import models.XMLWrites._
-
   val unloadingRemarkLength  = 350
   val resultsOfControlLength = 9
 
   implicit val writes: XMLWrites[RemarksNonConform] = {
-
-    def resultOfControlNode(resultsOfControl: Seq[ResultsOfControl]): NodeSeq =
-      resultsOfControl.flatMap {
-        case y: ResultsOfControlOther           => y.toXml
-        case y: ResultsOfControlDifferentValues => y.toXml
-      }
 
     XMLWrites(remarks => {
 
@@ -102,8 +114,14 @@ object RemarksNonConform {
         <ConREM65>{remarks.conform}</ConREM65>
         <UnlComREM66>{remarks.unloadingCompleted}</UnlComREM66>
         <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
-      </UNLREMREM> +: resultOfControlNode(remarks.resultOfControl)
+      </UNLREMREM>
 
     })
   }
+
+  implicit val xmlReader: XmlReader[RemarksNonConform] = (
+    (__ \ "StaOfTheSeaOKREM19").read[Int].optional,
+    (__ \ "UnlRemREM53").read[String].optional,
+    (__ \ "UnlDatREM67").read[LocalDate]
+  ) mapN apply
 }

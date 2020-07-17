@@ -16,7 +16,6 @@
 
 package services
 import java.time.{LocalDate, ZoneOffset}
-import java.util.NoSuchElementException
 
 import base.SpecBase
 import generators.Generators
@@ -26,8 +25,6 @@ import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages._
-
-import scala.concurrent.Future
 
 class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropertyChecks {
 
@@ -72,10 +69,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
             when(mockResultOfControlService.build(userAnswers)).thenReturn(Seq(resultsOfControlValues))
 
             service.build(userAnswers, unloadingPermissionWithSeals).futureValue mustBe
-              RemarksNonConform(stateOfSeals    = Some(1),
-                                unloadingRemark = None,
-                                unloadingDate   = dateGoodsUnloaded,
-                                resultOfControl = Seq(resultsOfControlValues))
+              RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
         }
       }
 
@@ -92,7 +86,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
             when(mockResultOfControlService.build(userAnswers)).thenReturn(Seq(resultsOfControlValues))
 
             service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
-              RemarksNonConform(stateOfSeals = None, unloadingRemark = None, unloadingDate = dateGoodsUnloaded, resultOfControl = Seq(resultsOfControlValues))
+              RemarksNonConform(stateOfSeals = None, unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
 
         }
       }
@@ -116,10 +110,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
               when(mockResultOfControlService.build(userAnswers)).thenReturn(resultsOfControlValues)
 
               service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
-                RemarksNonConform(stateOfSeals    = None,
-                                  unloadingRemark = Some("changes reported"),
-                                  unloadingDate   = dateGoodsUnloaded,
-                                  resultOfControl = resultsOfControlValues)
+                RemarksNonConform(stateOfSeals = None, unloadingRemark = Some("changes reported"), unloadingDate = dateGoodsUnloaded)
 
           }
 
@@ -142,10 +133,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
               when(mockResultOfControlService.build(userAnswers)).thenReturn(resultsOfControlValues)
 
               service.build(userAnswers, unloadingPermissionWithSeals).futureValue mustBe
-                RemarksNonConform(stateOfSeals    = Some(1),
-                                  unloadingRemark = Some("changes reported"),
-                                  unloadingDate   = dateGoodsUnloaded,
-                                  resultOfControl = resultsOfControlValues)
+                RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = Some("changes reported"), unloadingDate = dateGoodsUnloaded)
 
           }
         }
@@ -205,8 +193,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
                 RemarksNonConform(
                   stateOfSeals    = Some(0),
                   unloadingRemark = userAnswersUpdated.get(ChangesToReportPage),
-                  unloadingDate   = dateGoodsUnloaded,
-                  resultOfControl = resultsOfControlValues
+                  unloadingDate   = dateGoodsUnloaded
                 )
           }
         }
@@ -233,8 +220,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
                 RemarksNonConform(
                   stateOfSeals    = Some(0),
                   unloadingRemark = userAnswersUpdated.get(ChangesToReportPage),
-                  unloadingDate   = dateGoodsUnloaded,
-                  resultOfControl = resultsOfControlValues
+                  unloadingDate   = dateGoodsUnloaded
                 )
           }
         }
@@ -285,8 +271,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
                 RemarksNonConform(
                   stateOfSeals    = None, // Should this be Some(0)? (no seals existed but we've added new ones)
                   unloadingRemark = userAnswers.get(ChangesToReportPage),
-                  unloadingDate   = dateGoodsUnloaded,
-                  resultOfControl = Nil // Do we need to send a result of control when adding new seals?
+                  unloadingDate   = dateGoodsUnloaded
                 )
           }
 
@@ -319,8 +304,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
                 RemarksNonConform(
                   stateOfSeals    = Some(0),
                   unloadingRemark = userAnswers.get(ChangesToReportPage),
-                  unloadingDate   = dateGoodsUnloaded,
-                  resultOfControl = resultsOfControlValues
+                  unloadingDate   = dateGoodsUnloaded
                 )
           }
 

@@ -16,21 +16,26 @@
 
 package connectors
 
-import com.google.inject.Inject
 import config.FrontendAppConfig
+import javax.inject.Inject
+import models._
 import models.XMLWrites._
 import models.messages.UnloadingRemarksRequest
-import models.{ArrivalId, Movement}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
+import play.api.Logger
+import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.xml.NodeSeq
+import models.XMLReads
 
-class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext) extends UnloadingConnector {
+class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext)
+    extends UnloadingConnector
+    with HttpErrorFunctions {
 
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
-    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.value}/messages/"
+    val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
     val headers = Seq(("Content-Type", "application/xml"))
 
@@ -43,19 +48,63 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
     */
   def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]] = {
 
-    val url = config.arrivalsBackend ++ s"/movements/arrivals/${arrivalId.value}/messages/"
+    val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
     http
       .GET[Movement](url)
-      .map(x => Some(x))
+      .map(Some(_))
       .recover {
-        case _ => None
+        case _ =>
+          Logger.error(s"Get failed to return data")
+
+          None
       }
   }
 
+  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
+
+    val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/summary"
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) =>
+        Some(responseMessage.json.as[MessagesSummary])
+      case _ =>
+        Logger.error(s"Get Summary failed to return data")
+        None
+    }
+  }
+
+  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = {
+    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$rejectionLocation"
+
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) =>
+        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
+        XMLReads.readAs[UnloadingRemarksRejectionMessage](message)
+      case _ =>
+        Logger.error(s"Get Rejection Message failed to return data")
+        None
+    }
+  }
+
+  def getUnloadingRemarksMessage(unloadingRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]] = {
+    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingRemarksLocation"
+
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) =>
+        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
+        XMLReads.readAs[UnloadingRemarksRequest](message)
+      case _ =>
+        Logger.error(s"getUnloadingRemarksMessage failed to return data")
+        None
+    }
+  }
 }
 
 trait UnloadingConnector {
   def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]]
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
+  def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
+  def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
+  def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]]
+
 }

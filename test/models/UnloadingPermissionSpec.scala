@@ -179,7 +179,7 @@ object UnloadingPermissionSpec {
             x => <CONNR2>{x}</CONNR2>
           }
           }
-          {packages(goodsItem.packages)}
+          {goodsItem.packages.map(packages)}
           {sensitiveGoodsInformation(goodsItem)}
         </GOOITEGDS>
     }

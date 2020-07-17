@@ -16,15 +16,16 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.XmlReader
 import generators.{Generators, ModelGenerators}
 import models.XMLWrites._
 import org.scalacheck.Arbitrary._
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.Utility.trim
 
-class ResultsOfControlSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks {
+class ResultsOfControlSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks with OptionValues {
 
   "ResultsOfControlSpec" - {
 
@@ -50,6 +51,37 @@ class ResultsOfControlSpec extends FreeSpec with MustMatchers with Generators wi
           resultsOfControl.toXml.map(trim) mustBe xml.map(trim)
         }
 
+      }
+
+    }
+
+    "must read xml as ResultsOfControl" in {
+
+      val resultsOfControl = arbitrary[ResultsOfControl].sample.get
+
+      resultsOfControl match {
+        case resultsOfControl: ResultsOfControlOther => {
+          val xml = <RESOFCON534>
+            <DesTOC2>{resultsOfControl.description}</DesTOC2>
+            <DesTOC2LNG>EN</DesTOC2LNG>
+            <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
+          </RESOFCON534>
+
+          val result = XmlReader.of[ResultsOfControlOther].read(xml)
+
+          result.toOption.value mustEqual resultsOfControl
+        }
+        case resultsOfControl: ResultsOfControlDifferentValues => {
+          val xml = <RESOFCON534>
+            <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
+            <PoiToTheAttTOC5>{resultsOfControl.pointerToAttribute.pointer.value}</PoiToTheAttTOC5>
+            <CorValTOC4>{resultsOfControl.correctedValue}</CorValTOC4>
+          </RESOFCON534>
+
+          val result = XmlReader.of[ResultsOfControlDifferentValues].read(xml)
+
+          result.toOption.value mustEqual resultsOfControl
+        }
       }
 
     }

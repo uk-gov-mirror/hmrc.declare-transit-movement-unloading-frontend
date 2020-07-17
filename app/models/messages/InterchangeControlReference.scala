@@ -16,7 +16,11 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.{ParseError, ParseFailure, ParseResult, ParseSuccess, XmlReader}
 import models.XMLWrites
+
+import scala.util.matching.Regex
+import scala.xml.NodeSeq
 
 case class InterchangeControlReference(date: String, index: Int)
 
@@ -29,5 +33,23 @@ object InterchangeControlReference {
       a =>
         <IntConRefMES11>{escapeXml(s"$prefix${a.date}${a.index}")}</IntConRefMES11>
     }
+
+  implicit val interchangeControlReferenceXmlReads: XmlReader[InterchangeControlReference] = {
+    new XmlReader[InterchangeControlReference] {
+      override def read(xml: NodeSeq): ParseResult[InterchangeControlReference] = {
+
+        case class InterchangeControlReferenceParseFailure(message: String) extends ParseError
+
+        val controlReferenceFormat: Regex = (prefix + """(\d{8})(\d*)""").r
+
+        xml.text match {
+          case controlReferenceFormat(date, index) =>
+            ParseSuccess(InterchangeControlReference(date, index.toInt))
+          case _ =>
+            ParseFailure(InterchangeControlReferenceParseFailure(s"Failed to parse the following value to InterchangeControlReference: ${xml.text}"))
+        }
+      }
+    }
+  }
 
 }

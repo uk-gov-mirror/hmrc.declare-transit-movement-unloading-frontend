@@ -17,10 +17,14 @@
 package models.messages
 
 import cats.data.NonEmptyList
+import cats.syntax.all._
+import com.lucidchart.open.xtract.XmlReader.strictReadSeq
+import com.lucidchart.open.xtract.{__, XmlReader}
+import models.XMLWrites._
 import models.{GoodsItem, Seals, TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, XMLWrites}
+import xml.NonEmptyListOps
 
 import scala.xml.{Elem, Node, NodeSeq}
-import models.XMLWrites._
 
 case class UnloadingRemarksRequest(
   meta: Meta,
@@ -28,6 +32,7 @@ case class UnloadingRemarksRequest(
   traderAtDestination: TraderAtDestination,
   presentationOffice: String,
   unloadingRemark: Remarks,
+  resultOfControl: Seq[ResultsOfControl],
   seals: Option[Seals],
   goodsItems: NonEmptyList[GoodsItem]
 )
@@ -57,12 +62,29 @@ object UnloadingRemarksRequest {
             <RefNumRES1>{unloadingRemarksRequest.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES> ++
           unloadingRemarkNode(unloadingRemarksRequest.unloadingRemark) ++
+          resultOfControlNode(unloadingRemarksRequest.resultOfControl) ++
           unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty) ++
           unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten
       }
 
       Elem(parentNode.prefix, parentNode.label, parentNode.attributes, parentNode.scope, parentNode.child.isEmpty, parentNode.child ++ childNodes: _*)
   }
+
+  implicit val reads: XmlReader[UnloadingRemarksRequest] =
+    (__.read[Meta],
+     (__ \ "HEAHEA").read[Header],
+     (__ \ "TRADESTRD").read[TraderAtDestination],
+     (__ \ "CUSOFFPREOFFRES" \ "RefNumRES1").read[String],
+     (__ \ "UNLREMREM").read[Remarks],
+     (__ \ "RESOFCON534").read(strictReadSeq[ResultsOfControl]),
+     (__ \ "SEAINFSLI").read[Seals].optional,
+     (__ \ "GOOITEGDS").read[NonEmptyList[GoodsItem]](NonEmptyListOps.nonEmptyListReader)) mapN apply
+
+  private def resultOfControlNode(resultsOfControl: Seq[ResultsOfControl]): NodeSeq =
+    resultsOfControl.flatMap {
+      case y: ResultsOfControlOther           => y.toXml
+      case y: ResultsOfControlDifferentValues => y.toXml
+    }
 
   private def traderAtDesinationNode(traderAtDestination: TraderAtDestination): NodeSeq = traderAtDestination match {
     case traderAtDestinationWithEori: TraderAtDestinationWithEori       => traderAtDestinationWithEori.toXml

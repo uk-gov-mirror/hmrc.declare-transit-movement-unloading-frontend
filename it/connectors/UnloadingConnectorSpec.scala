@@ -1,20 +1,32 @@
 package connectors
 
+import java.time.LocalDate
+
 import com.github.tomakehurst.wiremock.client.WireMock._
 import generators.MessagesModelGenerators
-import models.ArrivalId
+import models.XMLWrites._
+import models._
 import models.messages.UnloadingRemarksRequest
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.http.Status._
 import play.api.libs.json._
 import uk.gov.hmrc.http.HeaderCarrier
 
-class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
-  IntegrationPatience with WireMockSuite with MustMatchers with OptionValues with MessagesModelGenerators with ScalaCheckPropertyChecks {
+import scala.xml.NodeSeq
+
+class UnloadingConnectorSpec extends FreeSpec
+  with ScalaFutures
+  with IntegrationPatience
+  with WireMockSuite
+  with MustMatchers
+  with OptionValues
+  with MessagesModelGenerators
+  with StreamlinedXmlEquality
+  with ScalaCheckPropertyChecks {
 
   import UnloadingConnectorSpec._
 
@@ -33,9 +45,7 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
           post(postUri)
             .willReturn(status(ACCEPTED)))
 
-        val unloadingRemarksRequestObject = arbitrary[UnloadingRemarksRequest]
-
-        val unloadingRemarksRequest: UnloadingRemarksRequest = unloadingRemarksRequestObject .sample.get
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
 
         val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
 
@@ -82,8 +92,8 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
 
           val movement = connector.get(arrivalId).futureValue
           movement.get.messages.length mustBe 2
-          movement.get.messages(0).messageType mustBe "IE015E"
-          movement.get.messages(0).message mustBe "<CC015A></CC015A>"
+          movement.get.messages.head.messageType mustBe "IE015E"
+          movement.get.messages.head.message mustBe "<CC015A></CC015A>"
           movement.get.messages(1).messageType mustBe "IE043E"
           movement.get.messages(1).message mustBe "<CC043A></CC043A>"
         }
@@ -127,6 +137,138 @@ class UnloadingConnectorSpec extends FreeSpec with ScalaFutures with
         connector.get(arrivalId).futureValue mustBe None
       }
     }
+
+    "getSummary" - {
+
+      "must be return summary of messages" in {
+        val json = Json.obj(
+          "arrivalId" -> arrivalId.value,
+          "messages" -> Json.obj(
+            "IE044" -> s"/movements/arrivals/${arrivalId.value}/messages/3",
+            "IE058" -> s"/movements/arrivals/${arrivalId.value}/messages/5"
+          )
+        )
+
+        val messageAction =
+          MessagesSummary(arrivalId,
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
+
+        server.stubFor(
+          get(urlEqualTo(summaryUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+        connector.getSummary(arrivalId).futureValue mustBe Some(messageAction)
+      }
+
+      "must return 'None' when an error response is returned from getSummary" in {
+        forAll(responseCodes) {
+          code: Int =>
+            server.stubFor(
+              get(summaryUri)
+                .willReturn(aResponse().withStatus(code))
+            )
+
+            connector.getSummary(ArrivalId(1)).futureValue mustBe None
+        }
+      }
+    }
+
+    "getRejectionMessage" - {
+      "must return valid 'rejection message'" in {
+        val genRejectionError     = arbitrary[ErrorType].sample.value
+        val rejectionXml: NodeSeq =             <CC058A>
+          <HEAHEA>
+            <DocNumHEA5>19IT021300100075E9</DocNumHEA5>
+            <UnlRemRejDatHEA218>20191018</UnlRemRejDatHEA218>
+          </HEAHEA>
+          <FUNERRER1>
+            <ErrTypER11>{genRejectionError.code}</ErrTypER11>
+            <ErrPoiER12>Message type</ErrPoiER12>
+            <OriAttValER14>GB007A</OriAttValER14>
+          </FUNERRER1>
+        </CC058A>
+
+        val json = Json.obj("message" -> rejectionXml.toString())
+
+        server.stubFor(
+          get(urlEqualTo(rejectionUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+        val expectedResult = Some(
+          UnloadingRemarksRejectionMessage(
+            MovementReferenceNumber("19IT021300100075E9").get,
+            LocalDate.of(2019, 10, 18),
+            None,
+            List(FunctionalError(genRejectionError, ErrorPointer("Message type"), None, Some("GB007A")))
+          ))
+        val result = connector.getRejectionMessage(rejectionUri).futureValue
+        result mustBe expectedResult
+      }
+
+      "must return None for malformed xml'" in {
+        val rejectionXml: NodeSeq = <CC058A>
+          <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
+          </HEAHEA>
+        </CC058A>
+
+        val json = Json.obj("message" -> rejectionXml.toString())
+
+        server.stubFor(
+          get(urlEqualTo(rejectionUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+
+        connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+      }
+
+      "must return None when an error response is returned from getRejectionMessage" in {
+        forAll(responseCodes) {
+          code: Int =>
+            server.stubFor(
+              get(rejectionUri)
+                .willReturn(aResponse().withStatus(code))
+            )
+
+            connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+        }
+      }
+    }
+
+    "getUnloadingRemarksMessage" - {
+      "must return valid 'unloading remarks message'" in {
+        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
+
+        val json = Json.obj("message" -> unloadingRemarksRequest.toXml.toString())
+
+        server.stubFor(
+          get(urlEqualTo(unloadingRemarksUri))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+
+        val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue.value
+        result mustBe unloadingRemarksRequest
+      }
+
+      "must return None when an error response is returned from getUnloadingRemarksMessage" in {
+        forAll(responseCodes) {
+          code: Int =>
+            server.stubFor(
+              get(unloadingRemarksUri)
+                .willReturn(aResponse().withStatus(code))
+            )
+
+            connector.getUnloadingRemarksMessage(rejectionUri).futureValue mustBe None
+        }
+      }
+    }
   }
 
 }
@@ -157,10 +299,13 @@ object UnloadingConnectorSpec {
       |}
     """.stripMargin
 
-  private val emptyObject: String = JsObject.empty.toString()
-  private val arrivalId = ArrivalId(1)
-  private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-  private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   private val arrivalId = ArrivalId(1)
+   private val emptyObject: String = JsObject.empty.toString()
+   private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+   private val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
+   private val rejectionUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
+   private val unloadingRemarksUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }

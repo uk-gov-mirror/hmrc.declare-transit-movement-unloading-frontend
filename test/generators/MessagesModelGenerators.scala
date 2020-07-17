@@ -18,11 +18,24 @@ package generators
 
 import java.time.{LocalDate, LocalTime}
 
+import models.ErrorType.GenericError
 import models.messages._
-import models.{GoodsItem, Seals, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, UnloadingPermission}
+import models.{
+  ErrorPointer,
+  ErrorType,
+  FunctionalError,
+  GoodsItem,
+  MovementReferenceNumber,
+  Seals,
+  TraderAtDestinationWithEori,
+  TraderAtDestinationWithoutEori,
+  UnloadingPermission,
+  UnloadingRemarksRejectionMessage
+}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
+import utils.Format.dateFormatted
 
 trait MessagesModelGenerators extends Generators {
 
@@ -38,11 +51,35 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryInterchangeControlReference: Arbitrary[InterchangeControlReference] = {
     Arbitrary {
       for {
-        dateTime <- stringsWithMaxLength(4: Int)
-        index    <- choose(min = 1: Int, 1000: Int)
-      } yield InterchangeControlReference(dateTime, index)
+        date  <- localDateGen
+        index <- Gen.posNum[Int]
+      } yield InterchangeControlReference(dateFormatted(date), index)
     }
   }
+
+  implicit lazy val genericErrorType: Arbitrary[GenericError] =
+    Arbitrary {
+      Gen.oneOf(ErrorType.genericValues)
+    }
+
+  implicit lazy val arbitraryErrorType: Arbitrary[ErrorType] =
+    Arbitrary {
+      for {
+        genericError <- arbitrary[GenericError]
+        errorType    <- Gen.oneOf(Seq(genericError))
+      } yield errorType
+    }
+
+  implicit lazy val arbitraryRejectionError: Arbitrary[FunctionalError] =
+    Arbitrary {
+
+      for {
+        errorType     <- arbitrary[ErrorType]
+        pointer       <- arbitrary[String]
+        reason        <- arbitrary[Option[String]]
+        originalValue <- arbitrary[Option[String]]
+      } yield FunctionalError(errorType, ErrorPointer(pointer), reason, originalValue)
+    }
 
   implicit lazy val arbitraryMeta: Arbitrary[Meta] = {
     Arbitrary {
@@ -56,7 +93,7 @@ trait MessagesModelGenerators extends Generators {
           messageSender,
           interchangeControlReference,
           date,
-          time,
+          LocalTime.of(time.getHour, time.getMinute),
           None,
           None,
           None,
@@ -74,13 +111,13 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryHeader: Arbitrary[Header] = {
     Arbitrary {
       for {
-        movementReferenceNumber <- stringsWithMaxLength(UnloadingPermission.movementReferenceNumberLength)
+        movementReferenceNumber <- arbitrary[MovementReferenceNumber]
         transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
         transportCountry        <- Gen.option(Gen.pick(UnloadingPermission.transportCountryLength, 'A' to 'Z'))
         numberOfItems           <- choose(min = 1: Int, 2: Int)
         numberOfPackages        <- choose(min = 1: Int, 2: Int)
         grossMass               <- Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))
-      } yield Header(movementReferenceNumber, transportIdentity, transportCountry.map(_.mkString), numberOfItems, numberOfPackages, grossMass.toString)
+      } yield Header(movementReferenceNumber.toString, transportIdentity, transportCountry.map(_.mkString), numberOfItems, numberOfPackages, grossMass.toString)
     }
   }
 
@@ -92,9 +129,21 @@ trait MessagesModelGenerators extends Generators {
         traderDestination  <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
         presentationOffice <- Gen.pick(UnloadingRemarksRequest.presentationOfficeLength, 'A' to 'Z')
         remarks            <- Gen.oneOf(arbitrary[RemarksConform], arbitrary[RemarksConformWithSeals], arbitrary[RemarksNonConform])
+        resultOfControl    <- listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)
         seals              <- Gen.option(arbitrary[Seals])
         goodsItems         <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
-      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, seals, goodsItems)
+      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, resultOfControl, seals, goodsItems)
     }
   }
+
+  implicit lazy val arbitraryUnloadingRemarksRejectionMessage: Arbitrary[UnloadingRemarksRejectionMessage] =
+    Arbitrary {
+
+      for {
+        mrn    <- arbitrary[MovementReferenceNumber]
+        date   <- arbitrary[LocalDate]
+        action <- arbitrary[Option[String]]
+        errors <- listWithMaxLength[FunctionalError](5)
+      } yield UnloadingRemarksRejectionMessage(mrn, date, action, errors)
+    }
 }

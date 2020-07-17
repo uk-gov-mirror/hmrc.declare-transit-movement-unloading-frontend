@@ -15,6 +15,8 @@
  */
 
 package models.messages
+import cats.syntax.all._
+import com.lucidchart.open.xtract.{__, XmlReader}
 import models.{LanguageCodeEnglish, XMLWrites}
 
 sealed trait ResultsOfControl extends Product with Serializable {
@@ -25,10 +27,12 @@ object ResultsOfControl {
 
   val descriptionLength    = 140
   val correctedValueLength = 27
+
+  implicit val xmlReader: XmlReader[ResultsOfControl] = ResultsOfControlDifferentValues.xmlReader orElse ResultsOfControlOther.xmlReader
 }
 
 case class ResultsOfControlOther(description: String) extends ResultsOfControl {
-  val controlIndicator = ControlIndicator(OtherThingsToReport)
+  val controlIndicator: ControlIndicator = ControlIndicator(OtherThingsToReport)
 }
 
 object ResultsOfControlSealsBroken extends ResultsOfControlOther("Some seals are broken")
@@ -42,10 +46,13 @@ object ResultsOfControlOther {
         <ConInd424>{resultsOfControl.controlIndicator.indicator.value}</ConInd424>
       </RESOFCON534>)
   }
+
+  implicit val xmlReader: XmlReader[ResultsOfControlOther] = (__ \ "DesTOC2").read[String] map apply
+
 }
 
 case class ResultsOfControlDifferentValues(pointerToAttribute: PointerToAttribute, correctedValue: String) extends ResultsOfControl {
-  val controlIndicator = ControlIndicator(DifferentValuesFound)
+  val controlIndicator: ControlIndicator = ControlIndicator(DifferentValuesFound)
 }
 
 object ResultsOfControlDifferentValues {
@@ -57,4 +64,8 @@ object ResultsOfControlDifferentValues {
       <CorValTOC4>{resultsOfControl.correctedValue}</CorValTOC4>
     </RESOFCON534>)
   }
+
+  implicit val xmlReader: XmlReader[ResultsOfControlDifferentValues] =
+    (__.read[PointerToAttribute], (__ \ "CorValTOC4").read[String]).mapN(apply)
+
 }

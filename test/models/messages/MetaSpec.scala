@@ -16,16 +16,20 @@
 
 package models.messages
 
+import java.time.LocalTime
+
+import com.lucidchart.open.xtract.XmlReader
 import generators.MessagesModelGenerators
 import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import utils.Format
+import utils.Format.timeFormatter
 
 import scala.xml.NodeSeq
 
-class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality {
+class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with MessagesModelGenerators with StreamlinedXmlEquality with OptionValues {
 
   //format off
   "MetaSpec" - {
@@ -112,6 +116,18 @@ class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks 
           }
 
           meta.toXml mustEqual expectedResult
+      }
+    }
+    "must deserialize from xml" in {
+      forAll(arbitrary[UnloadingRemarksRequest]) {
+        unloadingRemarksRequest =>
+          val xml    = unloadingRemarksRequest.toXml
+          val result = XmlReader.of[Meta].read(xml).toOption.value
+
+          val formattedTimeOfPrep = Format.timeFormatted(unloadingRemarksRequest.meta.timeOfPreparation)
+          val formatMeta          = unloadingRemarksRequest.meta.copy(timeOfPreparation = LocalTime.parse(formattedTimeOfPrep, timeFormatter))
+
+          result mustBe formatMeta
       }
     }
   }

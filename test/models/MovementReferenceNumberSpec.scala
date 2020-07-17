@@ -16,18 +16,16 @@
 
 package models
 
+import com.lucidchart.open.xtract.XmlReader
 import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
-import org.scalatest.EitherValues
-import org.scalatest.FreeSpec
-import org.scalatest.MustMatchers
-import org.scalatest.OptionValues
+import org.scalatest.{EitherValues, FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.libs.json.JsString
-import play.api.libs.json.JsSuccess
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, Json}
 import play.api.mvc.PathBindable
+
+import scala.xml.Node
 
 class MovementReferenceNumberSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with Generators with EitherValues with OptionValues {
 
@@ -166,6 +164,23 @@ class MovementReferenceNumberSpec extends FreeSpec with MustMatchers with ScalaC
           val invalidMrn = mrn.toString.updated(checkDigitPosition, invalidCheckDigit)
 
           MovementReferenceNumber(invalidMrn) must not be defined
+      }
+    }
+
+    "XML" - {
+      "must read xml as MovementReferenceNumber" in {
+        forAll(arbitrary[MovementReferenceNumber]) {
+          mrn =>
+            val xml: Node = <HEAHEA>{<DocNumHEA5>{mrn}</DocNumHEA5>}</HEAHEA>
+            val result    = XmlReader.of[MovementReferenceNumber].read(xml)
+            result.toOption.value mustEqual mrn
+        }
+      }
+
+      "must throw an exception if MRN not in right format" in {
+        val xml: Node = <HEAHEA>{<DocNumHEA5>{"mrn"}</DocNumHEA5>}</HEAHEA>
+        val exception = intercept[Exception](XmlReader.of[MovementReferenceNumber].read(xml))
+        exception.getMessage mustBe "DocNumHEA5: MRN not in right format"
       }
     }
   }

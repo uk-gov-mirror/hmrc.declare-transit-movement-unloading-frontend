@@ -57,8 +57,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
           RemarksNonConform(
             stateOfSeals    = Some(0),
             unloadingRemark = userAnswers.get(ChangesToReportPage),
-            unloadingDate   = unloadingDate,
-            resultOfControl = resultsOfControl
+            unloadingDate   = unloadingDate
           ))
       } else {
         userAnswers.get(ChangesToReportPage) match {
@@ -67,8 +66,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
               RemarksNonConform(
                 stateOfSeals    = Some(1),
                 unloadingRemark = Some(unloadingRemarks),
-                unloadingDate   = unloadingDate,
-                resultOfControl = resultsOfControl
+                unloadingDate   = unloadingDate
               )
             )
           case None => {
@@ -80,8 +78,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
                 RemarksNonConform(
                   stateOfSeals    = Some(1),
                   unloadingRemark = None,
-                  unloadingDate   = unloadingDate,
-                  resultOfControl = resultsOfControl
+                  unloadingDate   = unloadingDate
                 ))
             }
 
@@ -101,8 +98,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             RemarksNonConform(
               stateOfSeals    = None,
               unloadingRemark = userAnswers.get(ChangesToReportPage),
-              unloadingDate   = unloadingDate,
-              resultOfControl = resultsOfControl
+              unloadingDate   = unloadingDate
             )
           )
         case None => {
@@ -112,8 +108,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
                 RemarksNonConform(
                   stateOfSeals    = None,
                   unloadingRemark = Some(unloadingRemarks),
-                  unloadingDate   = unloadingDate,
-                  resultOfControl = resultsOfControl
+                  unloadingDate   = unloadingDate
                 )
               )
             case None =>
@@ -124,8 +119,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
                   RemarksNonConform(
                     stateOfSeals    = None,
                     unloadingRemark = None,
-                    unloadingDate   = unloadingDate,
-                    resultOfControl = resultsOfControl
+                    unloadingDate   = unloadingDate
                   ))
               }
           }

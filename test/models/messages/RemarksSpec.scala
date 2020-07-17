@@ -16,19 +16,18 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.XmlReader
 import generators.{Generators, ModelGenerators}
 import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import utils.Format
 
 import scala.xml.Utility.trim
 import scala.xml.{Elem, Node, NodeSeq}
 
-class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks {
-
-  import RemarksSpec._
+class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelGenerators with ScalaCheckPropertyChecks with OptionValues {
 
   "RemarksSpec" - {
 
@@ -49,6 +48,15 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
         }
       }
 
+      "read xml as RemarksConform" in {
+
+        forAll(arbitrary[RemarksConform]) {
+          remarksConform =>
+            val result = XmlReader.of[RemarksConform].read(remarksConform.toXml).toOption.value
+            result mustBe remarksConform
+        }
+      }
+
       "RemarksConformWithSeals to xml" in {
 
         forAll(arbitrary[RemarksConformWithSeals]) {
@@ -62,6 +70,14 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
               </UNLREMREM>
 
             remarksConformWithSeals.toXml.map(trim) mustBe xml.map(trim)
+        }
+      }
+
+      "read xml as RemarksConformWithSeals" in {
+        forAll(arbitrary[RemarksConformWithSeals]) {
+          remarksConformWithSeals =>
+            val result = XmlReader.of[RemarksConformWithSeals].read(remarksConformWithSeals.toXml).toOption.value
+            result mustBe remarksConformWithSeals
         }
       }
 
@@ -79,11 +95,6 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
                 <UnlRemREM53>{remarks}</UnlRemREM53>
             }
 
-            val resultsOfControl: Seq[Node] = remarksNonConform.resultOfControl.flatMap {
-              resultsOfControl =>
-                resultsOfControlNode(resultsOfControl)
-            }
-
             val xml: NodeSeq =
               <UNLREMREM>
                 {stateOfSeals.getOrElse(NodeSeq.Empty)}
@@ -92,17 +103,22 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
                 <ConREM65>0</ConREM65>
                 <UnlComREM66>1</UnlComREM66>
                 <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
-              </UNLREMREM> +: resultsOfControl
+              </UNLREMREM>
 
             remarksNonConform.toXml.map(trim) mustBe xml.map(trim)
         }
-
       }
 
+      "read xml as RemarksNonConform" in {
+
+        forAll(arbitrary[RemarksNonConform]) {
+          remarksNonConform =>
+            val result = XmlReader.of[RemarksNonConform].read(remarksNonConform.toXml).toOption.value
+            result mustBe remarksNonConform
+        }
+      }
     }
-
   }
-
 }
 
 object RemarksSpec {

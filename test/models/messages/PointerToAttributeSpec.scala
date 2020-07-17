@@ -16,13 +16,17 @@
 
 package models.messages
 
+import com.lucidchart.open.xtract.XmlReader
+import generators.MessagesModelGenerators
 import models.XMLWrites._
-import org.scalatest.{FreeSpec, MustMatchers}
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 import scala.xml.Node
 import scala.xml.Utility.trim
 
-class PointerToAttributeSpec extends FreeSpec with MustMatchers {
+class PointerToAttributeSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks with OptionValues with MessagesModelGenerators {
 
   "PointerToAttributeSpec" - {
 
@@ -55,6 +59,14 @@ class PointerToAttributeSpec extends FreeSpec with MustMatchers {
 
     }
 
+    "must convert xml to model" in {
+      forAll(arbitrary[PointerToAttribute]) {
+        identity =>
+          val xml    = <RESOFCON534><PoiToTheAttTOC5>{identity.pointer.value}</PoiToTheAttTOC5></RESOFCON534>
+          val result = XmlReader.of[PointerToAttribute].read(xml).toOption.value
+          result mustBe identity
+      }
+    }
   }
 
 }
