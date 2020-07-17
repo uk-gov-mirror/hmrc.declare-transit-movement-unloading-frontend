@@ -21,7 +21,7 @@ import java.time.LocalDate
 import base.SpecBase
 import connectors.UnloadingConnector
 import models.ErrorType.IncorrectValue
-import models.{ErrorPointer, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
+import models.{DefaultPointer, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import play.api.inject.bind
@@ -41,7 +41,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
 
   "UnloadingRemarksRejectionService" - {
     "must return UnloadingRemarksRejectionMessage for the input arrivalId" in {
-      val errors              = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, None))
+      val errors              = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, None))
       val notificationMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
       val messagesSummary =
         MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))

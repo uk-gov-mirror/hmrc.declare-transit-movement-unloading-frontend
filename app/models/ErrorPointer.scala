@@ -17,14 +17,44 @@
 package models
 
 import com.lucidchart.open.xtract.{__, XmlReader}
-import play.api.libs.json.{Json, OWrites}
 
-case class ErrorPointer(value: String)
+sealed abstract class ErrorPointer() extends Serializable {
+  val value = ""
+}
 
 object ErrorPointer {
 
-  implicit val writes: OWrites[ErrorPointer] = Json.writes[ErrorPointer]
-
   implicit val xmlReader: XmlReader[ErrorPointer] =
-    __.read[String].map(apply)
+    __.read[String].map {
+      case GrossMassPointer.value           => GrossMassPointer
+      case NumberOfItemsPointer.value       => NumberOfItemsPointer
+      case UnloadingDatePointer.value       => UnloadingDatePointer
+      case VehicleRegistrationPointer.value => VehicleRegistrationPointer
+      case NumberOfPackagesPointer.value    => NumberOfPackagesPointer
+      case _                                => DefaultPointer
+    }
+
+  val values = Seq(GrossMassPointer, NumberOfItemsPointer, UnloadingDatePointer, VehicleRegistrationPointer, NumberOfPackagesPointer, DefaultPointer)
 }
+
+object GrossMassPointer extends ErrorPointer {
+  override val value = "HEA.Total gross mass"
+}
+
+object NumberOfItemsPointer extends ErrorPointer {
+  override val value = "HEA.Total number of items"
+}
+
+object UnloadingDatePointer extends ErrorPointer {
+  override val value = "REM.Unloading Date"
+}
+
+object VehicleRegistrationPointer extends ErrorPointer {
+  override val value = "HEA.Identity of means of transport at departure (exp/trans)"
+}
+
+object NumberOfPackagesPointer extends ErrorPointer {
+  override val value = "HEA.Total number of packages"
+}
+
+object DefaultPointer extends ErrorPointer

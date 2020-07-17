@@ -16,7 +16,7 @@
 
 package viewModels
 import controllers.routes
-import models.ArrivalId
+import models.{ArrivalId, FunctionalError}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels._
@@ -27,8 +27,14 @@ case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
 object UnloadingRemarksRejectionViewModel {
 
   //TODO add logic for multiple rejection errors
-  def apply(originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel =
-    UnloadingRemarksRejectionViewModel(Seq(Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue)))))
+  def apply(error: FunctionalError, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
+    error.pointer match {
+      case
+    }
+
+    //Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue)))
+    UnloadingRemarksRejectionViewModel(Seq())
+  }
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
     Row(

@@ -23,7 +23,7 @@ import forms.VehicleNameRegistrationReferenceFormProvider
 import generators.MessagesModelGenerators
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
-import models.{ErrorPointer, FunctionalError, UnloadingRemarksRejectionMessage, UserAnswers}
+import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
@@ -57,7 +57,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       val mockRejectionService  = mock[UnloadingRemarksRejectionService]
       val mockSessionRepository = mock[SessionRepository]
       val originalValue         = "some reference"
-      val errors                = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+      val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
       val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -143,7 +143,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       val mockRejectionService  = mock[UnloadingRemarksRejectionService]
 
       val originalValue     = "some reference"
-      val errors            = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+      val errors            = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
       val rejectionMessage  = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
       val userAnswersCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
 
@@ -206,7 +206,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
         val mockRejectionService  = mock[UnloadingRemarksRejectionService]
         val mockSessionRepository = mock[SessionRepository]
         val originalValue         = "some reference"
-        val errors                = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, Some(originalValue)))
+        val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
         val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -268,7 +268,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       "must return None when there is no previously saved answers and UnloadingRemarksRejectionMessage.originalAttributeValue is 'None'" in {
         val mockSessionRepository = mock[SessionRepository]
         val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-        val errors                = Seq(FunctionalError(IncorrectValue, ErrorPointer("Invalid value"), None, None))
+        val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, None))
         val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))

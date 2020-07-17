@@ -17,14 +17,18 @@
 package viewModels
 
 import base.SpecBase
+import generators.MessagesModelGenerators
+import models.FunctionalError
+import org.scalacheck.Arbitrary.arbitrary
 
-class UnloadingRemarksRejectionViewModelSpec extends SpecBase {
+class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModelGenerators {
 
   "UnloadingRemarksRejectionViewModel" - {
 
     "display VehicleNameRegistration Section" in {
+      val error = arbitrary[FunctionalError].sample.value
 
-      val data: UnloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel("original value", arrivalId)
+      val data: UnloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(error, arrivalId)
 
       data.sections.length mustBe 1
       data.sections.head.rows.length mustBe 1

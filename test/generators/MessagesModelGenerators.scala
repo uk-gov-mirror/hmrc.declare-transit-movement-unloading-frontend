@@ -75,10 +75,10 @@ trait MessagesModelGenerators extends Generators {
 
       for {
         errorType     <- arbitrary[ErrorType]
-        pointer       <- arbitrary[String]
+        pointer       <- Gen.oneOf(ErrorPointer.values)
         reason        <- arbitrary[Option[String]]
         originalValue <- arbitrary[Option[String]]
-      } yield FunctionalError(errorType, ErrorPointer(pointer), reason, originalValue)
+      } yield FunctionalError(errorType, pointer, reason, originalValue)
     }
 
   implicit lazy val arbitraryMeta: Arbitrary[Meta] = {
