@@ -16,17 +16,7 @@
 
 package viewModels
 import controllers.routes
-import models.{
-  ArrivalId,
-  DefaultPointer,
-  ErrorPointer,
-  FunctionalError,
-  GrossMassPointer,
-  NumberOfItemsPointer,
-  NumberOfPackagesPointer,
-  UnloadingDatePointer,
-  VehicleRegistrationPointer
-}
+import models.{ArrivalId, ErrorPointer}
 import play.api.i18n.Messages
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels._
@@ -38,9 +28,7 @@ object UnloadingRemarksRejectionViewModel {
 
   //TODO add logic for multiple rejection errors
   def apply(errorPointer: ErrorPointer, originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel =
-    editRejectedPage(arrivalId, originalValue, errorPointer)
-
-  UnloadingRemarksRejectionViewModel(Seq())
+    UnloadingRemarksRejectionViewModel(Seq(Section(Seq(editRejectedPage(arrivalId, originalValue, errorPointer)))))
 
   private def editRejectedPage(arrivalId: ArrivalId, value: String, errorPointer: ErrorPointer): Row =
     Row(
@@ -49,7 +37,7 @@ object UnloadingRemarksRejectionViewModel {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = routes.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId).url,
+          href               = routes.UpdateRejectedValueController.onPageLoad(arrivalId).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeVehicle.reference.label")),
           attributes         = Map("id" -> "change-vehicle-registration-rejection")
         )

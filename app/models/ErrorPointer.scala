@@ -20,7 +20,7 @@ import com.lucidchart.open.xtract.{__, XmlReader}
 
 sealed abstract class ErrorPointer(val value: String)
 
-object ErrorPointer {
+object ErrorPointer extends Serializable {
 
   implicit val xmlReader: XmlReader[ErrorPointer] =
     __.read[String].map {

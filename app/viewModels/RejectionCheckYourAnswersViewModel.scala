@@ -41,7 +41,7 @@ object RejectionCheckYourAnswersViewModel {
         actions = List(
           Action(
             content            = msg"site.edit",
-            href               = routes.VehicleNameRegistrationRejectionController.onPageLoad(userAnswers.id).url,
+            href               = routes.UpdateRejectedValueController.onPageLoad(userAnswers.id).url,
             visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"vehicleNameRegistrationReference.checkYourAnswersLabel")),
             attributes         = Map("id" -> "change-vehicle-registration-rejection")
           )

@@ -41,16 +41,16 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with MessagesModelGenerators {
+class UpdateRejectedValueControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers with MessagesModelGenerators {
 
   def onwardRoute = Call("GET", "/foo")
 
   val formProvider = new VehicleNameRegistrationReferenceFormProvider()
   val form         = formProvider()
 
-  lazy val vehicleNameRegistrationRejectionRoute: String = routes.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId).url
+  lazy val vehicleNameRegistrationRejectionRoute: String = routes.UpdateRejectedValueController.onPageLoad(arrivalId).url
 
-  "VehicleNameRegistrationRejectionController Controller" - {
+  "UpdatedRejectedValueController" - {
 
     "must populate the value from the rejection service original value attribute" in {
 
@@ -84,7 +84,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
         "arrivalId" -> arrivalId
       )
 
-      templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
+      templateCaptor.getValue mustEqual "updateRejectedValue.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -132,7 +132,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
         "arrivalId" -> arrivalId
       )
 
-      templateCaptor.getValue mustEqual "vehicleNameRegistrationReference.njk"
+      templateCaptor.getValue mustEqual "updateRejectedValue.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -220,7 +220,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
           )
           .build()
 
-        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+        val controller = application.injector.instanceOf[UpdateRejectedValueController]
 
         val result = controller.getRejectedValue(arrivalId, eoriNumber)
         result.futureValue mustBe Some("some reference")
@@ -240,7 +240,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
           )
           .build()
 
-        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+        val controller = application.injector.instanceOf[UpdateRejectedValueController]
 
         val result = controller.getRejectedValue(arrivalId, eoriNumber)
         result.futureValue mustBe Some("some reference")
@@ -260,7 +260,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
           )
           .build()
 
-        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+        val controller = application.injector.instanceOf[UpdateRejectedValueController]
 
         val result = controller.getRejectedValue(arrivalId, eoriNumber)
         result.futureValue mustBe None
@@ -282,7 +282,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
           )
           .build()
 
-        val controller = application.injector.instanceOf[VehicleNameRegistrationRejectionController]
+        val controller = application.injector.instanceOf[UpdateRejectedValueController]
 
         val result = controller.getRejectedValue(arrivalId, eoriNumber)
         result.futureValue mustBe None

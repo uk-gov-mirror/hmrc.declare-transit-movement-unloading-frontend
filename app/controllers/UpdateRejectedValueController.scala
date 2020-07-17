@@ -34,7 +34,7 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class VehicleNameRegistrationRejectionController @Inject()(
+class UpdateRejectedValueController @Inject()(
   override val messagesApi: MessagesApi,
   sessionRepository: SessionRepository,
   identify: IdentifierAction,
@@ -54,10 +54,12 @@ class VehicleNameRegistrationRejectionController @Inject()(
       getRejectedValue(arrivalId, request.eoriNumber) flatMap {
         case Some(originalAttrValue) =>
           val json = Json.obj(
+            "title"     -> "",
+            "header"    -> "",
             "form"      -> form.fill(originalAttrValue),
             "arrivalId" -> arrivalId
           )
-          renderer.render("vehicleNameRegistrationReference.njk", json).map(Ok(_))
+          renderer.render("updateRejectedValue.njk", json).map(Ok(_))
         case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
   }
@@ -69,10 +71,12 @@ class VehicleNameRegistrationRejectionController @Inject()(
         .fold(
           formWithErrors => {
             val json = Json.obj(
+              "title"     -> "",
+              "header"    -> "",
               "form"      -> formWithErrors,
               "arrivalId" -> arrivalId
             )
-            renderer.render("vehicleNameRegistrationReference.njk", json).map(BadRequest(_))
+            renderer.render("updateRejectedValue.njk", json).map(BadRequest(_))
           },
           value =>
             rejectionService.unloadingRemarksRejectionMessage(arrivalId) flatMap {

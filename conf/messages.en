@@ -304,3 +304,9 @@ NumberOfItemsPointer.label = Total number of items
 NumberOfItemsPointer.change.hidden = total number of items
 NumberOfPackagesPointer.label = Total number of packages
 NumberOfPackagesPointer.change.hidden = total number of packages
+
+VehicleRegistrationPointer.title = What is the name, registration or reference of the new vehicle?
+GrossMassPointer.title = What is the new total gross mass in kilograms?
+NumberOfItemsPointer.title = What is the new total number of items?
+NumberOfPackagesPointer.title = What is the new total number of packages?
+UnloadingDatePointer.title = When were the goods unloaded?

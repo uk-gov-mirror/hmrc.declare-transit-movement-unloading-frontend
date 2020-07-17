@@ -23,12 +23,12 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
 class ErrorPointerSpec extends FreeSpec with ScalaCheckPropertyChecks with MustMatchers with OptionValues {
 
-  "ErrorPointer" -{
+  "ErrorPointer" - {
     "must read xml" in {
       forAll(Gen.oneOf(ErrorPointer.values)) {
-        value =>
-        val xml = <test>value</test>
-        XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe value
+        pointer =>
+          val xml = <test>{pointer.value}</test>
+          XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe pointer
       }
     }
   }

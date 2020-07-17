@@ -50,7 +50,7 @@ class UnloadingRemarksRejectionController @Inject()(
         case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
           rejectionMessage.errors.head.originalAttributeValue match {
             case Some(originalAttrValue) =>
-              val unloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(originalAttrValue, arrivalId)
+              val unloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(rejectionMessage.errors.head.pointer, originalAttrValue, arrivalId)
               def json: JsObject =
                 Json.obj(
                   "sections"   -> Json.toJson(unloadingRemarksRejectionViewModel.sections),
