@@ -101,14 +101,14 @@ object UnloadingRemarksRejectionViewModel {
   def unloadingDate(arrivalId: ArrivalId, value: LocalDate): Row = {
     val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
     Row(
-      key = Key(msg"changeItems.dateGoodsUnloaded.label", classes = Seq("govuk-!-width-one-half")),
+      key   = Key(msg"changeItems.dateGoodsUnloaded.label", classes = Seq("govuk-!-width-one-half")),
       value = Value(Literal(value.format(dateFormatter))),
       actions = List(
         Action(
-          content = msg"site.edit",
-          href = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, CheckMode).url,
+          content            = msg"site.edit",
+          href               = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, CheckMode).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeItems.dateGoodsUnloaded.label")),
-          attributes = Map("id" -> "change-date-goods-unloaded")
+          attributes         = Map("id" -> "change-date-goods-unloaded")
         )
       )
     )

@@ -33,4 +33,3 @@ class ErrorPointerSpec extends FreeSpec with ScalaCheckPropertyChecks with MustM
     }
   }
 }
-

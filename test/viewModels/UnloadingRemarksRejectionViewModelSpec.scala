@@ -27,8 +27,7 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
     "display VehicleNameRegistration Section" in {
       val error = arbitrary[FunctionalError].sample.value
-
-      val data: UnloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(error, arrivalId)
+      val data: UnloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(error, "value", arrivalId)(messages)
 
       data.sections.length mustBe 1
       data.sections.head.rows.length mustBe 1
