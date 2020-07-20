@@ -33,16 +33,17 @@ object UnloadingRemarksRejectionViewModel {
   //TODO add logic for multiple rejection errors
   def apply(error: FunctionalError, originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
 
-    error.pointer match {
+    val rows: Seq[Row] = error.pointer match {
       case VehicleRegistrationPointer => Seq(vehicleNameRegistrationReference(arrivalId, originalValue))
       case NumberOfPackagesPointer    => Seq(totalNumberOfPackages(arrivalId, originalValue))
       case NumberOfItemsPointer       => Seq(totalNumberOfItems(arrivalId, originalValue))
       case GrossMassPointer           => Seq(grossMassAmount(arrivalId, originalValue))
-      case UnloadingDatePointer       => Seq(unloadingDate(arrivalId, LocalDate.parse(originalValue)))
-      case DefaultPointer             => Seq.empty
+      case UnloadingDatePointer =>
+        try Seq(unloadingDate(arrivalId, LocalDate.parse(originalValue)))
+        catch { case _: Exception => Seq.empty }
+      case DefaultPointer => Seq.empty
     }
-    Section(Seq(vehicleNameRegistrationReference(arrivalId, originalValue)))
-    UnloadingRemarksRejectionViewModel(Seq())
+    UnloadingRemarksRejectionViewModel(Seq(Section(rows)))
   }
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
