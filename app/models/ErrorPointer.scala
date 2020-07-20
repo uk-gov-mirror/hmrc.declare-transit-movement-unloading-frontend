@@ -18,43 +18,44 @@ package models
 
 import com.lucidchart.open.xtract.{__, XmlReader}
 
-sealed abstract class ErrorPointer() extends Serializable {
-  val value = ""
-}
+sealed abstract class ErrorPointer(val value: String)
 
-object ErrorPointer {
+object ErrorPointer extends Serializable {
 
   implicit val xmlReader: XmlReader[ErrorPointer] =
     __.read[String].map {
-      case GrossMassPointer.value           => GrossMassPointer
-      case NumberOfItemsPointer.value       => NumberOfItemsPointer
-      case UnloadingDatePointer.value       => UnloadingDatePointer
-      case VehicleRegistrationPointer.value => VehicleRegistrationPointer
-      case NumberOfPackagesPointer.value    => NumberOfPackagesPointer
-      case _                                => DefaultPointer
+      pointer =>
+        values.find(_.value.equalsIgnoreCase(pointer)).getOrElse(DefaultPointer)
     }
 
-  val values = Seq(GrossMassPointer, NumberOfItemsPointer, UnloadingDatePointer, VehicleRegistrationPointer, NumberOfPackagesPointer, DefaultPointer)
+  val values = Seq(
+    GrossMassPointer,
+    NumberOfItemsPointer,
+    UnloadingDatePointer,
+    VehicleRegistrationPointer,
+    NumberOfPackagesPointer,
+    DefaultPointer
+  )
 }
 
-object GrossMassPointer extends ErrorPointer {
-  override val value = "HEA.Total gross mass"
+object GrossMassPointer extends ErrorPointer("HEA.Total gross mass") {
+  override def toString: String = "GrossMassPointer"
 }
 
-object NumberOfItemsPointer extends ErrorPointer {
-  override val value = "HEA.Total number of items"
+object NumberOfItemsPointer extends ErrorPointer("HEA.Total number of items") {
+  override def toString: String = "NumberOfItemsPointer"
 }
 
-object UnloadingDatePointer extends ErrorPointer {
-  override val value = "REM.Unloading Date"
+object UnloadingDatePointer extends ErrorPointer("REM.Unloading Date") {
+  override def toString: String = "UnloadingDatePointer"
 }
 
-object VehicleRegistrationPointer extends ErrorPointer {
-  override val value = "HEA.Identity of means of transport at departure (exp/trans)"
+object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of transport at departure (exp/trans)") {
+  override def toString: String = "VehicleRegistrationPointer"
 }
 
-object NumberOfPackagesPointer extends ErrorPointer {
-  override val value = "HEA.Total number of packages"
+object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages") {
+  override def toString: String = "NumberOfPackagesPointer"
 }
 
-object DefaultPointer extends ErrorPointer
+object DefaultPointer extends ErrorPointer("")
