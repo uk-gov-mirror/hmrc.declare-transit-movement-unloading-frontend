@@ -223,6 +223,8 @@ changeItems.totalNumberOfItems.change.hidden = total number of items
 changeItems.totalNumberOfPackages.label = Total number of packages
 changeItems.totalNumberOfPackages.change.hidden = total number of packages
 
+changeItems.dateGoodsUnloaded.label = Unloading date
+
 changeItem.itemList.label = Item {0}
 changeItem.itemList.change.hidden = Item {0}
 changeItems.comments.label = Comments
