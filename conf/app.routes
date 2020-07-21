@@ -101,3 +101,6 @@ POST       /:arrivalId/total-number-of-packages-rejection                   cont
 
 GET        /:arrivalId/total-number-of-items-rejection                      controllers.TotalNumberOfItemsRejectionController.onPageLoad(arrivalId: ArrivalId)
 POST       /:arrivalId/total-number-of-items-rejection                      controllers.TotalNumberOfItemsRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/gross-mass-amount-rejection                          controllers.GrossMassAmountRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/gross-mass-amount-rejection                          controllers.GrossMassAmountRejectionController.onSubmit(arrivalId: ArrivalId)
