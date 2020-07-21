@@ -104,3 +104,6 @@ POST       /:arrivalId/total-number-of-items-rejection                      cont
 
 GET        /:arrivalId/gross-mass-amount-rejection                          controllers.GrossMassAmountRejectionController.onPageLoad(arrivalId: ArrivalId)
 POST       /:arrivalId/gross-mass-amount-rejection                          controllers.GrossMassAmountRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/date-goods-unloaded-rejection                        controllers.DateGoodsUnloadedRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/date-goods-unloaded-rejection                        controllers.DateGoodsUnloadedRejectionController.onSubmit(arrivalId: ArrivalId)
