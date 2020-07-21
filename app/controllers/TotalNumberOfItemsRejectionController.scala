@@ -19,8 +19,7 @@ package controllers
 import controllers.actions._
 import forms.TotalNumberOfItemsFormProvider
 import javax.inject.Inject
-import models.{ArrivalId, Mode, UserAnswers}
-import navigation.Navigator
+import models.{ArrivalId, UserAnswers}
 import pages.TotalNumberOfItemsPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -54,7 +53,7 @@ class TotalNumberOfItemsRejectionController @Inject()(
       rejectionService.getRejectedValueAsInt(arrivalId, request.userAnswers)(TotalNumberOfItemsPage) flatMap {
         case Some(originalAttrValue) =>
           val json = Json.obj(
-            "form"      -> form.fill(originalAttrValue.toInt),
+            "form"      -> form.fill(originalAttrValue),
             "arrivalId" -> arrivalId
           )
           renderer.render("totalNumberOfItems.njk", json).map(Ok(_))

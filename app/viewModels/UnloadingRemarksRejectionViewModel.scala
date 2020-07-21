@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import controllers.routes
 import models._
 import play.api.i18n.Messages
+import utils.Date._
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
@@ -38,10 +39,8 @@ object UnloadingRemarksRejectionViewModel {
       case NumberOfPackagesPointer    => Seq(totalNumberOfPackages(arrivalId, originalValue))
       case NumberOfItemsPointer       => Seq(totalNumberOfItems(arrivalId, originalValue))
       case GrossMassPointer           => Seq(grossMassAmount(arrivalId, originalValue))
-      case UnloadingDatePointer =>
-        try Seq(unloadingDate(arrivalId, LocalDate.parse(originalValue)))
-        catch { case _: Exception => Seq.empty }
-      case DefaultPointer => Seq.empty
+      case UnloadingDatePointer       => getDate(originalValue).fold[Seq[Row]](Seq.empty)(date => Seq(unloadingDate(arrivalId, date)))
+      case DefaultPointer             => Seq.empty
     }
     UnloadingRemarksRejectionViewModel(Seq(Section(rows)))
   }
@@ -67,7 +66,7 @@ object UnloadingRemarksRejectionViewModel {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = routes.TotalNumberOfPackagesController.onPageLoad(arrivalId, CheckMode).url,
+          href               = routes.TotalNumberOfPackagesRejectionController.onPageLoad(arrivalId).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeItems.totalNumberOfPackages.label"))
         )
       )
@@ -80,7 +79,7 @@ object UnloadingRemarksRejectionViewModel {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = routes.TotalNumberOfItemsController.onPageLoad(arrivalId, CheckMode).url,
+          href               = routes.TotalNumberOfItemsRejectionController.onPageLoad(arrivalId).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeItems.totalNumberOfItems.label"))
         )
       )
@@ -93,7 +92,7 @@ object UnloadingRemarksRejectionViewModel {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = routes.GrossMassAmountController.onPageLoad(arrivalId, CheckMode).url,
+          href               = routes.GrossMassAmountRejectionController.onPageLoad(arrivalId).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeItems.grossMass.label"))
         )
       )
@@ -107,7 +106,7 @@ object UnloadingRemarksRejectionViewModel {
       actions = List(
         Action(
           content            = msg"site.edit",
-          href               = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, CheckMode).url,
+          href               = routes.DateGoodsUnloadedRejectionController.onPageLoad(arrivalId).url,
           visuallyHiddenText = Some(msg"site.edit.hidden".withArgs(msg"changeItems.dateGoodsUnloaded.label")),
           attributes         = Map("id" -> "change-date-goods-unloaded")
         )

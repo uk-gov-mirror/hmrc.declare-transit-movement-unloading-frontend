@@ -42,23 +42,24 @@ class UnloadingRemarksRejectionService @Inject()(connector: UnloadingConnector)(
     }
 
   def getRejectedValueAsString(arrivalId: ArrivalId, userAnswers: Option[UserAnswers])(page: QuestionPage[String])(
-    implicit hc: HeaderCarrier): Future[Option[String]] =
+    implicit hc: HeaderCarrier): Future[Option[String]] = {
     userAnswers match {
-      case Some(userAnswers: UserAnswers) => Future.successful(userAnswers.get(page))
-      case None                           => getRejectedValue(arrivalId)
+      case Some(userAnswers: UserAnswers) if userAnswers.get(page).isDefined => Future.successful(userAnswers.get(page))
+      case _ => getRejectedValue(arrivalId)
     }
+  }
 
   def getRejectedValueAsInt(arrivalId: ArrivalId, userAnswers: Option[UserAnswers])(page: QuestionPage[Int])(implicit hc: HeaderCarrier): Future[Option[Int]] =
     userAnswers match {
-      case Some(userAnswers: UserAnswers) => Future.successful(userAnswers.get(page))
-      case None                           => getRejectedValue(arrivalId).map(_.flatMap(IntValue.getInt))
+      case Some(userAnswers: UserAnswers) if userAnswers.get(page).isDefined => Future.successful(userAnswers.get(page))
+      case _                                                                 => getRejectedValue(arrivalId).map(_.flatMap(IntValue.getInt))
     }
 
   def getRejectedValueAsDate(arrivalId: ArrivalId, userAnswers: Option[UserAnswers])(page: QuestionPage[LocalDate])(
     implicit hc: HeaderCarrier): Future[Option[LocalDate]] =
     userAnswers match {
-      case Some(userAnswers: UserAnswers) => Future.successful(userAnswers.get(page))
-      case None                           => getRejectedValue(arrivalId).map(_.flatMap(Date.getDate))
+      case Some(userAnswers: UserAnswers) if userAnswers.get(page).isDefined => Future.successful(userAnswers.get(page))
+      case _                                                                 => getRejectedValue(arrivalId).map(_.flatMap(Date.getDate))
     }
 
   private def getRejectedValue(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[String]] =
