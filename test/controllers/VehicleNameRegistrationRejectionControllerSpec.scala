@@ -53,19 +53,14 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
 
     "must populate the value from the rejection service original value attribute" in {
 
-      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-      val mockSessionRepository = mock[SessionRepository]
-      val originalValue         = "some reference"
-      val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
-      val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+      val mockRejectionService = mock[UnloadingRemarksRejectionService]
+      val originalValue        = "some reference"
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.getRejectedValueAsString(any(), any())(any())(any())).thenReturn(Future.successful(Some(originalValue)))
-      when(mockSessionRepository.get(any(), any())).thenReturn(Future.successful(None))
       val application = applicationBuilder(Some(emptyUserAnswers))
         .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService),
-          bind[SessionRepository].toInstance(mockSessionRepository)
+          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
         )
         .build()
       val request        = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)

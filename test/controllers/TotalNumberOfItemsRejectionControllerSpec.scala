@@ -19,16 +19,15 @@ package controllers
 import java.time.LocalDate
 
 import base.SpecBase
-import forms.TotalNumberOfPackagesFormProvider
+import forms.TotalNumberOfItemsFormProvider
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
-import models.{DefaultPointer, FunctionalError, NormalMode, UnloadingRemarksRejectionMessage, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
+import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
 import org.scalatestplus.mockito.MockitoSugar
-import pages.TotalNumberOfPackagesPage
+import pages.TotalNumberOfItemsPage
 import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.Call
@@ -41,18 +40,18 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
+class TotalNumberOfItemsRejectionControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
 
-  val formProvider = new TotalNumberOfPackagesFormProvider()
+  val formProvider = new TotalNumberOfItemsFormProvider()
   val form         = formProvider()
 
   def onwardRoute = Call("GET", "/foo")
 
   val validAnswer = 1
 
-  lazy val totalNumberOfPackagesRoute = routes.TotalNumberOfPackagesRejectionController.onPageLoad(arrivalId).url
+  lazy val totalNumberOfItemsRoute = routes.TotalNumberOfItemsRejectionController.onPageLoad(arrivalId).url
 
-  "TotalNumberOfPackages Controller" - {
+  "TotalNumberOfItems Controller" - {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
       val mockRejectionService  = mock[UnloadingRemarksRejectionService]
@@ -68,7 +67,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
           bind[SessionRepository].toInstance(mockSessionRepository)
         )
         .build()
-      val request        = FakeRequest(GET, totalNumberOfPackagesRoute)
+      val request        = FakeRequest(GET, totalNumberOfItemsRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
       val result         = route(application, request).value
@@ -84,7 +83,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
         "arrivalId" -> arrivalId
       )
 
-      templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"
+      templateCaptor.getValue mustEqual "totalNumberOfItems.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -95,13 +94,13 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
 
       when(mockRejectionService.getRejectedValueAsInt(any(), any())(any())(any())).thenReturn(Future.successful(None))
 
-      val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, validAnswer).success.value
+      val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, validAnswer).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers))
         .overrides(
           bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
         )
         .build()
-      val request = FakeRequest(GET, totalNumberOfPackagesRoute)
+      val request = FakeRequest(GET, totalNumberOfItemsRoute)
       val result  = route(application, request).value
 
       status(result) mustEqual SEE_OTHER
@@ -129,7 +128,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
         .build()
 
       val request =
-        FakeRequest(POST, totalNumberOfPackagesRoute)
+        FakeRequest(POST, totalNumberOfItemsRoute)
           .withFormUrlEncodedBody(("value", validAnswer.toString))
 
       val result = route(application, request).value
@@ -147,7 +146,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
         .thenReturn(Future.successful(Html("")))
 
       val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
-      val request        = FakeRequest(POST, totalNumberOfPackagesRoute).withFormUrlEncodedBody(("value", "invalid value"))
+      val request        = FakeRequest(POST, totalNumberOfItemsRoute).withFormUrlEncodedBody(("value", "invalid value"))
       val boundForm      = form.bind(Map("value" -> "invalid value"))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
@@ -163,7 +162,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
         "arrivalId" -> arrivalId
       )
 
-      templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"
+      templateCaptor.getValue mustEqual "totalNumberOfItems.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
       application.stop()
@@ -181,7 +180,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
         .build()
 
       val request =
-        FakeRequest(POST, totalNumberOfPackagesRoute)
+        FakeRequest(POST, totalNumberOfItemsRoute)
           .withFormUrlEncodedBody(("value", validAnswer.toString))
 
       val result = route(application, request).value
