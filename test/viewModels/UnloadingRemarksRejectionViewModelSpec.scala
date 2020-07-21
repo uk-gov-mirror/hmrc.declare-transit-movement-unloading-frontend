@@ -26,22 +26,27 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
   "UnloadingRemarksRejectionViewModel" - {
 
-    "display rejected value section" in {
+    "must display rejected value section" in {
 
-      forAll(arbitrary[FunctionalError] suchThat(x => x.pointer != DefaultPointer)) {
+      forAll(arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer)) {
         error =>
           val data: UnloadingRemarksRejectionViewModel =
             UnloadingRemarksRejectionViewModel(error, error.originalAttributeValue.getOrElse("test"), arrivalId)(messages)
 
-          if (error.pointer == DefaultPointer) {
-            data.sections.length mustBe 0
-            data.sections.head.rows.length mustBe 0
-          } else {
             data.sections.length mustBe 1
             data.sections.head.rows.length mustBe 1
           }
-      }
+    }
+
+    "must not display any sections" in {
+
+      val error = arbitrary[FunctionalError].sample.value.copy(pointer = DefaultPointer)
+      val data: UnloadingRemarksRejectionViewModel =
+        UnloadingRemarksRejectionViewModel(error, error.originalAttributeValue.getOrElse("test"), arrivalId)(messages)
+
+      data.sections.length mustBe 1
+      data.sections.head.rows.length mustBe 0
+
     }
   }
-
 }
