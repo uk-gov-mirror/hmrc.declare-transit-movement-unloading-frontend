@@ -21,27 +21,33 @@ import java.time.format.DateTimeFormatter
 import controllers.routes
 import models._
 import play.api.i18n.Messages
-import utils.Date._
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
+import utils.Date._
 import viewModels.sections.Section
 
 case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
 
 object UnloadingRemarksRejectionViewModel {
 
-  def apply(error: FunctionalError, originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
+  def apply(error: FunctionalError, arrivalId: ArrivalId)(implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] = {
 
-    val rows: Seq[Row] = error.pointer match {
-      case VehicleRegistrationPointer => Seq(vehicleNameRegistrationReference(arrivalId, originalValue))
-      case NumberOfPackagesPointer    => Seq(totalNumberOfPackages(arrivalId, originalValue))
-      case NumberOfItemsPointer       => Seq(totalNumberOfItems(arrivalId, originalValue))
-      case GrossMassPointer           => Seq(grossMassAmount(arrivalId, originalValue))
-      case UnloadingDatePointer       => getDate(originalValue).fold[Seq[Row]](Seq.empty)(date => Seq(unloadingDate(arrivalId, date)))
-      case DefaultPointer             => Seq.empty
+    val rowOption: Option[Row] = error.originalAttributeValue flatMap {
+      originalValue =>
+        error.pointer match {
+          case NumberOfPackagesPointer    => Some(totalNumberOfPackages(arrivalId, originalValue))
+          case VehicleRegistrationPointer => Some(vehicleNameRegistrationReference(arrivalId, originalValue))
+          case NumberOfItemsPointer       => Some(totalNumberOfItems(arrivalId, originalValue))
+          case GrossMassPointer           => Some(grossMassAmount(arrivalId, originalValue))
+          case UnloadingDatePointer       => getDate(originalValue) map (date => unloadingDate(arrivalId, date))
+          case DefaultPointer             => None
+        }
     }
-    UnloadingRemarksRejectionViewModel(Seq(Section(rows)))
+    rowOption map {
+      row =>
+        UnloadingRemarksRejectionViewModel(Seq(Section(Seq(row))))
+    }
   }
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =

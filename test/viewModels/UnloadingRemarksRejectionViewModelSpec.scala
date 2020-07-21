@@ -28,25 +28,32 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
     "must display rejected value section" in {
 
-      forAll(arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer)) {
+      forAll(arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer && x.originalAttributeValue.isDefined)) {
         error =>
           val data: UnloadingRemarksRejectionViewModel =
-            UnloadingRemarksRejectionViewModel(error, error.originalAttributeValue.getOrElse("test"), arrivalId)(messages)
+            UnloadingRemarksRejectionViewModel(error, arrivalId)(messages).get
 
-            data.sections.length mustBe 1
-            data.sections.head.rows.length mustBe 1
-          }
+          data.sections.length mustBe 1
+          data.sections.head.rows.length mustBe 1
+      }
     }
 
-    "must not display any sections" in {
+    "must not display any sections when error pointer is DefaultPointer" in {
 
       val error = arbitrary[FunctionalError].sample.value.copy(pointer = DefaultPointer)
-      val data: UnloadingRemarksRejectionViewModel =
-        UnloadingRemarksRejectionViewModel(error, error.originalAttributeValue.getOrElse("test"), arrivalId)(messages)
+      val result: Option[UnloadingRemarksRejectionViewModel] =
+        UnloadingRemarksRejectionViewModel(error, arrivalId)(messages)
 
-      data.sections.length mustBe 1
-      data.sections.head.rows.length mustBe 0
+      result mustBe None
+    }
 
+    "must not display any sections when error.originalAttributeValue is None" in {
+
+      val error = arbitrary[FunctionalError].sample.value.copy(originalAttributeValue = None)
+      val result: Option[UnloadingRemarksRejectionViewModel] =
+        UnloadingRemarksRejectionViewModel(error, arrivalId)(messages)
+
+      result mustBe None
     }
   }
 }
