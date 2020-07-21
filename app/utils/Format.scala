@@ -26,3 +26,17 @@ object Format {
   val timeFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("HHmm")
   def timeFormatted(time: LocalTime): String = time.format(timeFormatter)
 }
+
+object Date {
+
+  def getDate(date: String): Option[LocalDate] =
+    try Some(LocalDate.parse(date))
+    catch { case _: Exception => None }
+}
+
+object IntValue {
+
+  def getInt(value: String): Option[Int] =
+    try Some(value.toInt)
+    catch { case _: Exception => None }
+}

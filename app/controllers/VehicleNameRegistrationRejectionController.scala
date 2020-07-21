@@ -20,7 +20,7 @@ import controllers.actions._
 import forms.VehicleNameRegistrationReferenceFormProvider
 import javax.inject.Inject
 import models.requests.IdentifierRequest
-import models.{ArrivalId, EoriNumber, UserAnswers}
+import models.{ArrivalId, UserAnswers}
 import pages.VehicleNameRegistrationReferencePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
@@ -28,7 +28,6 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
@@ -39,6 +38,7 @@ class VehicleNameRegistrationRejectionController @Inject()(
   sessionRepository: SessionRepository,
   identify: IdentifierAction,
   formProvider: VehicleNameRegistrationReferenceFormProvider,
+  getData: DataRetrievalActionProvider,
   val controllerComponents: MessagesControllerComponents,
   rejectionService: UnloadingRemarksRejectionService,
   renderer: Renderer
@@ -49,9 +49,9 @@ class VehicleNameRegistrationRejectionController @Inject()(
 
   private val form = formProvider()
 
-  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
+  def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      getRejectedValue(arrivalId, request.eoriNumber) flatMap {
+      rejectionService.getRejectedValueAsString(arrivalId, request.userAnswers)(VehicleNameRegistrationReferencePage) flatMap {
         case Some(originalAttrValue) =>
           val json = Json.obj(
             "form"      -> form.fill(originalAttrValue),
@@ -87,15 +87,4 @@ class VehicleNameRegistrationRejectionController @Inject()(
           }
         )
   }
-
-  private[controllers] def getRejectedValue(arrivalId: ArrivalId, eoriNumber: EoriNumber)(implicit hc: HeaderCarrier): Future[Option[String]] =
-    sessionRepository.get(arrivalId, eoriNumber) flatMap {
-      case Some(userAnswers: UserAnswers) => Future.successful(userAnswers.get(VehicleNameRegistrationReferencePage))
-      case None =>
-        rejectionService.unloadingRemarksRejectionMessage(arrivalId) map {
-          case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
-            rejectionMessage.errors.head.originalAttributeValue
-          case _ => None
-        }
-    }
 }

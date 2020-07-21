@@ -36,7 +36,7 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
 import repositories.SessionRepository
-import services.{UnloadingRemarksRejectionService, UnloadingRemarksRequestServiceSpec}
+import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
@@ -63,7 +63,7 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
-      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any(), any())).thenReturn(Future.successful(Some(rejectionMessage)))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(rejectionMessage)))
 
       val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, validAnswer).success.value
       val application = applicationBuilder(userAnswers = Some(userAnswers))
