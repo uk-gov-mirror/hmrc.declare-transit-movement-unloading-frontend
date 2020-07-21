@@ -42,12 +42,11 @@ class UnloadingRemarksRejectionService @Inject()(connector: UnloadingConnector)(
     }
 
   def getRejectedValueAsString(arrivalId: ArrivalId, userAnswers: Option[UserAnswers])(page: QuestionPage[String])(
-    implicit hc: HeaderCarrier): Future[Option[String]] = {
+    implicit hc: HeaderCarrier): Future[Option[String]] =
     userAnswers match {
       case Some(userAnswers: UserAnswers) if userAnswers.get(page).isDefined => Future.successful(userAnswers.get(page))
-      case _ => getRejectedValue(arrivalId)
+      case _                                                                 => getRejectedValue(arrivalId)
     }
-  }
 
   def getRejectedValueAsInt(arrivalId: ArrivalId, userAnswers: Option[UserAnswers])(page: QuestionPage[Int])(implicit hc: HeaderCarrier): Future[Option[Int]] =
     userAnswers match {

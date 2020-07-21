@@ -18,6 +18,8 @@ package utils
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalTime}
 
+import play.api.Logger
+
 object Format {
 
   val dateFormatter: DateTimeFormatter       = DateTimeFormatter.ofPattern("yyyyMMdd")
@@ -30,13 +32,13 @@ object Format {
 object Date {
 
   def getDate(date: String): Option[LocalDate] =
-    try Some(LocalDate.parse(date))
-    catch { case _: Exception => None }
+    try Some(LocalDate.parse(date, Format.dateFormatter))
+    catch { case _: Exception => Logger.debug("Failed to parse the date"); None }
 }
 
 object IntValue {
 
   def getInt(value: String): Option[Int] =
     try Some(value.toInt)
-    catch { case _: Exception => None }
+    catch { case _: Exception => Logger.debug("failed to get string as Int"); None }
 }

@@ -26,15 +26,19 @@ import models.{
   FunctionalError,
   GoodsItem,
   MovementReferenceNumber,
+  NumberOfItemsPointer,
+  NumberOfPackagesPointer,
   Seals,
   TraderAtDestinationWithEori,
   TraderAtDestinationWithoutEori,
+  UnloadingDatePointer,
   UnloadingPermission,
   UnloadingRemarksRejectionMessage
 }
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
 import org.scalacheck.{Arbitrary, Gen}
+import utils.Format
 import utils.Format.dateFormatted
 
 trait MessagesModelGenerators extends Generators {
@@ -77,8 +81,17 @@ trait MessagesModelGenerators extends Generators {
         errorType     <- arbitrary[ErrorType]
         pointer       <- Gen.oneOf(ErrorPointer.values)
         reason        <- arbitrary[Option[String]]
-        originalValue <- arbitrary[Option[String]]
-      } yield FunctionalError(errorType, pointer, reason, originalValue)
+        originalValue <- Gen.option(stringsWithMaxLength(6))
+        date          <- arbitrary[LocalDate]
+        int           <- arbitrary[Int]
+      } yield {
+        val value: Option[String] = pointer match {
+          case UnloadingDatePointer                           => Some(date.format(Format.dateFormatter))
+          case NumberOfItemsPointer | NumberOfPackagesPointer => Some(int.toString)
+          case _                                              => originalValue
+        }
+        FunctionalError(errorType, pointer, reason, value)
+      }
     }
 
   implicit lazy val arbitraryMeta: Arbitrary[Meta] = {

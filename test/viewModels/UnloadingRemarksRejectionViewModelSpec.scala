@@ -18,20 +18,29 @@ package viewModels
 
 import base.SpecBase
 import generators.MessagesModelGenerators
-import models.FunctionalError
+import models.{DefaultPointer, FunctionalError}
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModelGenerators {
+class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
   "UnloadingRemarksRejectionViewModel" - {
 
-    "display VehicleNameRegistration Section" in {
-      val error                                    = arbitrary[FunctionalError].sample.value
-      val data: UnloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(error, "value", arrivalId)(messages)
+    "display rejected value section" in {
 
-      data.sections.length mustBe 1
-      data.sections.head.rows.length mustBe 1
+      forAll(arbitrary[FunctionalError] suchThat(x => x.pointer != DefaultPointer)) {
+        error =>
+          val data: UnloadingRemarksRejectionViewModel =
+            UnloadingRemarksRejectionViewModel(error, error.originalAttributeValue.getOrElse("test"), arrivalId)(messages)
 
+          if (error.pointer == DefaultPointer) {
+            data.sections.length mustBe 0
+            data.sections.head.rows.length mustBe 0
+          } else {
+            data.sections.length mustBe 1
+            data.sections.head.rows.length mustBe 1
+          }
+      }
     }
   }
 

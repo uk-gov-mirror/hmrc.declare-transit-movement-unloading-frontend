@@ -31,7 +31,6 @@ case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
 
 object UnloadingRemarksRejectionViewModel {
 
-  //TODO add logic for multiple rejection errors
   def apply(error: FunctionalError, originalValue: String, arrivalId: ArrivalId)(implicit messages: Messages): UnloadingRemarksRejectionViewModel = {
 
     val rows: Seq[Row] = error.pointer match {
