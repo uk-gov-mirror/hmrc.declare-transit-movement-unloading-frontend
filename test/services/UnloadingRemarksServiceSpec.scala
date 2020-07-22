@@ -21,12 +21,12 @@ import base.SpecBase
 import connectors.UnloadingConnector
 import generators.MessagesModelGenerators
 import models.messages.{InterchangeControlReference, _}
-import models.{EoriNumber, UnloadingDatePointer, UnloadingPermission}
+import models.{EoriNumber, UnloadingPermission}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import pages.{DateGoodsUnloadedPage, GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
+import pages._
 import play.api.Application
 import play.api.http.Status._
 import play.api.inject.bind
@@ -281,7 +281,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
           val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
             case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == NumberOfItems => y.copy(correctedValue = "1234")
-            case x                                                                                      => x
+            case x                                                                                   => x
           }
           val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
@@ -300,8 +300,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "1234").get
 
           val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == GrossMass => y.copy(correctedValue = "1234")
-            case x                                                                                      => x
+            case y: ResultsOfControlDifferentValues if (y.pointerToAttribute.pointer == GrossMass) => y.copy(correctedValue = "1234")
+            case x                                                                                 => x
           }
           val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl

@@ -19,7 +19,7 @@ import com.google.inject.Inject
 import connectors.UnloadingConnector
 import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
-import pages.{DateGoodsUnloadedPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
+import pages.{DateGoodsUnloadedPage, GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
@@ -88,10 +88,12 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
           val meta: Meta = metaService.build(eori, interchangeControlReference)
 
           getResultOfControlCorrectedValue(userAnswers: UserAnswers) match {
-            case Some(registrationNumber) =>
+            case Some((newValue, pointerIdentity: PointerIdentity)) =>
               val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-                case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == TransportIdentity =>
-                  differentValues.copy(correctedValue = registrationNumber)
+                case differentValues: ResultsOfControlDifferentValues
+                    if differentValues.pointerToAttribute.pointer == pointerIdentity &&
+                      !differentValues.correctedValue.equals(newValue) =>
+                  differentValues.copy(correctedValue = newValue)
                 case roc: ResultsOfControl => roc
               }
               Some(unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl))
@@ -103,14 +105,25 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                     case x                    => x
                   }
                   unloadingRemarksRequest.copy(meta = meta, unloadingRemark = unloadingRemarks)
-
               }
           }
       }
 
-  private def getResultOfControlCorrectedValue(userAnswers: UserAnswers): Option[String] =
-    Seq(userAnswers.get(VehicleNameRegistrationReferencePage), userAnswers.get(TotalNumberOfPackagesPage)).flatten match {
-      case Seq(x) => Some(x.toString)
-      case _      => None
+  private def getResultOfControlCorrectedValue(userAnswers: UserAnswers): Option[(String, PointerIdentity)] =
+    userAnswers.get(VehicleNameRegistrationReferencePage) match {
+      case Some(answer) => Some((answer, TransportIdentity))
+      case _ =>
+        userAnswers.get(TotalNumberOfPackagesPage) match {
+          case Some(answer) => Some((answer.toString, NumberOfPackages))
+          case _ =>
+            userAnswers.get(TotalNumberOfItemsPage) match {
+              case Some(answer) => Some((answer.toString, NumberOfItems))
+              case _ =>
+                userAnswers.get(GrossMassAmountPage) match {
+                  case Some(answer) => Some((answer, GrossMass))
+                  case _            => None
+                }
+            }
+        }
     }
 }
