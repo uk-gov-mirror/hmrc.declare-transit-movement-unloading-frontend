@@ -38,24 +38,14 @@ object ErrorPointer extends Serializable {
   )
 }
 
-object GrossMassPointer extends ErrorPointer("HEA.Total gross mass") {
-  override def toString: String = "GrossMassPointer"
-}
+object GrossMassPointer extends ErrorPointer("HEA.Total gross mass")
 
-object NumberOfItemsPointer extends ErrorPointer("HEA.Total number of items") {
-  override def toString: String = "NumberOfItemsPointer"
-}
+object NumberOfItemsPointer extends ErrorPointer("HEA.Total number of items")
 
-object UnloadingDatePointer extends ErrorPointer("REM.Unloading Date") {
-  override def toString: String = "UnloadingDatePointer"
-}
+object UnloadingDatePointer extends ErrorPointer("REM.Unloading Date")
 
-object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of transport at departure (exp/trans)") {
-  override def toString: String = "VehicleRegistrationPointer"
-}
+object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of transport at departure (exp/trans)")
 
-object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages") {
-  override def toString: String = "NumberOfPackagesPointer"
-}
+object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages")
 
 object DefaultPointer extends ErrorPointer("")
