@@ -19,7 +19,7 @@ import com.google.inject.Inject
 import connectors.UnloadingConnector
 import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
-import pages.VehicleNameRegistrationReferencePage
+import pages.{DateGoodsUnloadedPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
@@ -87,14 +87,30 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
         interchangeControlReference =>
           val meta: Meta = metaService.build(eori, interchangeControlReference)
 
-          userAnswers.get(VehicleNameRegistrationReferencePage) map {
-            registrationNumber =>
+          getResultOfControlCorrectedValue(userAnswers: UserAnswers) match {
+            case Some(registrationNumber) =>
               val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
                 case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == TransportIdentity =>
                   differentValues.copy(correctedValue = registrationNumber)
                 case roc: ResultsOfControl => roc
               }
-              unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
+              Some(unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl))
+            case _ =>
+              userAnswers.get(DateGoodsUnloadedPage).map {
+                date =>
+                  val unloadingRemarks: Remarks = unloadingRemarksRequest.unloadingRemark match {
+                    case y: RemarksNonConform => y.copy(unloadingDate = date)
+                    case x                    => x
+                  }
+                  unloadingRemarksRequest.copy(meta = meta, unloadingRemark = unloadingRemarks)
+
+              }
           }
       }
+
+  private def getResultOfControlCorrectedValue(userAnswers: UserAnswers): Option[String] =
+    Seq(userAnswers.get(VehicleNameRegistrationReferencePage), userAnswers.get(TotalNumberOfPackagesPage)).flatten match {
+      case Seq(x) => Some(x.toString)
+      case _      => None
+    }
 }

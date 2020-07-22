@@ -21,12 +21,12 @@ import base.SpecBase
 import connectors.UnloadingConnector
 import generators.MessagesModelGenerators
 import models.messages.{InterchangeControlReference, _}
-import models.{EoriNumber, UnloadingPermission}
+import models.{EoriNumber, UnloadingDatePointer, UnloadingPermission}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import pages.{DateGoodsUnloadedPage, VehicleNameRegistrationReferencePage}
+import pages.{DateGoodsUnloadedPage, GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
 import play.api.Application
 import play.api.http.Status._
 import play.api.inject.bind
@@ -249,6 +249,84 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
         }
 
+        "must return updated results of control for the input TotalNumberOfPackagesPage" in {
+          val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
+          val meta                        = arbitrary[Meta].sample.value
+          val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
+
+          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+            .thenReturn(Future.successful(interchangeControlReference))
+          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+            .thenReturn(meta)
+          val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 1234).get
+
+          val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == NumberOfPackages => y.copy(correctedValue = "1234")
+            case x                                                                                      => x
+          }
+          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          result.futureValue.value.resultOfControl mustBe expectedResultOfControl
+
+        }
+        "must return updated results of control for the input TotalNumberOfItemsPage" in {
+          val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
+          val meta                        = arbitrary[Meta].sample.value
+          val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
+
+          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+            .thenReturn(Future.successful(interchangeControlReference))
+          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+            .thenReturn(meta)
+          val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 1234).get
+
+          val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == NumberOfItems => y.copy(correctedValue = "1234")
+            case x                                                                                      => x
+          }
+          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          result.futureValue.value.resultOfControl mustBe expectedResultOfControl
+
+        }
+
+        "must return updated results of control for the input UserAnswer" in {
+          val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
+          val meta                        = arbitrary[Meta].sample.value
+          val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
+
+          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+            .thenReturn(Future.successful(interchangeControlReference))
+          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+            .thenReturn(meta)
+          val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "1234").get
+
+          val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
+            case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == GrossMass => y.copy(correctedValue = "1234")
+            case x                                                                                      => x
+          }
+          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          result.futureValue.value.resultOfControl mustBe expectedResultOfControl
+
+        }
+
+        "must return updated remarks for the input DateGoodsUnloadedPage " in {
+          val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
+          val meta                        = arbitrary[Meta].sample.value
+          val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
+          val localDate                   = LocalDate.now
+          when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
+            .thenReturn(Future.successful(interchangeControlReference))
+          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+            .thenReturn(meta)
+          val userAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, localDate).get
+
+          val expectedUnloadingRemark: Remarks = unloadingRemarksRequest.unloadingRemark match {
+            case y: RemarksNonConform => y.copy(unloadingDate = localDate)
+            case x                    => x
+          }
+          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          result.futureValue.value.unloadingRemark mustBe expectedUnloadingRemark
+
+        }
       }
     }
   }
