@@ -91,8 +91,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
             case Some((newValue, pointerIdentity: PointerIdentity)) =>
               val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
                 case differentValues: ResultsOfControlDifferentValues
-                    if differentValues.pointerToAttribute.pointer == pointerIdentity &&
-                      !differentValues.correctedValue.equals(newValue) =>
+                    if differentValues.pointerToAttribute.pointer == pointerIdentity  =>
                   differentValues.copy(correctedValue = newValue)
                 case roc: ResultsOfControl => roc
               }
