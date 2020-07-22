@@ -42,7 +42,7 @@ class UnloadingRemarksRejectionController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  val Log = Logger(getClass)
+  val Log: Logger = Logger(getClass)
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>

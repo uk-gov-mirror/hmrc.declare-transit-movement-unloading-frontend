@@ -86,6 +86,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       .map {
         interchangeControlReference =>
           val meta: Meta = metaService.build(eori, interchangeControlReference)
+
           userAnswers.get(VehicleNameRegistrationReferencePage) map {
             registrationNumber =>
               val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {

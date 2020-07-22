@@ -16,17 +16,14 @@
 
 package utils
 
-import java.time.format.DateTimeFormatter
-
 import controllers.routes
-import models.{CheckMode, Index, UserAnswers}
+import models.{CheckMode, UserAnswers}
 import pages._
 import play.api.i18n.Messages
-import queries.SealsQuery
 import uk.gov.hmrc.viewmodels.SummaryList._
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
-import utils.CheckYourAnswersHelper._
+import utils.Format._
 
 class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messages) {
 
@@ -181,7 +178,7 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
     answer =>
       Row(
         key   = Key(msg"dateGoodsUnloaded.checkYourAnswersLabel", classes = Seq("govuk-!-width-one-half")),
-        value = Value(Literal(answer.format(dateFormatter))),
+        value = Value(Literal(answer.format(cyaDateFormatter))),
         actions = List(
           Action(
             content            = msg"site.edit",
@@ -201,7 +198,4 @@ class CheckYourAnswersHelper(userAnswers: UserAnswers)(implicit messages: Messag
     }
 }
 
-object CheckYourAnswersHelper {
-
-  private val dateFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
-}
+object CheckYourAnswersHelper
