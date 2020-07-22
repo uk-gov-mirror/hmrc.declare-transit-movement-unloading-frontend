@@ -58,6 +58,15 @@ class UnloadingRemarksRejectionController @Inject()(
               renderer.render("unloadingRemarksRejection.njk", json).map(Ok(_))
             case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
+        case Some(rejectionMessage) if rejectionMessage.errors.length > 1 =>
+          def json: JsObject =
+            Json.obj(
+              "errors"                     -> rejectionMessage.errors,
+              "contactUrl"                 -> appConfig.nctsEnquiriesUrl,
+              "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+            )
+
+          renderer.render("unloadingRemarksMultipleErrorsRejection.njk", json).map(Ok(_))
         case _ =>
           Log.debug("service.UnloadingRemarksRejectionMessage is None")
           Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))

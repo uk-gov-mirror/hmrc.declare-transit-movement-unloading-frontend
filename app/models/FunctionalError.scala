@@ -17,7 +17,9 @@
 package models
 
 import cats.syntax.all._
-import com.lucidchart.open.xtract.{__, XmlReader}
+import com.lucidchart.open.xtract.{XmlReader, __ => xmlPath}
+import play.api.libs.json.{Json, OWrites}
+
 final case class FunctionalError(
   errorType: ErrorType,
   pointer: ErrorPointer,
@@ -28,9 +30,11 @@ final case class FunctionalError(
 object FunctionalError {
 
   implicit val xmlReader: XmlReader[FunctionalError] = (
-    (__ \ "ErrTypER11").read[ErrorType],
-    (__ \ "ErrPoiER12").read[ErrorPointer],
-    (__ \ "ErrReaER13").read[String].optional,
-    (__ \ "OriAttValER14").read[String].optional
+    (xmlPath \ "ErrTypER11").read[ErrorType],
+    (xmlPath \ "ErrPoiER12").read[ErrorPointer],
+    (xmlPath \ "ErrReaER13").read[String].optional,
+    (xmlPath \ "OriAttValER14").read[String].optional
   ).mapN(apply)
+
+  implicit val writes: OWrites[FunctionalError] = Json.writes[FunctionalError]
 }
