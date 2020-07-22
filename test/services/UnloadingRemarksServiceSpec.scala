@@ -266,8 +266,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           }
           val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
-
         }
+
         "must return updated results of control for the input TotalNumberOfItemsPage" in {
           val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
           val meta                        = arbitrary[Meta].sample.value
@@ -285,7 +285,6 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           }
           val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
-
         }
 
         "must return updated results of control for the input UserAnswer" in {
@@ -330,5 +329,4 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       }
     }
   }
-
 }
