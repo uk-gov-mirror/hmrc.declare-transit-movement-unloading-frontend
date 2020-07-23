@@ -229,7 +229,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
       "getUpdatedUnloadingRemarkRequest" - {
 
-        "must return updated UnloadingRemarksRequest for the input UserAnswer" in {
+        "must return updated UnloadingRemarksRequest for the input VehicleNameRegistrationReferencePage" in {
           val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
           val meta                        = arbitrary[Meta].sample.value
           val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value
@@ -287,7 +287,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
         }
 
-        "must return updated results of control for the input UserAnswer" in {
+        "must return updated results of control for the input GrossMassAmountPage" in {
           val unloadingRemarksRequest     = arbitrary[UnloadingRemarksRequest].sample.value
           val meta                        = arbitrary[Meta].sample.value
           val interchangeControlReference = arbitrary[InterchangeControlReference].sample.value

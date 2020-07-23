@@ -15,6 +15,8 @@
  */
 
 package services
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import connectors.UnloadingConnector
 import models.messages._
@@ -73,9 +75,9 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       case Some(unloadingRemarksRequest) =>
         getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
           case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
-          case _                             => Future.successful(None)
+          case _                             => Logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
         }
-      case _ => Future.successful(None)
+      case _ => Logger.debug("Failed to get unloading remarks request: Service.unloadingRemarksMessage(arrivalId)"); Future.successful(None)
     }
 
   private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,
@@ -85,29 +87,38 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       .nextInterchangeControlReferenceId()
       .map {
         interchangeControlReference =>
-          val meta: Meta = metaService.build(eori, interchangeControlReference)
-
-          getResultOfControlCorrectedValue(userAnswers: UserAnswers) match {
-            case Some((newValue, pointerIdentity: PointerIdentity)) =>
-              val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-                case differentValues: ResultsOfControlDifferentValues
-                    if differentValues.pointerToAttribute.pointer == pointerIdentity &&
-                      !differentValues.correctedValue.equals(newValue) =>
-                  differentValues.copy(correctedValue = newValue)
-                case roc: ResultsOfControl => roc
-              }
-              Some(unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl))
+          val meta: Meta                      = metaService.build(eori, interchangeControlReference)
+          val unloadingRemarksRequestWithMeta = unloadingRemarksRequest.copy(meta = meta)
+          userAnswers.get(DateGoodsUnloadedPage) match {
+            case Some(localDate) =>
+              val unloadingRemarks: Remarks = getUpdatedGoodsUnloadedDate(unloadingRemarksRequestWithMeta, localDate)
+              Some(unloadingRemarksRequestWithMeta.copy(unloadingRemark = unloadingRemarks))
             case _ =>
-              userAnswers.get(DateGoodsUnloadedPage).map {
-                date =>
-                  val unloadingRemarks: Remarks = unloadingRemarksRequest.unloadingRemark match {
-                    case y: RemarksNonConform => y.copy(unloadingDate = date)
-                    case x                    => x
-                  }
-                  unloadingRemarksRequest.copy(meta = meta, unloadingRemark = unloadingRemarks)
+              updatedResultsOfControl(unloadingRemarksRequestWithMeta, userAnswers) map {
+                resultOfControls =>
+                  unloadingRemarksRequestWithMeta.copy(resultOfControl = resultOfControls)
               }
+
           }
       }
+
+  private def getUpdatedGoodsUnloadedDate(unloadingRemarksRequestWithMeta: UnloadingRemarksRequest, localDate: LocalDate): Remarks =
+    unloadingRemarksRequestWithMeta.unloadingRemark match {
+      case y: RemarksNonConform => y.copy(unloadingDate = localDate)
+      case x                    => x
+    }
+
+  private def updatedResultsOfControl(unloadingRemarksRequest: UnloadingRemarksRequest, userAnswers: UserAnswers): Option[Seq[ResultsOfControl]] =
+    getResultOfControlCorrectedValue(userAnswers: UserAnswers) match {
+      case Some((newValue, pointerIdentity: PointerIdentity)) =>
+        val resultsOfControl = unloadingRemarksRequest.resultOfControl.map {
+          case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == pointerIdentity =>
+            differentValues.copy(correctedValue = newValue)
+          case roc: ResultsOfControl => roc
+        }
+        Some(resultsOfControl)
+      case _ => None
+    }
 
   private def getResultOfControlCorrectedValue(userAnswers: UserAnswers): Option[(String, PointerIdentity)] =
     userAnswers.get(VehicleNameRegistrationReferencePage) match {
