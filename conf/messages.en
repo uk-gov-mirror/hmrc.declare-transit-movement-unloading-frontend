@@ -298,4 +298,6 @@ unloadingRemarksRejection.conflicting.information = There is conflicting informa
 unloadingRemarksRejection.contact = contact the New Computerised Transit System helpdesk to fix this(opens in a new tab)
 unloadingRemarksRejection.create.unloadingRemarks = create new unloading remarks
 unloadingRemarksRejection.you.can = You can:
+unloadingRemarksRejection.errorCode = Error code
+unloadingRemarksRejection.pointer = Pointer
 
