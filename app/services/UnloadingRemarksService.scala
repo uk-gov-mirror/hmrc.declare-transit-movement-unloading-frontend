@@ -34,7 +34,6 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingRemarksMessageService: UnloadingRemarksMessageService,
-                                        resultOfControlService: ResultOfControlService,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
   def submit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(

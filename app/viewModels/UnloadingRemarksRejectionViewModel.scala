@@ -21,18 +21,39 @@ import java.time.format.DateTimeFormatter
 import controllers.routes
 import models._
 import play.api.i18n.Messages
+import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.viewmodels.SummaryList.{Action, Key, Row, Value}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import uk.gov.hmrc.viewmodels._
 import utils.Date._
 import viewModels.sections.Section
 
-case class UnloadingRemarksRejectionViewModel(sections: Seq[Section])
+case class UnloadingRemarksRejectionViewModel(page: String, json: JsObject)
 
 object UnloadingRemarksRejectionViewModel {
 
-  def apply(error: FunctionalError, arrivalId: ArrivalId)(implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] = {
+  def apply(errors: Seq[FunctionalError], arrivalId: ArrivalId, nctsEnquiriesUrl: String)(
+    implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] =
+    errors match {
+      case error if errors.length == 1 =>
+        singleErrorPage(arrivalId, error.head, nctsEnquiriesUrl)
+      case errors if errors.length > 1 =>
+        multipleErrorPage(arrivalId, nctsEnquiriesUrl, errors)
+      case _ => None
+    }
 
+  private def multipleErrorPage(arrivalId: ArrivalId, nctsEnquiriesUrl: String, errors: Seq[FunctionalError]): Option[UnloadingRemarksRejectionViewModel] = {
+    def json: JsObject =
+      Json.obj(
+        "errors"                     -> errors,
+        "contactUrl"                 -> nctsEnquiriesUrl,
+        "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+      )
+    Some(UnloadingRemarksRejectionViewModel("unloadingRemarksMultipleErrorsRejection.njk", json))
+  }
+
+  private def singleErrorPage(arrivalId: ArrivalId, error: FunctionalError, nctsEnquiriesUrl: String)(
+    implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] = {
     val rowOption: Option[Row] = error.originalAttributeValue flatMap {
       originalValue =>
         error.pointer match {
@@ -46,7 +67,12 @@ object UnloadingRemarksRejectionViewModel {
     }
     rowOption map {
       row =>
-        UnloadingRemarksRejectionViewModel(Seq(Section(Seq(row))))
+        def json: JsObject =
+          Json.obj(
+            "sections"   -> Json.toJson(Seq(Section(Seq(row)))),
+            "contactUrl" -> nctsEnquiriesUrl
+          )
+        UnloadingRemarksRejectionViewModel("unloadingRemarksRejection.njk", json)
     }
   }
 
