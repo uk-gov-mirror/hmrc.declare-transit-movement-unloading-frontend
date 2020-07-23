@@ -46,7 +46,7 @@ class UnloadingRemarksRejectionController @Inject()(
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
       service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
-        case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
+        case Some(rejectionMessage) =>
           UnloadingRemarksRejectionViewModel(rejectionMessage.errors, arrivalId, appConfig.nctsEnquiriesUrl) match {
             case Some(viewModel) =>
               renderer.render(viewModel.page, viewModel.json).map(Ok(_))
