@@ -64,7 +64,7 @@ class UnloadingRemarksRejectionControllerSpec
 
       val errors = Seq(functionalError)
 
-      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any()))
         .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
@@ -88,33 +88,6 @@ class UnloadingRemarksRejectionControllerSpec
       application.stop()
     }
 
-    "redirect to 'Technical difficulties' page when unloading rejection message's originalAttributeValue is None" in {
-
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
-
-      val functionalError = arbitrary[FunctionalError].sample.value
-
-      val errors = Seq(functionalError.copy(originalAttributeValue = None))
-
-      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
-        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
-
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-        .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockUnloadingRemarksRejectionService)
-        )
-        .build()
-
-      val request = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
-
-      val result = route(application, request).value
-
-      status(result) mustEqual SEE_OTHER
-
-      application.stop()
-    }
-
     "redirect to 'Technical difficulties' page when unloading rejection message's has more than one errors" in {
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
@@ -123,7 +96,7 @@ class UnloadingRemarksRejectionControllerSpec
 
       val errors = Seq(functionalError, functionalError)
 
-      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any()))
         .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
@@ -146,7 +119,7 @@ class UnloadingRemarksRejectionControllerSpec
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any(), any()))
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any()))
         .thenReturn(Future.successful(None))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
@@ -161,7 +134,7 @@ class UnloadingRemarksRejectionControllerSpec
 
       status(result) mustEqual SEE_OTHER
 
-      verify(mockUnloadingRemarksRejectionService, times(1)).unloadingRemarksRejectionMessage(any())(any(), any())
+      verify(mockUnloadingRemarksRejectionService, times(1)).unloadingRemarksRejectionMessage(any())(any())
 
       application.stop()
     }

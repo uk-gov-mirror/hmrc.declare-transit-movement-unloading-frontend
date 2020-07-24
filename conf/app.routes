@@ -32,8 +32,6 @@ POST       /:arrivalId/vehicle-name-registration-reference                  cont
 GET        /:arrivalId/change-vehicle-name-registration-reference           controllers.VehicleNameRegistrationReferenceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)
 POST       /:arrivalId/change-vehicle-name-registration-reference           controllers.VehicleNameRegistrationReferenceController.onSubmit(arrivalId: ArrivalId, mode: Mode = CheckMode)
 
-GET        /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId: ArrivalId)
-POST       /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onSubmit(arrivalId: ArrivalId)
 
 GET        /:arrivalId/vehicle-registration-country                         controllers.VehicleRegistrationCountryController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
 POST       /:arrivalId/vehicle-registration-country                         controllers.VehicleRegistrationCountryController.onSubmit(arrivalId: ArrivalId, mode: Mode = NormalMode)
@@ -93,4 +91,19 @@ POST       /:arrivalId/total-number-of-packages                    controllers.T
 GET        /:arrivalId/change-total-number-of-packages                          controllers.TotalNumberOfPackagesController.onPageLoad(arrivalId: ArrivalId, mode: Mode = CheckMode)
 POST       /:arrivalId/change-total-number-of-packages                          controllers.TotalNumberOfPackagesController.onSubmit(arrivalId: ArrivalId, mode: Mode = CheckMode)
 
-GET        /:arrivalId/unloading-rejection                       controllers.UnloadingRemarksRejectionController.onPageLoad(arrivalId: ArrivalId)
+GET        /:arrivalId/unloading-rejection                                  controllers.UnloadingRemarksRejectionController.onPageLoad(arrivalId: ArrivalId)
+
+GET        /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/vehicle-name-registration-rejection                  controllers.VehicleNameRegistrationRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/total-number-of-packages-rejection                   controllers.TotalNumberOfPackagesRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/total-number-of-packages-rejection                   controllers.TotalNumberOfPackagesRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/total-number-of-items-rejection                      controllers.TotalNumberOfItemsRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/total-number-of-items-rejection                      controllers.TotalNumberOfItemsRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/gross-mass-amount-rejection                          controllers.GrossMassAmountRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/gross-mass-amount-rejection                          controllers.GrossMassAmountRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/date-goods-unloaded-rejection                        controllers.DateGoodsUnloadedRejectionController.onPageLoad(arrivalId: ArrivalId)
+POST       /:arrivalId/date-goods-unloaded-rejection                        controllers.DateGoodsUnloadedRejectionController.onSubmit(arrivalId: ArrivalId)

@@ -15,11 +15,13 @@
  */
 
 package services
+import java.time.LocalDate
+
 import com.google.inject.Inject
 import connectors.UnloadingConnector
 import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
-import pages.VehicleNameRegistrationReferencePage
+import pages.{DateGoodsUnloadedPage, GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
 import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
@@ -73,9 +75,9 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       case Some(unloadingRemarksRequest) =>
         getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
           case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
-          case _                             => Future.successful(None)
+          case _                             => Logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
         }
-      case _ => Future.successful(None)
+      case _ => Logger.debug("Failed to get unloading remarks request: Service.unloadingRemarksMessage(arrivalId)"); Future.successful(None)
     }
 
   private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,
@@ -85,15 +87,54 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       .nextInterchangeControlReferenceId()
       .map {
         interchangeControlReference =>
-          val meta: Meta = metaService.build(eori, interchangeControlReference)
-          userAnswers.get(VehicleNameRegistrationReferencePage) map {
-            registrationNumber =>
-              val resultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
-                case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == TransportIdentity =>
-                  differentValues.copy(correctedValue = registrationNumber)
-                case roc: ResultsOfControl => roc
+          val meta: Meta                      = metaService.build(eori, interchangeControlReference)
+          val unloadingRemarksRequestWithMeta = unloadingRemarksRequest.copy(meta = meta)
+          userAnswers.get(DateGoodsUnloadedPage) match {
+            case Some(localDate) =>
+              val unloadingRemarks: Remarks = getUpdatedGoodsUnloadedDate(unloadingRemarksRequestWithMeta, localDate)
+              Some(unloadingRemarksRequestWithMeta.copy(unloadingRemark = unloadingRemarks))
+            case _ =>
+              updatedResultsOfControl(unloadingRemarksRequestWithMeta, userAnswers) map {
+                resultOfControls =>
+                  unloadingRemarksRequestWithMeta.copy(resultOfControl = resultOfControls)
               }
-              unloadingRemarksRequest.copy(meta = meta, resultOfControl = resultOfControl)
+
           }
       }
+
+  private def getUpdatedGoodsUnloadedDate(unloadingRemarksRequestWithMeta: UnloadingRemarksRequest, localDate: LocalDate): Remarks =
+    unloadingRemarksRequestWithMeta.unloadingRemark match {
+      case y: RemarksNonConform => y.copy(unloadingDate = localDate)
+      case x                    => x
+    }
+
+  private def updatedResultsOfControl(unloadingRemarksRequest: UnloadingRemarksRequest, userAnswers: UserAnswers): Option[Seq[ResultsOfControl]] =
+    getResultOfControlCorrectedValue(userAnswers: UserAnswers) match {
+      case Some((newValue, pointerIdentity: PointerIdentity)) =>
+        val resultsOfControl = unloadingRemarksRequest.resultOfControl.map {
+          case differentValues: ResultsOfControlDifferentValues if differentValues.pointerToAttribute.pointer == pointerIdentity =>
+            differentValues.copy(correctedValue = newValue)
+          case roc: ResultsOfControl => roc
+        }
+        Some(resultsOfControl)
+      case _ => None
+    }
+
+  private def getResultOfControlCorrectedValue(userAnswers: UserAnswers): Option[(String, PointerIdentity)] =
+    userAnswers.get(VehicleNameRegistrationReferencePage) match {
+      case Some(answer) => Some((answer, TransportIdentity))
+      case _ =>
+        userAnswers.get(TotalNumberOfPackagesPage) match {
+          case Some(answer) => Some((answer.toString, NumberOfPackages))
+          case _ =>
+            userAnswers.get(TotalNumberOfItemsPage) match {
+              case Some(answer) => Some((answer.toString, NumberOfItems))
+              case _ =>
+                userAnswers.get(GrossMassAmountPage) match {
+                  case Some(answer) => Some((answer, GrossMass))
+                  case _            => None
+                }
+            }
+        }
+    }
 }

@@ -17,11 +17,10 @@
 package controllers
 
 import controllers.actions._
-import forms.VehicleNameRegistrationReferenceFormProvider
+import forms.TotalNumberOfPackagesFormProvider
 import javax.inject.Inject
-import models.requests.IdentifierRequest
 import models.{ArrivalId, UserAnswers}
-import pages.VehicleNameRegistrationReferencePage
+import pages.TotalNumberOfPackagesPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -33,12 +32,12 @@ import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class VehicleNameRegistrationRejectionController @Inject()(
+class TotalNumberOfPackagesRejectionController @Inject()(
   override val messagesApi: MessagesApi,
   sessionRepository: SessionRepository,
   identify: IdentifierAction,
-  formProvider: VehicleNameRegistrationReferenceFormProvider,
   getData: DataRetrievalActionProvider,
+  formProvider: TotalNumberOfPackagesFormProvider,
   val controllerComponents: MessagesControllerComponents,
   rejectionService: UnloadingRemarksRejectionService,
   renderer: Renderer
@@ -51,35 +50,37 @@ class VehicleNameRegistrationRejectionController @Inject()(
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      rejectionService.getRejectedValueAsString(arrivalId, request.userAnswers)(VehicleNameRegistrationReferencePage) flatMap {
+      rejectionService.getRejectedValueAsInt(arrivalId, request.userAnswers)(TotalNumberOfPackagesPage) flatMap {
         case Some(originalAttrValue) =>
           val json = Json.obj(
             "form"      -> form.fill(originalAttrValue),
             "arrivalId" -> arrivalId
           )
-          renderer.render("vehicleNameRegistrationReference.njk", json).map(Ok(_))
+          renderer.render("totalNumberOfPackages.njk", json).map(Ok(_))
         case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
   }
 
-  def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
-    implicit request: IdentifierRequest[AnyContent] =>
+  def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
+    implicit request =>
       form
         .bindFromRequest()
         .fold(
           formWithErrors => {
+
             val json = Json.obj(
               "form"      -> formWithErrors,
               "arrivalId" -> arrivalId
             )
-            renderer.render("vehicleNameRegistrationReference.njk", json).map(BadRequest(_))
+
+            renderer.render("totalNumberOfPackages.njk", json).map(BadRequest(_))
           },
           value =>
             rejectionService.unloadingRemarksRejectionMessage(arrivalId) flatMap {
               case Some(rejectionMessage) =>
                 val userAnswers = UserAnswers(arrivalId, rejectionMessage.movementReferenceNumber, request.eoriNumber)
                 for {
-                  updatedAnswers <- Future.fromTry(userAnswers.set(VehicleNameRegistrationReferencePage, value))
+                  updatedAnswers <- Future.fromTry(userAnswers.set(TotalNumberOfPackagesPage, value))
                   _              <- sessionRepository.set(updatedAnswers)
                 } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
 
@@ -87,4 +88,5 @@ class VehicleNameRegistrationRejectionController @Inject()(
           }
         )
   }
+
 }

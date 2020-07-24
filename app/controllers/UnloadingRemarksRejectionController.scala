@@ -42,28 +42,25 @@ class UnloadingRemarksRejectionController @Inject()(
     extends FrontendBaseController
     with I18nSupport {
 
-  val Log = Logger(getClass)
+  val Log: Logger = Logger(getClass)
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
       service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
         case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
-          rejectionMessage.errors.head.originalAttributeValue match {
-            case Some(originalAttrValue) =>
-              val unloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel(originalAttrValue, arrivalId)
+          UnloadingRemarksRejectionViewModel(rejectionMessage.errors.head, arrivalId) match {
+            case Some(viewModel) =>
               def json: JsObject =
                 Json.obj(
-                  "sections"   -> Json.toJson(unloadingRemarksRejectionViewModel.sections),
+                  "sections"   -> Json.toJson(viewModel.sections),
                   "contactUrl" -> appConfig.nctsEnquiriesUrl
                 )
               renderer.render("unloadingRemarksRejection.njk", json).map(Ok(_))
-
-            case None =>
-              Log.debug("UnloadingRemarksRejectionMessage:originalAttributeValue is None")
-              Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+            case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
-        case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad())) //TODO need to handle multiple errors
+        case _ =>
+          Log.debug("service.UnloadingRemarksRejectionMessage is None")
+          Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
-
   }
 }

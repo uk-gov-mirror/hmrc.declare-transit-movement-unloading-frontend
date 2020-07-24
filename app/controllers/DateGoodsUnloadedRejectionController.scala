@@ -16,70 +16,85 @@
 
 package controllers
 
+import java.time.LocalDate
+
 import controllers.actions._
-import forms.VehicleNameRegistrationReferenceFormProvider
+import forms.DateGoodsUnloadedFormProvider
 import javax.inject.Inject
-import models.requests.IdentifierRequest
 import models.{ArrivalId, UserAnswers}
-import pages.VehicleNameRegistrationReferencePage
+import navigation.NavigatorUnloadingPermission
+import pages.DateGoodsUnloadedPage
+import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import repositories.SessionRepository
-import services.UnloadingRemarksRejectionService
+import services.{UnloadingPermissionService, UnloadingRemarksRejectionService}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
-import uk.gov.hmrc.viewmodels.NunjucksSupport
+import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class VehicleNameRegistrationRejectionController @Inject()(
+class DateGoodsUnloadedRejectionController @Inject()(
   override val messagesApi: MessagesApi,
   sessionRepository: SessionRepository,
+  navigator: NavigatorUnloadingPermission,
   identify: IdentifierAction,
-  formProvider: VehicleNameRegistrationReferenceFormProvider,
   getData: DataRetrievalActionProvider,
-  val controllerComponents: MessagesControllerComponents,
+  formProvider: DateGoodsUnloadedFormProvider,
   rejectionService: UnloadingRemarksRejectionService,
-  renderer: Renderer
+  val controllerComponents: MessagesControllerComponents,
+  renderer: Renderer,
+  unloadingPermissionService: UnloadingPermissionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private val form = formProvider()
+  private def form: Form[LocalDate] = formProvider()
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      rejectionService.getRejectedValueAsString(arrivalId, request.userAnswers)(VehicleNameRegistrationReferencePage) flatMap {
-        case Some(originalAttrValue) =>
+      rejectionService.getRejectedValueAsDate(arrivalId, request.userAnswers)(DateGoodsUnloadedPage) flatMap {
+        case Some(originalValue) =>
+          val preparedForm = form.fill(originalValue)
+          val viewModel    = DateInput.localDate(preparedForm("value"))
+
           val json = Json.obj(
-            "form"      -> form.fill(originalAttrValue),
-            "arrivalId" -> arrivalId
+            "form"      -> preparedForm,
+            "arrivalId" -> arrivalId,
+            "date"      -> viewModel
           )
-          renderer.render("vehicleNameRegistrationReference.njk", json).map(Ok(_))
-        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+
+          renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_))
+        case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
   }
 
-  def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
-    implicit request: IdentifierRequest[AnyContent] =>
+  def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
+    implicit request =>
       form
         .bindFromRequest()
         .fold(
           formWithErrors => {
+
+            val viewModel = DateInput.localDate(formWithErrors("value"))
+
             val json = Json.obj(
               "form"      -> formWithErrors,
-              "arrivalId" -> arrivalId
+              "arrivalId" -> arrivalId,
+              "date"      -> viewModel
             )
-            renderer.render("vehicleNameRegistrationReference.njk", json).map(BadRequest(_))
+
+            renderer.render("dateGoodsUnloaded.njk", json).map(BadRequest(_))
           },
           value =>
             rejectionService.unloadingRemarksRejectionMessage(arrivalId) flatMap {
               case Some(rejectionMessage) =>
                 val userAnswers = UserAnswers(arrivalId, rejectionMessage.movementReferenceNumber, request.eoriNumber)
                 for {
-                  updatedAnswers <- Future.fromTry(userAnswers.set(VehicleNameRegistrationReferencePage, value))
+                  updatedAnswers <- Future.fromTry(userAnswers.set(DateGoodsUnloadedPage, value))
                   _              <- sessionRepository.set(updatedAnswers)
                 } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
 

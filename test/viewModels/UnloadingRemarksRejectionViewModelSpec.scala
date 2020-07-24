@@ -17,19 +17,43 @@
 package viewModels
 
 import base.SpecBase
+import generators.MessagesModelGenerators
+import models.{DefaultPointer, FunctionalError}
+import org.scalacheck.Arbitrary.arbitrary
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class UnloadingRemarksRejectionViewModelSpec extends SpecBase {
+class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
   "UnloadingRemarksRejectionViewModel" - {
 
-    "display VehicleNameRegistration Section" in {
+    "must display rejected value section" in {
 
-      val data: UnloadingRemarksRejectionViewModel = UnloadingRemarksRejectionViewModel("original value", arrivalId)
+      forAll(arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer && x.originalAttributeValue.isDefined)) {
+        error =>
+          val data: UnloadingRemarksRejectionViewModel =
+            UnloadingRemarksRejectionViewModel(error, arrivalId)(messages).get
 
-      data.sections.length mustBe 1
-      data.sections.head.rows.length mustBe 1
+          data.sections.length mustBe 1
+          data.sections.head.rows.length mustBe 1
+      }
+    }
 
+    "must not display any sections when error pointer is DefaultPointer" in {
+
+      val error = arbitrary[FunctionalError].sample.value.copy(pointer = DefaultPointer)
+      val result: Option[UnloadingRemarksRejectionViewModel] =
+        UnloadingRemarksRejectionViewModel(error, arrivalId)(messages)
+
+      result mustBe None
+    }
+
+    "must not display any sections when error.originalAttributeValue is None" in {
+
+      val error = arbitrary[FunctionalError].sample.value.copy(originalAttributeValue = None)
+      val result: Option[UnloadingRemarksRejectionViewModel] =
+        UnloadingRemarksRejectionViewModel(error, arrivalId)(messages)
+
+      result mustBe None
     }
   }
-
 }

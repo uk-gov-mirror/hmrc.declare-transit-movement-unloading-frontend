@@ -16,21 +16,20 @@
 
 package models
 
-import cats.syntax.all._
-import com.lucidchart.open.xtract.{__, XmlReader}
-final case class FunctionalError(
-  errorType: ErrorType,
-  pointer: ErrorPointer,
-  reason: Option[String],
-  originalAttributeValue: Option[String]
-)
+import com.lucidchart.open.xtract.XmlReader
+import org.scalacheck.Gen
+import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-object FunctionalError {
+class ErrorPointerSpec extends FreeSpec with ScalaCheckPropertyChecks with MustMatchers with OptionValues {
 
-  implicit val xmlReader: XmlReader[FunctionalError] = (
-    (__ \ "ErrTypER11").read[ErrorType],
-    (__ \ "ErrPoiER12").read[ErrorPointer],
-    (__ \ "ErrReaER13").read[String].optional,
-    (__ \ "OriAttValER14").read[String].optional
-  ).mapN(apply)
+  "ErrorPointer" - {
+    "must read xml" in {
+      forAll(Gen.oneOf(ErrorPointer.values)) {
+        pointer =>
+          val xml = <test>{pointer.value}</test>
+          XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe pointer
+      }
+    }
+  }
 }
