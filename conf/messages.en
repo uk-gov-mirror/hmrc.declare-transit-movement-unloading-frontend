@@ -300,4 +300,5 @@ unloadingRemarksRejection.create.unloadingRemarks = create new unloading remarks
 unloadingRemarksRejection.you.can = You can:
 unloadingRemarksRejection.errorCode = Error code
 unloadingRemarksRejection.pointer = Pointer
+unloadingRemarksRejection.originalAttributeValue = Attribute value
 
