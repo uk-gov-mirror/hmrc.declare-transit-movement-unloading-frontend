@@ -17,6 +17,7 @@
 package models
 
 import com.lucidchart.open.xtract.{__, XmlReader}
+import play.api.libs.json.{JsString, Writes}
 
 sealed abstract class ErrorPointer(val value: String)
 
@@ -27,6 +28,10 @@ object ErrorPointer extends Serializable {
       pointer =>
         values.find(_.value.equalsIgnoreCase(pointer)).getOrElse(DefaultPointer)
     }
+  implicit val writes: Writes[ErrorPointer] = Writes[ErrorPointer] {
+    pointer: ErrorPointer =>
+      JsString(pointer.value)
+  }
 
   val values = Seq(
     GrossMassPointer,

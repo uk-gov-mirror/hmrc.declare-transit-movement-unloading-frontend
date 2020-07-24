@@ -30,7 +30,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.inject.bind
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -55,14 +55,14 @@ class UnloadingRemarksRejectionControllerSpec
 
   "UnloadingRemarksRejection Controller" - {
 
-    "return OK and the Rejection view for a GET when unloading rejection message returns a Some" in {
+    "return OK and the single error rejection view for a GET when unloading rejection message returns a Some" in {
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
       val functionalError = arbitrary[FunctionalError].sample.value
 
-      val errors = Seq(functionalError)
+      val errors: Seq[FunctionalError] = Seq(functionalError)
 
       when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any()))
         .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
@@ -88,9 +88,10 @@ class UnloadingRemarksRejectionControllerSpec
       application.stop()
     }
 
-    "redirect to 'Technical difficulties' page when unloading rejection message's has more than one errors" in {
+    "return OK and the multiple error rejection view for a GET when unloading rejection message returns Some" in {
 
-      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any()))
+        .thenReturn(Future.successful(Html("")))
 
       val functionalError = arbitrary[FunctionalError].sample.value
 
@@ -98,6 +99,40 @@ class UnloadingRemarksRejectionControllerSpec
 
       when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any()))
         .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors))))
+
+      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
+        .overrides(
+          bind[UnloadingRemarksRejectionService].toInstance(mockUnloadingRemarksRejectionService)
+        )
+        .build()
+
+      val request        = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(application, request).value
+      status(result) mustEqual OK
+
+      val expectedJson =
+        Json.obj(
+          "errors"                     -> errors,
+          "contactUrl"                 -> frontendAppConfig.nctsEnquiriesUrl,
+          "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        )
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "unloadingRemarksMultipleErrorsRejection.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+      application.stop()
+    }
+
+    "redirect to 'Technical difficulties' page when unloading rejection message's has no errors" in {
+
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+
+      when(mockUnloadingRemarksRejectionService.unloadingRemarksRejectionMessage(any())(any()))
+        .thenReturn(Future.successful(Some(UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, Seq.empty))))
 
       val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
         .overrides(

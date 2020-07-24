@@ -17,32 +17,53 @@
 package viewModels
 
 import base.SpecBase
+import matchers.JsonMatchers._
+import controllers.routes
 import generators.MessagesModelGenerators
 import models.{DefaultPointer, FunctionalError}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.libs.json.Json
 
 class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
   "UnloadingRemarksRejectionViewModel" - {
 
-    "must display rejected value section" in {
+    "must return single error page for one error" in {
 
       forAll(arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer && x.originalAttributeValue.isDefined)) {
         error =>
           val data: UnloadingRemarksRejectionViewModel =
-            UnloadingRemarksRejectionViewModel(error, arrivalId)(messages).get
+            UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages).get
 
-          data.sections.length mustBe 1
-          data.sections.head.rows.length mustBe 1
+          data.page mustBe "unloadingRemarksRejection.njk"
       }
+    }
+
+    "must return multiple error page if there are more than one errors" in {
+
+      val error  = arbitrary[FunctionalError].sample.value
+      val errors = Seq(error, error)
+
+      val data: UnloadingRemarksRejectionViewModel =
+        UnloadingRemarksRejectionViewModel(errors, arrivalId, "url")(messages).get
+
+      val expectedJson =
+        Json.obj(
+          "errors"                     -> errors,
+          "contactUrl"                 -> "url",
+          "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        )
+
+      data.page mustBe "unloadingRemarksMultipleErrorsRejection.njk"
+      data.json must containJson(expectedJson)
     }
 
     "must not display any sections when error pointer is DefaultPointer" in {
 
       val error = arbitrary[FunctionalError].sample.value.copy(pointer = DefaultPointer)
       val result: Option[UnloadingRemarksRejectionViewModel] =
-        UnloadingRemarksRejectionViewModel(error, arrivalId)(messages)
+        UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages)
 
       result mustBe None
     }
@@ -51,7 +72,7 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
       val error = arbitrary[FunctionalError].sample.value.copy(originalAttributeValue = None)
       val result: Option[UnloadingRemarksRejectionViewModel] =
-        UnloadingRemarksRejectionViewModel(error, arrivalId)(messages)
+        UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages)
 
       result mustBe None
     }

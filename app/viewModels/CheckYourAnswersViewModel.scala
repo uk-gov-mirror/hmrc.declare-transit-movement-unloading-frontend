@@ -64,9 +64,10 @@ object CheckYourAnswersViewModel {
   private def itemsSection(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission, summaryTransportCountry: Option[Country])(
     implicit messages: Messages): Section = {
 
-    val unloadingSummaryRow                     = new UnloadingSummaryRow(userAnswers)
+    val unloadingSummaryRow = new UnloadingSummaryRow(userAnswers)
+
     val transportIdentityAnswer: Option[String] = userAnswers.get(VehicleNameRegistrationReferencePage)
-    val transportIdentity: Seq[Row]             = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
+    val transportIdentityRow: Seq[Row]          = SummaryRow.row(transportIdentityAnswer)(unloadingPermission.transportIdentity)(unloadingSummaryRow.vehicleUsedCYA)
 
     val transportCountryDescription: Option[String] = summaryTransportCountry match {
       case Some(country) => Some(country.description)
@@ -94,8 +95,9 @@ object CheckYourAnswersViewModel {
 
     Section(
       msg"checkYourAnswers.subHeading",
-      buildRows(transportIdentity ++ transportCountryRow ++ grossMassRow ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow,
-                userAnswers.id)
+      buildRows(
+        transportIdentityRow ++ transportCountryRow ++ grossMassRow ++ totalNumberOfItemsRow ++ totalNumberOfPackagesRow ++ itemsRow.toList ++ commentsRow,
+        userAnswers.id)
     )
   }
 

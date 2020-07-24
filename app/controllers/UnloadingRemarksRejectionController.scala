@@ -22,7 +22,6 @@ import javax.inject.Inject
 import models.ArrivalId
 import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import services.UnloadingRemarksRejectionService
@@ -47,15 +46,10 @@ class UnloadingRemarksRejectionController @Inject()(
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
       service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
-        case Some(rejectionMessage) if rejectionMessage.errors.length == 1 =>
-          UnloadingRemarksRejectionViewModel(rejectionMessage.errors.head, arrivalId) match {
+        case Some(rejectionMessage) =>
+          UnloadingRemarksRejectionViewModel(rejectionMessage.errors, arrivalId, appConfig.nctsEnquiriesUrl) match {
             case Some(viewModel) =>
-              def json: JsObject =
-                Json.obj(
-                  "sections"   -> Json.toJson(viewModel.sections),
-                  "contactUrl" -> appConfig.nctsEnquiriesUrl
-                )
-              renderer.render("unloadingRemarksRejection.njk", json).map(Ok(_))
+              renderer.render(viewModel.page, viewModel.json).map(Ok(_))
             case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
         case _ =>
