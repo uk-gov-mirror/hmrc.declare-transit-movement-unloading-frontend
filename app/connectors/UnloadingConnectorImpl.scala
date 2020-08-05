@@ -18,18 +18,22 @@ package connectors
 
 import config.FrontendAppConfig
 import javax.inject.Inject
-import models._
 import models.XMLWrites._
+import models.{XMLReads, _}
 import models.messages.UnloadingRemarksRequest
 import play.api.Logger
+import play.api.libs.ws.{WSClient, WSResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.NodeSeq
-import models.XMLReads
 
-class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: HttpClient)(implicit ec: ExecutionContext)
+class UnloadingConnectorImpl @Inject()(
+  val config: FrontendAppConfig,
+  val http: HttpClient,
+  val ws: WSClient
+)(implicit ec: ExecutionContext)
     extends UnloadingConnector
     with HttpErrorFunctions {
 
@@ -98,6 +102,15 @@ class UnloadingConnectorImpl @Inject()(val config: FrontendAppConfig, val http: 
         None
     }
   }
+
+  def getPDF(arrivalId: ArrivalId, bearerToken: String)(implicit hc: HeaderCarrier): Future[WSResponse] = {
+    val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/unloading-permission"
+
+    ws.url(serviceUrl)
+      .withHttpHeaders(("Authorization", bearerToken))
+      .get
+  }
+
 }
 
 trait UnloadingConnector {
@@ -106,5 +119,5 @@ trait UnloadingConnector {
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
   def getUnloadingRemarksMessage(unloadinRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]]
-
+  def getPDF(arrivalId: ArrivalId, bearerToken: String)(implicit hc: HeaderCarrier): Future[WSResponse]
 }
