@@ -46,10 +46,13 @@ class UnloadingGuidanceController @Inject()(
 
   def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
+      val pdfUrl = routes.UnloadingPermissionPDFController.getPDF(arrivalId).url
+
       val json = Json.obj(
         "mrn"         -> request.userAnswers.mrn,
         "nextPageUrl" -> navigator.nextPage(UnloadingGuidancePage, mode, request.userAnswers).url,
-        "mode"        -> mode
+        "mode"        -> mode,
+        "pdfUrl"      -> pdfUrl
       )
 
       renderer.render("unloadingGuidance.njk", json).map(Ok(_))

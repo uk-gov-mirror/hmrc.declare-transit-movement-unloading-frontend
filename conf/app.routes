@@ -107,3 +107,6 @@ POST       /:arrivalId/gross-mass-amount-rejection                          cont
 
 GET        /:arrivalId/date-goods-unloaded-rejection                        controllers.DateGoodsUnloadedRejectionController.onPageLoad(arrivalId: ArrivalId)
 POST       /:arrivalId/date-goods-unloaded-rejection                        controllers.DateGoodsUnloadedRejectionController.onSubmit(arrivalId: ArrivalId)
+
+GET        /:arrivalId/unloading-permission-pdf                             controllers.UnloadingPermissionPDFController.getPDF(arrivalId: ArrivalId)
+
