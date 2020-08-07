@@ -57,7 +57,8 @@ class UnloadingGuidanceControllerSpec extends SpecBase with MockitoSugar with Js
 
       val expectedJson = Json.obj(
         "mrn"         -> mrn,
-        "nextPageUrl" -> nextPage.url
+        "nextPageUrl" -> nextPage.url,
+        "pdfUrl"      -> routes.UnloadingPermissionPDFController.getPDF(arrivalId).url
       )
 
       templateCaptor.getValue mustEqual "unloadingGuidance.njk"

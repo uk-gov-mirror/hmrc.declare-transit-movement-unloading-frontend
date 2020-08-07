@@ -156,6 +156,7 @@ unloadingGuidance.heading = Unload the goods before you send the unloading remar
 unloadingGuidance.para = You can:
 unloadingGuidance.bullet1 = view and print the unloading permissions accompanying document
 unloadingGuidance.bullet2 = check that the unloaded goods match the information in the transit declaration for movement reference {0}
+unloadingGuidance.pdf = Download the Unloading Permission PDF
 
 dateGoodsUnloaded.title = When were the goods unloaded?
 dateGoodsUnloaded.heading = When were the goods unloaded?

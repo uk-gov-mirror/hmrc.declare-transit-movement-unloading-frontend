@@ -3,6 +3,7 @@ package connectors
 import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import config.FrontendAppConfig
 import generators.MessagesModelGenerators
 import models.XMLWrites._
 import models._
@@ -12,10 +13,14 @@ import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.Application
 import play.api.http.Status._
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
+import play.api.libs.ws.WSResponse
 import uk.gov.hmrc.http.HeaderCarrier
 
+import scala.concurrent.Future
 import scala.xml.NodeSeq
 
 class UnloadingConnectorSpec extends FreeSpec
@@ -269,6 +274,42 @@ class UnloadingConnectorSpec extends FreeSpec
         }
       }
     }
+
+    "getPDF" - {
+      "must return status Ok" in {
+
+        server.stubFor(
+          get(urlEqualTo(getPDFUrl))
+            .willReturn(
+              aResponse()
+                .withStatus(200)
+            )
+        )
+
+        val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
+
+        result.futureValue.status mustBe 200
+      }
+
+      "must return other error status codes without exceptions" in {
+
+        forAll(responseCodes) {
+          responseCode =>
+
+            server.stubFor(
+              get(urlEqualTo(getPDFUrl))
+                .willReturn(
+                  aResponse()
+                    .withStatus(responseCode)
+                )
+            )
+
+            val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
+
+            result.futureValue.status mustBe responseCode
+        }
+      }
+    }
   }
 
 }
@@ -306,6 +347,7 @@ object UnloadingConnectorSpec {
    private val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
    private val rejectionUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
    private val unloadingRemarksUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
+   private val getPDFUrl = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/unloading-permission"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }
