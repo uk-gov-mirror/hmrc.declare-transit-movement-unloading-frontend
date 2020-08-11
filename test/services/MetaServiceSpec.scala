@@ -20,11 +20,10 @@ import java.time.LocalDateTime
 import base.SpecBase
 import generators.MessagesModelGenerators
 import models.EoriNumber
-import models.messages.{InterchangeControlReference, MessageSender, Meta}
+import models.messages.{InterchangeControlReference, Meta}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.Configuration
 import play.api.inject.bind
 
 class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
@@ -32,7 +31,6 @@ class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCh
   val mockDateTimeService = mock[DateTimeService]
 
   override lazy val app = applicationBuilder(Some(emptyUserAnswers))
-    .configure(Configuration("env" -> "TEST_ENV"))
     .overrides(bind[DateTimeService].toInstance(mockDateTimeService))
     .build()
 
@@ -47,8 +45,7 @@ class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCh
 
           when(mockDateTimeService.currentDateTime).thenReturn(localDateTime)
 
-          metaService.build(eori, interchangeControlReference) mustBe Meta(
-            MessageSender("TEST_ENV", eori.value),
+          metaService.build(interchangeControlReference) mustBe Meta(
             interchangeControlReference,
             localDateTime.toLocalDate,
             localDateTime.toLocalTime

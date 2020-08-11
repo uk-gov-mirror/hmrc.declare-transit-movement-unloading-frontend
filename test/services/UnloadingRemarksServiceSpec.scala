@@ -81,7 +81,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
               when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
                 .thenReturn(Future.successful(interchangeControlReference))
 
-              when(mockMetaService.build(eori, interchangeControlReference))
+              when(mockMetaService.build(interchangeControlReference))
                 .thenReturn(meta)
 
               when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
@@ -105,7 +105,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
               when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(HttpResponse(ACCEPTED)))
 
-              arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
+              arrivalNotificationService.submit(arrivalId, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
 
               reset(mockInterchangeControlReferenceIdRepository)
               reset(mockMetaService)
@@ -134,7 +134,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
         when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
           .thenReturn(Future.successful(interchangeControlReference))
 
-        when(mockMetaService.build(eori, interchangeControlReference))
+        when(mockMetaService.build(interchangeControlReference))
           .thenReturn(meta)
 
         when(mockRemarksService.build(userAnswersUpdated, unloadingPermission))
@@ -149,7 +149,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
         when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
 
-        arrivalNotificationService.submit(arrivalId, eori, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
+        arrivalNotificationService.submit(arrivalId, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
 
         reset(mockInterchangeControlReferenceIdRepository)
         reset(mockMetaService)
@@ -165,13 +165,13 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
               .thenReturn(Future.successful(interchangeControlReference))
 
-            when(mockMetaService.build(eori, interchangeControlReference))
+            when(mockMetaService.build(interchangeControlReference))
               .thenReturn(meta)
 
             when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
               .thenReturn(Future.failed(new Throwable))
 
-            arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
+            arrivalNotificationService.submit(arrivalId, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
             reset(mockInterchangeControlReferenceIdRepository)
             reset(mockMetaService)
@@ -187,7 +187,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
               .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))
 
-            arrivalNotificationService.submit(arrivalId, eori, emptyUserAnswers, unloadingPermission).futureValue mustBe None
+            arrivalNotificationService.submit(arrivalId, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
             reset(mockInterchangeControlReferenceIdRepository)
         }
@@ -205,7 +205,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
         when(mockUnloadingConnector.post(any(), any())(any())) thenReturn Future.successful(HttpResponse(ACCEPTED))
         when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
           .thenReturn(Future.successful(interchangeControlReference))
-        when(mockMetaService.build(eoriNumber, interchangeControlReference))
+        when(mockMetaService.build(interchangeControlReference))
           .thenReturn(meta)
 
         val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "new registration").get
@@ -236,7 +236,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
-          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+          when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
           val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "new registration").get
 
@@ -256,7 +256,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
-          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+          when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
           val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 1234).get
 
@@ -275,7 +275,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
-          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+          when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
           val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 1234).get
 
@@ -294,7 +294,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
-          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+          when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
           val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "1234").get
 
@@ -314,7 +314,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
           val localDate                   = LocalDate.now
           when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
             .thenReturn(Future.successful(interchangeControlReference))
-          when(mockMetaService.build(eoriNumber, interchangeControlReference))
+          when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
           val userAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, localDate).get
 

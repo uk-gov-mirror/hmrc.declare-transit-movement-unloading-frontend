@@ -43,15 +43,6 @@ import utils.Format.dateFormatted
 
 trait MessagesModelGenerators extends Generators {
 
-  implicit lazy val arbitraryMessageSender: Arbitrary[MessageSender] = {
-    Arbitrary {
-      for {
-        environment <- Gen.oneOf(Seq("LOCAL", "DEVELOPMENT", "QA", "STAGING", "PRODUCTION"))
-        eori        <- stringsWithMaxLength(MessageSender.eoriLength)
-      } yield MessageSender(environment, eori)
-    }
-  }
-
   implicit lazy val arbitraryInterchangeControlReference: Arbitrary[InterchangeControlReference] = {
     Arbitrary {
       for {
@@ -97,13 +88,11 @@ trait MessagesModelGenerators extends Generators {
   implicit lazy val arbitraryMeta: Arbitrary[Meta] = {
     Arbitrary {
       for {
-        messageSender               <- arbitrary[MessageSender]
         interchangeControlReference <- arbitrary[InterchangeControlReference]
         date                        <- arbitrary[LocalDate]
         time                        <- arbitrary[LocalTime]
       } yield
         Meta(
-          messageSender,
           interchangeControlReference,
           date,
           LocalTime.of(time.getHour, time.getMinute),
