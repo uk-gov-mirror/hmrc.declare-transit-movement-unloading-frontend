@@ -41,7 +41,7 @@ trait ModelGenerators {
   implicit lazy val arbitraryEoriNumber: Arbitrary[EoriNumber] =
     Arbitrary {
       for {
-        number <- stringsWithMaxLength(8: Int)
+        number <- stringsWithMaxLength(EoriNumber.eoriLength)
       } yield EoriNumber(number)
     }
 
