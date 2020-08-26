@@ -90,8 +90,7 @@ class MetaSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyChecks 
 
             <SynIdeMES1>{syntaxIdentifier}</SynIdeMES1> ++
               <SynVerNumMES2>{syntaxVersionNumber}</SynVerNumMES2> ++ {
-              meta.messageSender.toXml ++
-                senderIdentificationCodeQualifier ++
+              senderIdentificationCodeQualifier ++
                 recipientIdentificationCodeQualifier
             } ++
               <MesRecMES6>{messageRecipient}</MesRecMES6> ++

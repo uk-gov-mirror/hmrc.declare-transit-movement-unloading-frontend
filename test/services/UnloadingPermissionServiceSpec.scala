@@ -262,7 +262,6 @@ object UnloadingPermissionServiceSpec {
 
   val goodsReleasedMessage = """<CC025A><SynIdeMES1>UNOC</SynIdeMES1>
                |    <SynVerNumMES2>3</SynVerNumMES2>
-               |    <MesSenMES3>NTA.GB</MesSenMES3>
                |    <MesRecMES6>SYST17B-NCTS_EU_EXIT</MesRecMES6>
                |    <DatOfPreMES9>20190912</DatOfPreMES9>
                |    <TimOfPreMES10>1510</TimOfPreMES10>

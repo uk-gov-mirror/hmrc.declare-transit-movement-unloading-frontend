@@ -36,8 +36,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         unloadingRemarksMessageService: UnloadingRemarksMessageService,
                                         unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
 
-  def submit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(
-    implicit hc: HeaderCarrier): Future[Option[Int]] =
+  def submit(arrivalId: ArrivalId, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()
       .flatMap {
@@ -47,7 +46,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
               .build(userAnswers, unloadingPermission)
               .flatMap {
                 unloadingRemarks =>
-                  val meta: Meta = metaService.build(eori, interchangeControlReference)
+                  val meta: Meta = metaService.build(interchangeControlReference)
 
                   val unloadingRemarksRequest: UnloadingRemarksRequest =
                     unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswers)
@@ -86,7 +85,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       .nextInterchangeControlReferenceId()
       .map {
         interchangeControlReference =>
-          val meta: Meta                      = metaService.build(eori, interchangeControlReference)
+          val meta: Meta                      = metaService.build(interchangeControlReference)
           val unloadingRemarksRequestWithMeta = unloadingRemarksRequest.copy(meta = meta)
           userAnswers.get(DateGoodsUnloadedPage) match {
             case Some(localDate) =>

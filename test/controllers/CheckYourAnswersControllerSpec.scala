@@ -113,7 +113,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
-        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(ACCEPTED)))
+        when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(ACCEPTED)))
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
@@ -136,7 +136,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
-        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(BAD_REQUEST)))
+        when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(BAD_REQUEST)))
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
@@ -161,7 +161,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
+        when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
@@ -184,7 +184,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
-        when(mockUnloadingRemarksService.submit(any(), any(), any(), any())(any())).thenReturn(Future.successful(None))
+        when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(None))
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 

@@ -18,23 +18,20 @@ package services
 import java.time.LocalDateTime
 
 import com.google.inject.Inject
-import config.FrontendAppConfig
-import models.EoriNumber
-import models.messages.{InterchangeControlReference, MessageSender, Meta}
+import models.messages.{InterchangeControlReference, Meta}
 
-class MetaServiceImpl @Inject()(config: FrontendAppConfig, dateTimeService: DateTimeService) extends MetaService {
+class MetaServiceImpl @Inject()(dateTimeService: DateTimeService) extends MetaService {
 
-  def build(eori: EoriNumber, interchangeControlReference: InterchangeControlReference): Meta = {
-    val messageSender                  = MessageSender(config.environment, eori.value)
+  def build(interchangeControlReference: InterchangeControlReference): Meta = {
     val currentDateTime: LocalDateTime = dateTimeService.currentDateTime
     val dateOfPreparation              = currentDateTime.toLocalDate
     val timeOfPreparation              = currentDateTime.toLocalTime
 
-    Meta(messageSender, interchangeControlReference, dateOfPreparation, timeOfPreparation)
+    Meta(interchangeControlReference, dateOfPreparation, timeOfPreparation)
   }
 
 }
 
 trait MetaService {
-  def build(eori: EoriNumber, interchangeControlReference: InterchangeControlReference): Meta
+  def build(interchangeControlReference: InterchangeControlReference): Meta
 }

@@ -21,6 +21,9 @@ import play.api.libs.json.{__, JsString, Reads, Writes}
 case class EoriNumber(value: String)
 
 object EoriNumber {
+
+  val eoriLength = 17
+
   implicit def reads: Reads[EoriNumber]   = __.read[String] map EoriNumber.apply
   implicit def writes: Writes[EoriNumber] = Writes(eori => JsString(eori.value))
 }
