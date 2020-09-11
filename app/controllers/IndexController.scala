@@ -19,6 +19,7 @@ package controllers
 import controllers.actions.{DataRetrievalActionProvider, IdentifierAction}
 import javax.inject.Inject
 import models.{ArrivalId, MovementReferenceNumber, UserAnswers}
+import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
@@ -52,12 +53,15 @@ class IndexController @Inject()(
                   val updatedAnswers = request.userAnswers.getOrElse(UserAnswers(id = arrivalId, mrn = mrn, eoriNumber = request.eoriNumber))
                   sessionRepository.set(updatedAnswers).flatMap {
                     _ =>
+                      Logger.warn(s"Redirect to next page: ${nextPage(arrivalId)}")
                       Future.successful(Redirect(nextPage(arrivalId)))
                   }
                 case _ =>
+                  Logger.warn(s"Failed to get validate MRN: ${unloadingPermission.movementReferenceNumber}")
                   Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
               }
             case None =>
+              Logger.warn(s"Could not pull back unloading permission for arrivalId: $arrivalId")
               Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
           }
       }
