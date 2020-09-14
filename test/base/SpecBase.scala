@@ -95,7 +95,7 @@ trait SpecBase
   protected lazy val traderWithoutEori =
     TraderAtDestinationWithoutEori("The Luggage Carriers", "225 Suedopolish Yard,", "SS8 2BB", ",", "GB")
 
-  protected lazy val packages = Seq(Packages(Some("Ref."), "BX", Some(1), None))
+  protected lazy val packages = Packages(Some("Ref."), "BX", Some(1), None)
 
   protected lazy val producedDocuments = ProducedDocument("235", Some("Ref."), None)
 
@@ -105,9 +105,9 @@ trait SpecBase
     description               = "Flowers",
     grossMass                 = Some("1000"),
     netMass                   = Some("999"),
-    producedDocuments         = NonEmptyList(producedDocuments, Nil),
+    producedDocuments         = Seq.empty,
     containers                = Seq.empty,
-    packages                  = packages,
+    packages                  = NonEmptyList(packages, Nil),
     sensitiveGoodsInformation = Seq.empty
   )
 

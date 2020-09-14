@@ -19,6 +19,7 @@ import com.google.inject.Inject
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
 import models.{ArrivalId, Movement, UnloadingPermission, UserAnswers}
+import play.api.Logger
 import queries.SealsQuery
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -34,7 +35,9 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
           case head :: _ =>
             XmlReader.of[UnloadingPermission].read(XML.loadString(head.message)) match {
               case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
-              case _                                 => None //TODO: Consider what happens when the message isn't unloading permission
+              case e =>
+                Logger.error(s"Error parsing IE043: $e")
+                None
             }
           case _ => None
         }

@@ -88,7 +88,7 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
         ParseFailure(List())
     }
 
-    "return ParseFailure when converting into UnloadingPermission with no producedDocuments" in {
+    "return ParseFailure when converting into UnloadingPermission with no packages" in {
 
       val unloadingPermissionObject = arbitrary[UnloadingPermission]
 
@@ -109,7 +109,7 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES>
           {seals(unloadingPermission.seals)}
-          {goodsItems(unloadingPermission.goodsItems, ignoreProducedDocuments = true)}
+          {goodsItems(unloadingPermission.goodsItems, ignorePackages = true)}
         </CC043A>
       }
 
@@ -137,7 +137,7 @@ object UnloadingPermissionSpec {
           <NatOfMeaOfTraAtDHEA80>{transportCountry}</NatOfMeaOfTraAtDHEA80>
     }
 
-  def goodsItems(goodsItem: NonEmptyList[GoodsItem], ignoreProducedDocuments: Boolean = false) = {
+  def goodsItems(goodsItem: NonEmptyList[GoodsItem], ignorePackages: Boolean = false) = {
 
     import GoodsItemSpec._
 
@@ -173,13 +173,13 @@ object UnloadingPermissionSpec {
           </GooDesGDS23>
           {grossMass.getOrElse(NodeSeq.Empty)}
           {netMass.getOrElse(NodeSeq.Empty)}
-          {if(!ignoreProducedDocuments) producedDocument(goodsItem).toList}
+          {producedDocument(goodsItem)}
           {
           containers.map {
             x => <CONNR2>{x}</CONNR2>
           }
           }
-          {goodsItem.packages.map(packages)}
+          {if(!ignorePackages) packages(goodsItem) }
           {sensitiveGoodsInformation(goodsItem)}
         </GOOITEGDS>
     }

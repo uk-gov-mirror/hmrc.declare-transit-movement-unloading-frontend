@@ -15,16 +15,15 @@
  */
 
 package models
-import cats.data.NonEmptyList
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import generators.Generators
+import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-import scala.xml.{Elem, NodeSeq}
 import scala.xml.Utility.trim
-import models.XMLWrites._
+import scala.xml.{Elem, NodeSeq}
 
 class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 
@@ -68,13 +67,13 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
               </GooDesGDS23>
               {grossMass.getOrElse(NodeSeq.Empty)}
               {netMass.getOrElse(NodeSeq.Empty)}
-              {producedDocument(goodsItem).toList}
+              {producedDocument(goodsItem)}
               {
                 containers.map {
                   x => <CONNR2>{x}</CONNR2>
                 }
               }
-              {goodsItem.packages.map(packages)}
+              {packages(goodsItem)}
               {sensitiveGoodsInformation(goodsItem)}
               </GOOITEGDS>
           }
@@ -133,9 +132,9 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
               <GooDesGDS23LNG>EN</GooDesGDS23LNG>
               {grossMass.getOrElse(NodeSeq.Empty)}
               {netMass.getOrElse(NodeSeq.Empty)}
-              {goodsItem.producedDocuments.toList.map(x => x.toXml)}
+              {goodsItem.producedDocuments.map(x => x.toXml)}
               {containers}
-              {goodsItem.packages.map(_.toXml)}
+              {goodsItem.packages.toList.map(_.toXml)}
               {goodsItem.sensitiveGoodsInformation.map(x => x.toXml)}
             </GOOITEGDS>
           }
@@ -148,39 +147,41 @@ class GoodsItemSpec extends FreeSpec with MustMatchers with Generators with Scal
 }
 
 object GoodsItemSpec {
-  private[models] def packages(packages: Packages): Elem = {
 
-    val marksAndNumberPackage = packages.marksAndNumberPackage
-      .map {
-        marksAndNumber =>
-          <MarNumOfPacGS21>{marksAndNumber}</MarNumOfPacGS21>
-      }
+  private[models] def packages(goodsItem: GoodsItem) =
+    goodsItem.packages.map {
+      packages =>
+        val marksAndNumberPackage = packages.marksAndNumberPackage
+          .map {
+            marksAndNumber =>
+              <MarNumOfPacGS21>{marksAndNumber}</MarNumOfPacGS21>
+          }
 
-    val numberOfPackage = packages.numberOfPackages
-      .map {
-        number =>
-          <NumOfPacGS24>{number}</NumOfPacGS24>
-      }
+        val numberOfPackage = packages.numberOfPackages
+          .map {
+            number =>
+              <NumOfPacGS24>{number}</NumOfPacGS24>
+          }
 
-    val numberOfPieces = packages.numberOfPieces
-      .map {
-        number =>
-          <NumOfPieGS25>{number}</NumOfPieGS25>
-      }
+        val numberOfPieces = packages.numberOfPieces
+          .map {
+            number =>
+              <NumOfPieGS25>{number}</NumOfPieGS25>
+          }
 
-    {
-      <PACGS2>
-        {marksAndNumberPackage.getOrElse(NodeSeq.Empty)}
-        <KinOfPacGS23>
-          {packages.kindOfPackage}
-        </KinOfPacGS23>
-        {numberOfPackage.getOrElse(NodeSeq.Empty)}
-        {numberOfPieces.getOrElse(NodeSeq.Empty)}
-      </PACGS2>
-    }
-  }
+        {
+          <PACGS2>
+          {marksAndNumberPackage.getOrElse(NodeSeq.Empty)}
+          <KinOfPacGS23>
+            {packages.kindOfPackage}
+          </KinOfPacGS23>
+          {numberOfPackage.getOrElse(NodeSeq.Empty)}
+          {numberOfPieces.getOrElse(NodeSeq.Empty)}
+        </PACGS2>
+        }
+    }.toList
 
-  private[models] def producedDocument(goodsItem: GoodsItem): NonEmptyList[Elem] =
+  private[models] def producedDocument(goodsItem: GoodsItem) =
     goodsItem.producedDocuments.map {
 
       producedDocument =>
