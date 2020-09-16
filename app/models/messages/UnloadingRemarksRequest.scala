@@ -33,8 +33,7 @@ case class UnloadingRemarksRequest(
   presentationOffice: String,
   unloadingRemark: Remarks,
   resultOfControl: Seq[ResultsOfControl],
-  seals: Option[Seals],
-  goodsItems: NonEmptyList[GoodsItem]
+  seals: Option[Seals]
 )
 
 object UnloadingRemarksRequest {
@@ -63,8 +62,7 @@ object UnloadingRemarksRequest {
           </CUSOFFPREOFFRES> ++
           unloadingRemarkNode(unloadingRemarksRequest.unloadingRemark) ++
           resultOfControlNode(unloadingRemarksRequest.resultOfControl) ++
-          unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty) ++
-          unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten
+          unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty)
       }
 
       Elem(parentNode.prefix, parentNode.label, parentNode.attributes, parentNode.scope, parentNode.child.isEmpty, parentNode.child ++ childNodes: _*)
@@ -77,8 +75,7 @@ object UnloadingRemarksRequest {
      (__ \ "CUSOFFPREOFFRES" \ "RefNumRES1").read[String],
      (__ \ "UNLREMREM").read[Remarks],
      (__ \ "RESOFCON534").read(strictReadSeq[ResultsOfControl]),
-     (__ \ "SEAINFSLI").read[Seals].optional,
-     (__ \ "GOOITEGDS").read[NonEmptyList[GoodsItem]](NonEmptyListOps.nonEmptyListReader)) mapN apply
+     (__ \ "SEAINFSLI").read[Seals].optional) mapN apply
 
   private def resultOfControlNode(resultsOfControl: Seq[ResultsOfControl]): NodeSeq =
     resultsOfControl.flatMap {

@@ -133,8 +133,7 @@ trait MessagesModelGenerators extends Generators {
         remarks            <- Gen.oneOf(arbitrary[RemarksConform], arbitrary[RemarksConformWithSeals], arbitrary[RemarksNonConform])
         resultOfControl    <- listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)
         seals              <- Gen.option(arbitrary[Seals])
-        goodsItems         <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
-      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, resultOfControl, seals, goodsItems)
+      } yield UnloadingRemarksRequest(meta, header, traderDestination, presentationOffice.mkString, remarks, resultOfControl, seals)
     }
   }
 

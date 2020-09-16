@@ -49,8 +49,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None,
-                unloadingPermission.goodsItems
+                seals = None
               )
         }
       }
@@ -69,8 +68,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None,
-                unloadingPermission.goodsItems
+                seals = None
               )
         }
       }
@@ -93,8 +91,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None,
-                unloadingPermission.goodsItems
+                seals = None
               )
         }
       }
@@ -117,8 +114,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None,
-                unloadingPermission.goodsItems
+                seals = None
               )
         }
       }
@@ -141,8 +137,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = unloadingPermission.seals,
-                unloadingPermission.goodsItems
+                seals = unloadingPermission.seals
               )
         }
       }
@@ -177,8 +172,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3"))),
-                unloadingPermission.goodsItems
+                seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3")))
               )
         }
       }
@@ -220,8 +214,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                     PointerToAttribute(TransportIdentity),
                     "reference"
                   )),
-                seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3"))),
-                unloadingPermission.goodsItems
+                seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3")))
               )
         }
       }

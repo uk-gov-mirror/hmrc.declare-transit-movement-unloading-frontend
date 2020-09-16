@@ -137,13 +137,13 @@ trait ModelGenerators {
   implicit lazy val arbitraryGoodsItem: Arbitrary[GoodsItem] =
     Arbitrary {
       for {
-        itemNumber    <- choose(min = 1: Int, 100: Int)
-        commodityCode <- Gen.option(stringsWithMaxLength(GoodsItem.commodityCodeLength: Int))
-        description   <- stringsWithMaxLength(Packages.kindOfPackageLength)
-        grossMass     <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //BigDecimal.RoundingMode.DOWN
-        netMass       <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //todo does this need to be a bigDecimal
-        producedDocuments <- listWithMaxLength[ProducedDocument](9: Int)
-        containers        <- listWithMaxSize(GoodsItem.maxContainers, stringsWithMaxLength(GoodsItem.containerLength))
+        itemNumber                <- choose(min = 1: Int, 100: Int)
+        commodityCode             <- Gen.option(stringsWithMaxLength(GoodsItem.commodityCodeLength: Int))
+        description               <- stringsWithMaxLength(Packages.kindOfPackageLength)
+        grossMass                 <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //BigDecimal.RoundingMode.DOWN
+        netMass                   <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //todo does this need to be a bigDecimal
+        producedDocuments         <- listWithMaxLength[ProducedDocument](9: Int)
+        containers                <- listWithMaxSize(GoodsItem.maxContainers, stringsWithMaxLength(GoodsItem.containerLength))
         packages                  <- nonEmptyListWithMaxSize(9: Int, arbitrary[Packages])
         sensitiveGoodsInformation <- listWithMaxLength[SensitiveGoodsInformation](GoodsItem.maxSensitiveGoods: Int)
       } yield
