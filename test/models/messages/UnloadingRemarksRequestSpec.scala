@@ -51,7 +51,6 @@ class UnloadingRemarksRequestSpec
               {unloadingRemarkNode(unloadingRemarksRequest.unloadingRemark)}
               {resultOfControlNode(unloadingRemarksRequest.resultOfControl)}
               {unloadingRemarksRequest.seals.map(_.toXml).getOrElse(NodeSeq.Empty)}
-              {unloadingRemarksRequest.goodsItems.map(x => x.toXml).toList.flatten}
             </CC044A>
 
           unloadingRemarksRequest.toXml.map(trim) mustBe expectedResult.map(trim)

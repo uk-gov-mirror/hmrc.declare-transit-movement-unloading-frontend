@@ -57,8 +57,7 @@ class UnloadingRemarksRequestServiceImpl @Inject()(resultOfControlService: Resul
       unloadingPermission.presentationOffice,
       unloadingRemarks,
       resultsOfControl,
-      seals,
-      unloadingPermission.goodsItems
+      seals
     )
   }
 

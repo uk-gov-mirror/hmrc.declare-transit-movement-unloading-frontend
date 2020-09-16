@@ -94,8 +94,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None,
-                unloadingPermission.goodsItems
+                seals = None
               )
 
               when(mockUnloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, userAnswersUpdated))
