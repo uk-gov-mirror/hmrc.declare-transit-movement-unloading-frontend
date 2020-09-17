@@ -68,7 +68,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None
+                seals = unloadingPermission.seals
               )
         }
       }
@@ -91,7 +91,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None
+                seals = unloadingPermission.seals
               )
         }
       }
@@ -114,7 +114,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
                 Nil,
-                seals = None
+                seals = unloadingPermission.seals
               )
         }
       }

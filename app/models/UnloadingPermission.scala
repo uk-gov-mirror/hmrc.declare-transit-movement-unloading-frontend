@@ -27,7 +27,7 @@ case class UnloadingPermission(
   transportCountry: Option[String],
   numberOfItems: Int,
   numberOfPackages: Int,
-  grossMass: String, //TODO: Does this need to be BigDecimal
+  grossMass: String,
   traderAtDestination: TraderAtDestination,
   presentationOffice: String,
   seals: Option[Seals],
