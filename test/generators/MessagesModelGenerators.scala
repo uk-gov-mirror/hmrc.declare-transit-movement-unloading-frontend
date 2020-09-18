@@ -25,6 +25,7 @@ import models.{
   ErrorType,
   FunctionalError,
   GoodsItem,
+  GrossMassPointer,
   MovementReferenceNumber,
   NumberOfItemsPointer,
   NumberOfPackagesPointer,
@@ -33,7 +34,8 @@ import models.{
   TraderAtDestinationWithoutEori,
   UnloadingDatePointer,
   UnloadingPermission,
-  UnloadingRemarksRejectionMessage
+  UnloadingRemarksRejectionMessage,
+  VehicleRegistrationPointer
 }
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen.choose
@@ -80,6 +82,26 @@ trait MessagesModelGenerators extends Generators {
           case UnloadingDatePointer                           => Some(date.format(Format.dateFormatter))
           case NumberOfItemsPointer | NumberOfPackagesPointer => Some(int.toString)
           case _                                              => originalValue
+        }
+        FunctionalError(errorType, pointer, reason, value)
+      }
+    }
+
+  implicit lazy val arbitraryRejectionErrorNonDefaultPointer: Arbitrary[FunctionalError] =
+    Arbitrary {
+
+      for {
+        errorType     <- arbitrary[ErrorType]
+        pointer       <- Gen.oneOf(Seq(GrossMassPointer, NumberOfItemsPointer, UnloadingDatePointer, VehicleRegistrationPointer, NumberOfPackagesPointer))
+        reason        <- arbitrary[Option[String]]
+        originalValue <- stringsWithMaxLength(6)
+        date          <- arbitrary[LocalDate]
+        int           <- arbitrary[Int]
+      } yield {
+        val value: Option[String] = pointer match {
+          case UnloadingDatePointer                           => Some(date.format(Format.dateFormatter))
+          case NumberOfItemsPointer | NumberOfPackagesPointer => Some(int.toString)
+          case _                                              => Some(originalValue)
         }
         FunctionalError(errorType, pointer, reason, value)
       }
@@ -144,7 +166,7 @@ trait MessagesModelGenerators extends Generators {
         mrn    <- arbitrary[MovementReferenceNumber]
         date   <- arbitrary[LocalDate]
         action <- arbitrary[Option[String]]
-        errors <- listWithMaxLength[FunctionalError](5)
+        errors <- listWithMaxLength[FunctionalError](5)(arbitraryRejectionError)
       } yield UnloadingRemarksRejectionMessage(mrn, date, action, errors)
     }
 }

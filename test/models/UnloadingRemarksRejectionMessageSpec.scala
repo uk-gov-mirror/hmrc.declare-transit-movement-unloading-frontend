@@ -27,7 +27,7 @@ class UnloadingRemarksRejectionMessageSpec extends SpecBase with ScalaCheckDrive
 
   "UnloadingRemarksRejectionMessage" - {
     "must deserialize from XML with minimal answers" in {
-      forAll(arbitrary[UnloadingRemarksRejectionMessage], arbitrary[FunctionalError]) {
+      forAll(arbitrary[UnloadingRemarksRejectionMessage], arbitrary[FunctionalError](arbitraryRejectionError)) {
         (rejectionMessage, functionalError) =>
           val minimalFunctionalError = functionalError.copy(
             reason                 = None,
@@ -59,7 +59,7 @@ class UnloadingRemarksRejectionMessageSpec extends SpecBase with ScalaCheckDrive
     }
 
     "must deserialize from XML with full answers" in {
-      forAll(arbitrary[UnloadingRemarksRejectionMessage], arbitrary[FunctionalError]) {
+      forAll(arbitrary[UnloadingRemarksRejectionMessage], arbitrary[FunctionalError](arbitraryRejectionError)) {
         (rejectionMessage, functionalError) =>
           val fullFunctionalError = functionalError.copy(
             reason                 = Some(arbitrary[String].sample.value),
