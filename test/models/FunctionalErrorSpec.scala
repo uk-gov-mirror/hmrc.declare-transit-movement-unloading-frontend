@@ -26,7 +26,7 @@ class FunctionalErrorSpec extends SpecBase with ScalaCheckDrivenPropertyChecks w
 
   "FunctionalError" - {
     "must deserialize from XML" in {
-      forAll(arbitrary[FunctionalError]) {
+      forAll(arbitrary[FunctionalError](arbitraryRejectionError)) {
         functionalError =>
           val xml = {
             <FUNERRER1>

@@ -31,7 +31,7 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
     "must return single error page for one error" in {
 
-      forAll(arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer && x.originalAttributeValue.isDefined)) {
+      forAll(arbitrary[FunctionalError](arbitraryRejectionErrorNonDefaultPointer)) {
         error =>
           val data: UnloadingRemarksRejectionViewModel =
             UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages).get
@@ -42,7 +42,7 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
     "must return multiple error page if there are more than one errors" in {
 
-      val error  = arbitrary[FunctionalError].sample.value
+      val error  = arbitrary[FunctionalError](arbitraryRejectionError).sample.value
       val errors = Seq(error, error)
 
       val data: UnloadingRemarksRejectionViewModel =
@@ -61,7 +61,7 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
     "must not display any sections when error pointer is DefaultPointer" in {
 
-      val error = arbitrary[FunctionalError].sample.value.copy(pointer = DefaultPointer)
+      val error = arbitrary[FunctionalError](arbitraryRejectionError).sample.value.copy(pointer = DefaultPointer)
       val result: Option[UnloadingRemarksRejectionViewModel] =
         UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages)
 
@@ -70,7 +70,7 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
     "must not display any sections when error.originalAttributeValue is None" in {
 
-      val error = arbitrary[FunctionalError].sample.value.copy(originalAttributeValue = None)
+      val error = arbitrary[FunctionalError](arbitraryRejectionError).sample.value.copy(originalAttributeValue = None)
       val result: Option[UnloadingRemarksRejectionViewModel] =
         UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages)
 

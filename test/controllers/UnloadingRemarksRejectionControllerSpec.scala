@@ -21,7 +21,7 @@ import java.time.LocalDate
 import base.SpecBase
 import generators.MessagesModelGenerators
 import matchers.JsonMatchers
-import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage}
+import models.{FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -60,7 +60,7 @@ class UnloadingRemarksRejectionControllerSpec
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val functionalError = (arbitrary[FunctionalError] suchThat (x => x.pointer != DefaultPointer && x.originalAttributeValue.isDefined)).sample.value
+      val functionalError = arbitrary[FunctionalError](arbitraryRejectionErrorNonDefaultPointer).sample.value
 
       val errors: Seq[FunctionalError] = Seq(functionalError)
 
@@ -93,7 +93,7 @@ class UnloadingRemarksRejectionControllerSpec
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val functionalError = arbitrary[FunctionalError].sample.value
+      val functionalError = arbitrary[FunctionalError](arbitraryRejectionError).sample.value
 
       val errors = Seq(functionalError, functionalError)
 
