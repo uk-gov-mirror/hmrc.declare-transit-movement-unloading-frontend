@@ -23,10 +23,17 @@ sealed abstract class ErrorPointer(val value: String)
 
 object ErrorPointer extends Serializable {
 
+  private val GoodsItemPattern = """GDS\((\d+)\).ROC""".r
+
   implicit val xmlReader: XmlReader[ErrorPointer] =
     __.read[String].map {
       pointer =>
-        values.find(_.value.equalsIgnoreCase(pointer)).getOrElse(DefaultPointer)
+        values
+          .find(_.value.equalsIgnoreCase(pointer))
+          .getOrElse(pointer match {
+            case GoodsItemPattern(itemNo) => GoodsItemResultsOfControl(s"GDS($itemNo).ROC")
+            case _                        => DefaultPointer
+          })
     }
   implicit val writes: Writes[ErrorPointer] = Writes[ErrorPointer] {
     pointer: ErrorPointer =>
@@ -41,6 +48,7 @@ object ErrorPointer extends Serializable {
     NumberOfPackagesPointer,
     DefaultPointer
   )
+
 }
 
 object GrossMassPointer extends ErrorPointer("HEA.Total gross mass")
@@ -54,3 +62,5 @@ object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of
 object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages")
 
 object DefaultPointer extends ErrorPointer("")
+
+case class GoodsItemResultsOfControl(override val value: String) extends ErrorPointer(value)
