@@ -20,6 +20,7 @@ import base.SpecBase
 import matchers.JsonMatchers._
 import controllers.routes
 import generators.MessagesModelGenerators
+import models.ErrorType.NotSupportedPosition
 import models.{DefaultPointer, FunctionalError}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -82,6 +83,25 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
 
       val error  = arbitrary[FunctionalError](arbitraryRejectionError).sample.value.copy(pointer = DefaultPointer("error here"))
       val errors = Seq(error, error)
+
+      val data: UnloadingRemarksRejectionViewModel =
+        UnloadingRemarksRejectionViewModel(errors, arrivalId, "url")(messages).get
+
+      val expectedJson =
+        Json.obj(
+          "errors"                     -> errors,
+          "contactUrl"                 -> "url",
+          "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        )
+
+      data.page mustBe "unloadingRemarksMultipleErrorsRejection.njk"
+      data.json must containJson(expectedJson)
+    }
+
+    "must return error page when originalAttributeValue is None" in {
+
+      val error  = FunctionalError(NotSupportedPosition, DefaultPointer("error"), Some("R206"), None)
+      val errors = Seq(error)
 
       val data: UnloadingRemarksRejectionViewModel =
         UnloadingRemarksRejectionViewModel(errors, arrivalId, "url")(messages).get

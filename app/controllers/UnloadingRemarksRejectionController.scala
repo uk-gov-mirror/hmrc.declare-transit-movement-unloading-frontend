@@ -49,10 +49,12 @@ class UnloadingRemarksRejectionController @Inject()(
         case Some(rejectionMessage) =>
           UnloadingRemarksRejectionViewModel(rejectionMessage.errors, arrivalId, appConfig.nctsEnquiriesUrl) match {
             case Some(viewModel) => renderer.render(viewModel.page, viewModel.json).map(Ok(_))
-            case _               => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+            case _ =>
+              Log.debug(s"Couldn't build a UnloadingRemarksRejectionViewModel for arrival: $arrivalId")
+              Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
         case _ =>
-          Log.debug("service.UnloadingRemarksRejectionMessage is None")
+          Log.error(s"Failed to pull back a rejection message for arrival: $arrivalId")
           Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
   }

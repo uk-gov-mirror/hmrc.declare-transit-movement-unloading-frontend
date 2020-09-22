@@ -81,13 +81,11 @@ object UnloadingRemarksRejectionViewModel {
 
   private def defaultErrorPage(arrivalId: ArrivalId, error: Option[FunctionalError], nctsEnquiriesUrl: String)(
     implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] =
-    error
-      .filter(_.originalAttributeValue.nonEmpty)
-      .flatMap(functionalError =>
-        functionalError.pointer match {
-          case DefaultPointer(_) => multipleErrorPage(arrivalId, nctsEnquiriesUrl, Seq(functionalError))
-          case _                 => None
-      })
+    error.flatMap(functionalError =>
+      functionalError.pointer match {
+        case DefaultPointer(_) => multipleErrorPage(arrivalId, nctsEnquiriesUrl, Seq(functionalError))
+        case _                 => None
+    })
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
     Row(
