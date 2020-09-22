@@ -42,7 +42,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
 
   "UnloadingRemarksRejectionService" - {
     "must return UnloadingRemarksRejectionMessage for the input arrivalId" in {
-      val errors              = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, None))
+      val errors              = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
       val notificationMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
       val messagesSummary =
         MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
@@ -87,7 +87,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
     "getRejectedValue" - {
       "must return Some(String) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
         val originalValue    = "some reference"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
+        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
           MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
@@ -108,7 +108,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
 
       "must return Some(String) when there is a user answers but not from the page we needed than fetch it from UnloadingRemarksRejectionMessage" in {
         val originalValue    = "some reference"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
+        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
           MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
@@ -129,7 +129,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
 
       "must return Some(Int) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
         val originalValue    = "1000"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
+        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
           MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
@@ -150,7 +150,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
 
       "must return Some(Date) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
         val originalValue    = "20200721"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
+        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
           MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
@@ -201,7 +201,7 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
       }
 
       "must return None when there is no previously saved answers and UnloadingRemarksRejectionMessage.originalAttributeValue is 'None'" in {
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, None))
+        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
           MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))

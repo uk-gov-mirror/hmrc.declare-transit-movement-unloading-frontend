@@ -48,9 +48,8 @@ class UnloadingRemarksRejectionController @Inject()(
       service.unloadingRemarksRejectionMessage(arrivalId) flatMap {
         case Some(rejectionMessage) =>
           UnloadingRemarksRejectionViewModel(rejectionMessage.errors, arrivalId, appConfig.nctsEnquiriesUrl) match {
-            case Some(viewModel) =>
-              renderer.render(viewModel.page, viewModel.json).map(Ok(_))
-            case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+            case Some(viewModel) => renderer.render(viewModel.page, viewModel.json).map(Ok(_))
+            case _               => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
         case _ =>
           Log.debug("service.UnloadingRemarksRejectionMessage is None")

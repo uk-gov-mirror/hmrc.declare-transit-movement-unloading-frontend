@@ -137,7 +137,7 @@ class VehicleNameRegistrationRejectionControllerSpec extends SpecBase with Mocki
       val mockRejectionService  = mock[UnloadingRemarksRejectionService]
 
       val originalValue     = "some reference"
-      val errors            = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
+      val errors            = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
       val rejectionMessage  = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
       val userAnswersCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
 

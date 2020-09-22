@@ -32,7 +32,7 @@ object ErrorPointer extends Serializable {
           .find(_.value.equalsIgnoreCase(pointer))
           .getOrElse(pointer match {
             case GoodsItemPattern(itemNo) => GoodsItemResultsOfControl(s"GDS($itemNo).ROC")
-            case _                        => DefaultPointer
+            case _                        => DefaultPointer(pointer)
           })
     }
   implicit val writes: Writes[ErrorPointer] = Writes[ErrorPointer] {
@@ -45,8 +45,7 @@ object ErrorPointer extends Serializable {
     NumberOfItemsPointer,
     UnloadingDatePointer,
     VehicleRegistrationPointer,
-    NumberOfPackagesPointer,
-    DefaultPointer
+    NumberOfPackagesPointer
   )
 
 }
@@ -61,6 +60,6 @@ object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of
 
 object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages")
 
-object DefaultPointer extends ErrorPointer("")
+case class DefaultPointer(override val value: String) extends ErrorPointer(value)
 
 case class GoodsItemResultsOfControl(override val value: String) extends ErrorPointer(value)
