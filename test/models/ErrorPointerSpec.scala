@@ -19,7 +19,6 @@ package models
 import com.lucidchart.open.xtract.XmlReader
 import generators.Generators
 import org.scalacheck.Gen
-import org.scalacheck.Gen.choose
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
@@ -34,19 +33,9 @@ class ErrorPointerSpec extends FreeSpec with Generators with ScalaCheckPropertyC
       }
     }
 
-    "must return GoodsItemResultsOfControl" in {
-
-      forAll(choose(min = 1: Int, 10: Int).suchThat(_ > 0)) {
-        int =>
-          val xml = <test>GDS({int}).ROC</test>
-          XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe GoodsItemResultsOfControl(s"GDS($int).ROC")
-      }
-
-    }
-
     "must return DefaultPointer" in {
 
-      forAll(nonEmptyString) {
+      forAll(nonEmptyString suchThat (x => !ErrorPointer.values.contains(x))) {
         string =>
           val xml = <test>{string}</test>
           XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe DefaultPointer(string)
