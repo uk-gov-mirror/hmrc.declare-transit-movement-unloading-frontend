@@ -18,9 +18,10 @@ package models
 
 import com.lucidchart.open.xtract.{ParseFailure, ParseSuccess}
 import generators.MessagesModelGenerators
+import models.ErrorType.UnknownErrorCode
+import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import org.scalacheck.Arbitrary.arbitrary
 
 class ErrorTypeSpec extends FreeSpec with ScalaCheckPropertyChecks with MustMatchers with MessagesModelGenerators {
 
@@ -32,6 +33,11 @@ class ErrorTypeSpec extends FreeSpec with ScalaCheckPropertyChecks with MustMatc
           val xml = <ErrTypER11>{errorType.code}</ErrTypER11>
           ErrorType.xmlErrorTypeReads.read(xml) mustBe ParseSuccess(errorType)
       }
+    }
+
+    "return UnknownErrorCode for unknown code" in {
+      val xml = <ErrTypER11>234</ErrTypER11>
+      ErrorType.xmlErrorTypeReads.read(xml) mustBe ParseSuccess(UnknownErrorCode(234))
     }
 
     "return ParseFailureError for invalid value" in {

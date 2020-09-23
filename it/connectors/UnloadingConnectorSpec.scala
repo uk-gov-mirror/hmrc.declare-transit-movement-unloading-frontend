@@ -208,7 +208,7 @@ class UnloadingConnectorSpec extends FreeSpec
             MovementReferenceNumber("19IT021300100075E9").get,
             LocalDate.of(2019, 10, 18),
             None,
-            List(FunctionalError(genRejectionError, DefaultPointer, None, Some("GB007A")))
+            List(FunctionalError(genRejectionError, DefaultPointer("Message type"), None, Some("GB007A")))
           ))
         val result = connector.getRejectionMessage(rejectionUri).futureValue
         result mustBe expectedResult

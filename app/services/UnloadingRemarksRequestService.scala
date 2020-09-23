@@ -34,8 +34,8 @@ class UnloadingRemarksRequestServiceImpl @Inject()(resultOfControlService: Resul
     )
 
     val seals: Option[Seals] = unloadingRemarks match {
-      case _: RemarksConform => None
-      case _: RemarksConformWithSeals => unloadingPermission.seals
+      case _: RemarksConform                => None
+      case _: RemarksConformWithSeals       => unloadingPermission.seals
       case RemarksNonConform(None, _, _)    => unloadingPermission.seals
       case RemarksNonConform(Some(1), _, _) => unloadingPermission.seals
       case _ => {

@@ -17,19 +17,32 @@
 package models
 
 import com.lucidchart.open.xtract.XmlReader
+import generators.Generators
 import org.scalacheck.Gen
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
-class ErrorPointerSpec extends FreeSpec with ScalaCheckPropertyChecks with MustMatchers with OptionValues {
+class ErrorPointerSpec extends FreeSpec with Generators with ScalaCheckPropertyChecks with MustMatchers with OptionValues {
 
   "ErrorPointer" - {
-    "must read xml" in {
+    "must read xml for single items" in {
       forAll(Gen.oneOf(ErrorPointer.values)) {
         pointer =>
           val xml = <test>{pointer.value}</test>
           XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe pointer
       }
     }
+
+    "must return DefaultPointer" in {
+
+      forAll(nonEmptyString suchThat (x => !ErrorPointer.values.contains(x))) {
+        string =>
+          val xml = <test>{string}</test>
+          XmlReader.of[ErrorPointer].read(xml).toOption.value mustBe DefaultPointer(string)
+      }
+
+    }
+
   }
+
 }

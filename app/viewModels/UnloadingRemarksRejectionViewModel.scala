@@ -33,14 +33,17 @@ case class UnloadingRemarksRejectionViewModel(page: String, json: JsObject)
 object UnloadingRemarksRejectionViewModel {
 
   def apply(errors: Seq[FunctionalError], arrivalId: ArrivalId, nctsEnquiriesUrl: String)(
-    implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] =
-    errors match {
+    implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] = {
+    val viewModel: Option[UnloadingRemarksRejectionViewModel] = errors match {
       case error if errors.length == 1 =>
         singleErrorPage(arrivalId, error.head, nctsEnquiriesUrl)
-      case errors if errors.length > 1 =>
+      case `errors` if errors.length > 1 =>
         multipleErrorPage(arrivalId, nctsEnquiriesUrl, errors)
       case _ => None
     }
+
+    viewModel.orElse(defaultErrorPage(arrivalId, errors.headOption, nctsEnquiriesUrl))
+  }
 
   private def multipleErrorPage(arrivalId: ArrivalId, nctsEnquiriesUrl: String, errors: Seq[FunctionalError]): Option[UnloadingRemarksRejectionViewModel] = {
     def json: JsObject =
@@ -62,7 +65,7 @@ object UnloadingRemarksRejectionViewModel {
           case NumberOfItemsPointer       => Some(totalNumberOfItems(arrivalId, originalValue))
           case GrossMassPointer           => Some(grossMassAmount(arrivalId, originalValue))
           case UnloadingDatePointer       => getDate(originalValue) map (date => unloadingDate(arrivalId, date))
-          case DefaultPointer             => None
+          case DefaultPointer(_)          => None
         }
     }
     rowOption map {
@@ -75,6 +78,14 @@ object UnloadingRemarksRejectionViewModel {
         UnloadingRemarksRejectionViewModel("unloadingRemarksRejection.njk", json)
     }
   }
+
+  private def defaultErrorPage(arrivalId: ArrivalId, error: Option[FunctionalError], nctsEnquiriesUrl: String)(
+    implicit messages: Messages): Option[UnloadingRemarksRejectionViewModel] =
+    error.flatMap(functionalError =>
+      functionalError.pointer match {
+        case DefaultPointer(_) => multipleErrorPage(arrivalId, nctsEnquiriesUrl, Seq(functionalError))
+        case _                 => None
+    })
 
   private def vehicleNameRegistrationReference(arrivalId: ArrivalId, value: String): Row =
     Row(

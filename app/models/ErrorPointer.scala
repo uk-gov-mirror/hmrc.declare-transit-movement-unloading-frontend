@@ -26,7 +26,9 @@ object ErrorPointer extends Serializable {
   implicit val xmlReader: XmlReader[ErrorPointer] =
     __.read[String].map {
       pointer =>
-        values.find(_.value.equalsIgnoreCase(pointer)).getOrElse(DefaultPointer)
+        values
+          .find(_.value.equalsIgnoreCase(pointer))
+          .getOrElse(DefaultPointer(pointer))
     }
   implicit val writes: Writes[ErrorPointer] = Writes[ErrorPointer] {
     pointer: ErrorPointer =>
@@ -38,9 +40,9 @@ object ErrorPointer extends Serializable {
     NumberOfItemsPointer,
     UnloadingDatePointer,
     VehicleRegistrationPointer,
-    NumberOfPackagesPointer,
-    DefaultPointer
+    NumberOfPackagesPointer
   )
+
 }
 
 object GrossMassPointer extends ErrorPointer("HEA.Total gross mass")
@@ -53,4 +55,4 @@ object VehicleRegistrationPointer extends ErrorPointer("HEA.Identity of means of
 
 object NumberOfPackagesPointer extends ErrorPointer("HEA.Total number of packages")
 
-object DefaultPointer extends ErrorPointer("")
+case class DefaultPointer(override val value: String) extends ErrorPointer(value)

@@ -20,6 +20,7 @@ import base.SpecBase
 import matchers.JsonMatchers._
 import controllers.routes
 import generators.MessagesModelGenerators
+import models.ErrorType.NotSupportedPosition
 import models.{DefaultPointer, FunctionalError}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
@@ -59,13 +60,61 @@ class UnloadingRemarksRejectionViewModelSpec extends SpecBase with MessagesModel
       data.json must containJson(expectedJson)
     }
 
-    "must not display any sections when error pointer is DefaultPointer" in {
+    "must return error page when single DefaultPointer errors exist" in {
 
-      val error = arbitrary[FunctionalError](arbitraryRejectionError).sample.value.copy(pointer = DefaultPointer)
-      val result: Option[UnloadingRemarksRejectionViewModel] =
-        UnloadingRemarksRejectionViewModel(Seq(error), arrivalId, "url")(messages)
+      val error  = arbitrary[FunctionalError](arbitraryRejectionError).sample.value.copy(pointer = DefaultPointer("error here"))
+      val errors = Seq(error)
 
-      result mustBe None
+      val data: UnloadingRemarksRejectionViewModel =
+        UnloadingRemarksRejectionViewModel(errors, arrivalId, "url")(messages).get
+
+      val expectedJson =
+        Json.obj(
+          "errors"                     -> errors,
+          "contactUrl"                 -> "url",
+          "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        )
+
+      data.page mustBe "unloadingRemarksMultipleErrorsRejection.njk"
+      data.json must containJson(expectedJson)
+    }
+
+    "must return error page when multiple DefaultPointer errors exist" in {
+
+      val error  = arbitrary[FunctionalError](arbitraryRejectionError).sample.value.copy(pointer = DefaultPointer("error here"))
+      val errors = Seq(error, error)
+
+      val data: UnloadingRemarksRejectionViewModel =
+        UnloadingRemarksRejectionViewModel(errors, arrivalId, "url")(messages).get
+
+      val expectedJson =
+        Json.obj(
+          "errors"                     -> errors,
+          "contactUrl"                 -> "url",
+          "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        )
+
+      data.page mustBe "unloadingRemarksMultipleErrorsRejection.njk"
+      data.json must containJson(expectedJson)
+    }
+
+    "must return error page when originalAttributeValue is None" in {
+
+      val error  = FunctionalError(NotSupportedPosition, DefaultPointer("error"), Some("R206"), None)
+      val errors = Seq(error)
+
+      val data: UnloadingRemarksRejectionViewModel =
+        UnloadingRemarksRejectionViewModel(errors, arrivalId, "url")(messages).get
+
+      val expectedJson =
+        Json.obj(
+          "errors"                     -> errors,
+          "contactUrl"                 -> "url",
+          "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
+        )
+
+      data.page mustBe "unloadingRemarksMultipleErrorsRejection.njk"
+      data.json must containJson(expectedJson)
     }
 
     "must not display any sections when error.originalAttributeValue is None" in {

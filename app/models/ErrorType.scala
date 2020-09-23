@@ -40,6 +40,7 @@ object ErrorType extends Enumerable.Implicits {
   case object MissingDigit extends GenericError(38)
   case object ElementTooLong extends GenericError(39)
   case object ElementTooShort extends GenericError(40)
+  case class UnknownErrorCode(override val code: Int) extends GenericError(code)
 
   val genericValues = Seq(
     IncorrectValue,
@@ -67,7 +68,12 @@ object ErrorType extends Enumerable.Implicits {
 
         genericValues.find(x => x.code.toString == xml.text) match {
           case Some(errorType) => ParseSuccess(errorType)
-          case None            => ParseFailure(ErrorTypeParseError(s"Invalid or missing ErrorType: ${xml.text}"))
+          case None =>
+            try {
+              ParseSuccess(UnknownErrorCode(xml.text.toInt))
+            } catch {
+              case _: Exception => ParseFailure(ErrorTypeParseError(s"Invalid or missing ErrorType: ${xml.text}"))
+            }
         }
       }
     }

@@ -114,7 +114,7 @@ class TotalNumberOfItemsRejectionControllerSpec extends SpecBase with MockitoSug
       val mockSessionRepository = mock[SessionRepository]
       val mockRejectionService  = mock[UnloadingRemarksRejectionService]
       val originalValue         = "some reference"
-      val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer, None, Some(originalValue)))
+      val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
       val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(rejectionMessage)))
