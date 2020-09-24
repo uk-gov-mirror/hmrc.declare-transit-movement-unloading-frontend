@@ -45,7 +45,12 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
       val errors              = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
       val notificationMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
       val messagesSummary =
-        MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+        MessagesSummary(
+          arrivalId,
+          MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
+                           Some("/movements/arrivals/1234/messages/4"),
+                           Some("/movements/arrivals/1234/messages/5"))
+        )
 
       when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
       when(mockConnector.getRejectionMessage(any())(any()))
@@ -90,7 +95,12 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
         val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
-          MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+          MessagesSummary(
+            arrivalId,
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
+                             Some("/movements/arrivals/1234/messages/4"),
+                             Some("/movements/arrivals/1234/messages/5"))
+          )
 
         when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
         when(mockConnector.getRejectionMessage(any())(any()))
@@ -111,7 +121,12 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
         val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
-          MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+          MessagesSummary(
+            arrivalId,
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
+                             Some("/movements/arrivals/1234/messages/4"),
+                             Some("/movements/arrivals/1234/messages/5"))
+          )
 
         when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
         when(mockConnector.getRejectionMessage(any())(any()))
@@ -132,7 +147,12 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
         val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
-          MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+          MessagesSummary(
+            arrivalId,
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
+                             Some("/movements/arrivals/1234/messages/4"),
+                             Some("/movements/arrivals/1234/messages/5"))
+          )
 
         when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
         when(mockConnector.getRejectionMessage(any())(any()))
@@ -153,7 +173,12 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
         val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
         val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
         val messagesSummary =
-          MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+          MessagesSummary(
+            arrivalId,
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
+                             Some("/movements/arrivals/1234/messages/4"),
+                             Some("/movements/arrivals/1234/messages/5"))
+          )
 
         when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
         when(mockConnector.getRejectionMessage(any())(any()))

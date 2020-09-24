@@ -24,13 +24,19 @@ class MessagesSummarySpec extends FreeSpec with MustMatchers {
   "MessageActionsSpec" - {
     "De-serialise to Model" in {
 
-      val messageActions = MessagesSummary(ArrivalId(123), MessagesLocation("/movements/arrivals/1234/messages/3", Some("/movements/arrivals/1234/messages/5")))
+      val messageActions = MessagesSummary(
+        ArrivalId(123),
+        MessagesLocation("/movements/arrivals/1234/messages/3", Some("/movements/arrivals/1234/messages/4"), Some("/movements/arrivals/1234/messages/5"))
+      )
 
-      val json = Json.obj("arrivalId" -> 123,
-                          "messages" -> Json.obj(
-                            "IE044" -> "/movements/arrivals/1234/messages/3",
-                            "IE058" -> "/movements/arrivals/1234/messages/5"
-                          ))
+      val json = Json.obj(
+        "arrivalId" -> 123,
+        "messages" -> Json.obj(
+          "IE043" -> "/movements/arrivals/1234/messages/3",
+          "IE044" -> "/movements/arrivals/1234/messages/4",
+          "IE058" -> "/movements/arrivals/1234/messages/5"
+        )
+      )
 
       json.as[MessagesSummary] mustBe messageActions
     }

@@ -50,19 +50,17 @@ class UnloadingConnectorImpl @Inject()(
     * Connector SHOULD
     * - Consider returning more meaningful responses on failure (when we write the calling service)
     */
-  def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]] = {
+  def getUnloadingPermission(unloadingPermission: String)(implicit headerCarrier: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
-    val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
-
-    http
-      .GET[Movement](url)
-      .map(Some(_))
-      .recover {
-        case _ =>
-          Logger.error(s"Get failed to return data")
-
-          None
-      }
+    val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingPermission"
+    http.GET[HttpResponse](serviceUrl) map {
+      case responseMessage if is2xx(responseMessage.status) =>
+        val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
+        XMLReads.readAs[UnloadingPermission](message)
+      case _ =>
+        Logger.error(s"Get UnloadingPermission failed to return data")
+        None
+    }
   }
 
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
@@ -105,7 +103,6 @@ class UnloadingConnectorImpl @Inject()(
 
   def getPDF(arrivalId: ArrivalId, bearerToken: String)(implicit hc: HeaderCarrier): Future[WSResponse] = {
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/unloading-permission"
-
     ws.url(serviceUrl)
       .withHttpHeaders(("Authorization", bearerToken))
       .get
@@ -114,7 +111,7 @@ class UnloadingConnectorImpl @Inject()(
 }
 
 trait UnloadingConnector {
-  def get(arrivalId: ArrivalId)(implicit headerCarrier: HeaderCarrier): Future[Option[Movement]]
+  def getUnloadingPermission(unloadingPermission: String)(implicit headerCarrier: HeaderCarrier): Future[Option[UnloadingPermission]]
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse]
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]]
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]]
