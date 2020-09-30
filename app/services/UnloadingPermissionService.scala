@@ -34,23 +34,6 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
         connector.getUnloadingPermission(summary.messagesLocation.unloadingPermission)
       case _ => Future.successful(None)
     }
-//    connector.getUnloadingPermission("")
-//    connector.getUnloadingPermission(arrivalId).map {
-//    connector.getUnloadingPermission("").map {
-//      case Some(Movement(_, messages)) =>
-//        messages.reverse match {
-//          case head :: _ =>
-//            XmlReader.of[UnloadingPermission].read(XML.loadString(head.message)) match {
-//              case ParseSuccess(unloadingPermission) => Some(unloadingPermission)
-//              case e =>
-//                Logger.error(s"Error parsing IE043: $e")
-//                None
-//            }
-//          case _ => None
-//        }
-//
-//      case None => None
-//    }
 
   //TODO: Refactor
   def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]] =

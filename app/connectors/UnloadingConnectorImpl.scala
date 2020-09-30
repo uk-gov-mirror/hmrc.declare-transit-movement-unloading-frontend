@@ -46,10 +46,6 @@ class UnloadingConnectorImpl @Inject()(
     http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
-  /**
-    * Connector SHOULD
-    * - Consider returning more meaningful responses on failure (when we write the calling service)
-    */
   def getUnloadingPermission(unloadingPermission: String)(implicit headerCarrier: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingPermission"

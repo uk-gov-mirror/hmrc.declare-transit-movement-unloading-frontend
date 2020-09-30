@@ -21,11 +21,13 @@ import java.time.LocalDate
 import base.SpecBase
 import connectors.UnloadingConnector
 import models.ErrorType.IncorrectValue
-import models.{DefaultPointer, FunctionalError, MessagesLocation, MessagesSummary, UnloadingRemarksRejectionMessage}
+import models.{ArrivalId, DefaultPointer, FunctionalError, MessagesLocation, MessagesSummary, MovementReferenceNumber, UnloadingRemarksRejectionMessage}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import pages.{DateGoodsUnloadedPage, TotalNumberOfItemsPage, VehicleNameRegistrationReferencePage}
 import play.api.inject.bind
+import services.UnloadingRemarksRejectionServiceSpec.{messagesSummary, rejectionMessage}
+import utils.Date
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -40,211 +42,244 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
     reset(mockConnector)
   }
 
+  import UnloadingRemarksRejectionServiceSpec._
+
   "UnloadingRemarksRejectionService" - {
-    "must return UnloadingRemarksRejectionMessage for the input arrivalId" in {
-      val errors              = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
-      val notificationMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-      val messagesSummary =
-        MessagesSummary(
-          arrivalId,
-          MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
-                           Some("/movements/arrivals/1234/messages/4"),
-                           Some("/movements/arrivals/1234/messages/5"))
-        )
 
-      when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-      when(mockConnector.getRejectionMessage(any())(any()))
-        .thenReturn(Future.successful(Some(notificationMessage)))
+    "unloadingRemarksRejectionMessage" - {
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-        .build()
-      val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+      "must return " - {
 
-      unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe Some(notificationMessage)
+        "UnloadingRemarksRejectionMessage" in {
+          val errors              = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
+          val notificationMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(Some(notificationMessage)))
+
+          val application = applicationBuilder(Some(emptyUserAnswers))
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe Some(notificationMessage)
+        }
+
+        "None when getSummary fails to get rejection message" in {
+          val messagesSummary =
+            MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", None))
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+
+          val application = applicationBuilder(Some(emptyUserAnswers))
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
+        }
+
+        "None when getSummary call fails to get MessagesSummary" in {
+
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(None))
+
+          val application = applicationBuilder(Some(emptyUserAnswers))
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
+        }
+
+      }
+
     }
 
-    "must return None when getSummary fails to get rejection message" in {
-      val messagesSummary =
-        MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", None))
-      when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+    "getRejectedValueAsString" - {
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-        .build()
-      val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+      "must return" - {
 
-      unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
+        "value from UnloadingRemarksRejectionMessage when there is no previously saved answers" in {
+
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(Some(rejectionMessage(Some("some reference")))))
+
+          val application = applicationBuilder(None)
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
+          result.futureValue mustBe Some("some reference")
+        }
+
+        "value from UnloadingRemarksRejectionMessage when there is a user answer but not from the required page" in {
+
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(Some(rejectionMessage(Some("some reference")))))
+
+          val application = applicationBuilder(None)
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, Some(emptyUserAnswers))(VehicleNameRegistrationReferencePage)
+          result.futureValue mustBe Some("some reference")
+        }
+
+        "None when there is no previously saved answers and UnloadingRemarksRejectionMessage returns 'None'" in {
+          val messagesSummary =
+            MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(None))
+
+          val application = applicationBuilder(Some(emptyUserAnswers))
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
+          result.futureValue mustBe None
+        }
+
+        "value from user answers when there is a previously saved user answer" in {
+          val originalValue = "some reference"
+          val userAnswers   = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, originalValue).get
+
+          val application = applicationBuilder(Some(userAnswers))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, Some(userAnswers))(VehicleNameRegistrationReferencePage)
+          result.futureValue mustBe Some("some reference")
+        }
+
+        "None when there is no previously saved answers and UnloadingRemarksRejectionMessage.originalAttributeValue is 'None'" in {
+          val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
+          val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+          val messagesSummary =
+            MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
+
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(Some(rejectionMessage)))
+
+          val application = applicationBuilder(Some(emptyUserAnswers))
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
+          result.futureValue mustBe None
+        }
+
+      }
+
     }
 
-    "must return None when getSummary call fails to get MessagesSummary" in {
+    "getRejectedValueAsInt" - {
 
-      when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(None))
+      "must return" - {
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-        .build()
-      val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+        "value from UnloadingRemarksRejectionMessage when there is no previously saved answers" in {
 
-      unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(Some(rejectionMessage(Some("1000")))))
+
+          val application = applicationBuilder(None)
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsInt(arrivalId, None)(TotalNumberOfItemsPage)
+          result.futureValue.value mustBe 1000
+        }
+
+        "value from user answers when there is a previously saved user answer" in {
+          val originalValue = 2000
+          val userAnswers   = emptyUserAnswers.set(TotalNumberOfItemsPage, originalValue).get
+
+          val application = applicationBuilder(Some(userAnswers))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsInt(arrivalId, Some(userAnswers))(TotalNumberOfItemsPage)
+          result.futureValue.value mustBe 2000
+        }
+
+      }
+
     }
 
-    "getRejectedValue" - {
-      "must return Some(String) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
-        val originalValue    = "some reference"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-        val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-        val messagesSummary =
-          MessagesSummary(
-            arrivalId,
-            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
-                             Some("/movements/arrivals/1234/messages/4"),
-                             Some("/movements/arrivals/1234/messages/5"))
-          )
+    "getRejectedValueAsDate" - {
 
-        when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-        when(mockConnector.getRejectionMessage(any())(any()))
-          .thenReturn(Future.successful(Some(rejectionMessage)))
+      "must return" - {
+        "value from UnloadingRemarksRejectionMessage when there is no previously saved answers" in {
 
-        val application = applicationBuilder(None)
-          .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-          .build()
+          when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
+          when(mockConnector.getRejectionMessage(any())(any()))
+            .thenReturn(Future.successful(Some(rejectionMessage(Some("20200721")))))
 
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val application = applicationBuilder(None)
+            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
+            .build()
 
-        val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
-        result.futureValue mustBe Some("some reference")
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsDate(arrivalId, None)(DateGoodsUnloadedPage)
+          result.futureValue.value mustBe LocalDate.parse("2020-07-21")
+        }
+
+        "value from user answers when there is a previously saved user answer" in {
+          val originalValue: LocalDate = Date.getDate("20200721").get
+          val userAnswers              = emptyUserAnswers.set(DateGoodsUnloadedPage, originalValue).get
+
+          val application = applicationBuilder(Some(userAnswers))
+            .build()
+
+          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+
+          val result = unloadingRemarksRejectionService.getRejectedValueAsDate(arrivalId, Some(userAnswers))(DateGoodsUnloadedPage)
+          result.futureValue.value mustBe LocalDate.parse("2020-07-21")
+        }
+
       }
 
-      "must return Some(String) when there is a user answers but not from the page we needed than fetch it from UnloadingRemarksRejectionMessage" in {
-        val originalValue    = "some reference"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-        val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-        val messagesSummary =
-          MessagesSummary(
-            arrivalId,
-            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
-                             Some("/movements/arrivals/1234/messages/4"),
-                             Some("/movements/arrivals/1234/messages/5"))
-          )
-
-        when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-        when(mockConnector.getRejectionMessage(any())(any()))
-          .thenReturn(Future.successful(Some(rejectionMessage)))
-
-        val application = applicationBuilder(None)
-          .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-          .build()
-
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
-
-        val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, Some(emptyUserAnswers))(VehicleNameRegistrationReferencePage)
-        result.futureValue mustBe Some("some reference")
-      }
-
-      "must return Some(Int) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
-        val originalValue    = "1000"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-        val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-        val messagesSummary =
-          MessagesSummary(
-            arrivalId,
-            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
-                             Some("/movements/arrivals/1234/messages/4"),
-                             Some("/movements/arrivals/1234/messages/5"))
-          )
-
-        when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-        when(mockConnector.getRejectionMessage(any())(any()))
-          .thenReturn(Future.successful(Some(rejectionMessage)))
-
-        val application = applicationBuilder(None)
-          .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-          .build()
-
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
-
-        val result = unloadingRemarksRejectionService.getRejectedValueAsInt(arrivalId, None)(TotalNumberOfItemsPage)
-        result.futureValue.value mustBe 1000
-      }
-
-      "must return Some(Date) when there is no previously saved answers than fetch it from UnloadingRemarksRejectionMessage" in {
-        val originalValue    = "20200721"
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-        val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-        val messagesSummary =
-          MessagesSummary(
-            arrivalId,
-            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
-                             Some("/movements/arrivals/1234/messages/4"),
-                             Some("/movements/arrivals/1234/messages/5"))
-          )
-
-        when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-        when(mockConnector.getRejectionMessage(any())(any()))
-          .thenReturn(Future.successful(Some(rejectionMessage)))
-
-        val application = applicationBuilder(None)
-          .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-          .build()
-
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
-
-        val result = unloadingRemarksRejectionService.getRejectedValueAsDate(arrivalId, None)(DateGoodsUnloadedPage)
-        result.futureValue.value mustBe LocalDate.parse("2020-07-21")
-      }
-
-      "must return Some(value) when there is a previously saved answers" in {
-        val originalValue = "some reference"
-        val userAnswers   = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, originalValue).get
-
-        val application = applicationBuilder(Some(userAnswers))
-          .build()
-
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
-
-        val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, Some(userAnswers))(VehicleNameRegistrationReferencePage)
-        result.futureValue mustBe Some("some reference")
-      }
-
-      "must return None when there is no previously saved answers and UnloadingRemarksRejectionMessage returns 'None'" in {
-        val messagesSummary =
-          MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
-
-        when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-        when(mockConnector.getRejectionMessage(any())(any()))
-          .thenReturn(Future.successful(None))
-
-        val application = applicationBuilder(Some(emptyUserAnswers))
-          .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-          .build()
-
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
-
-        val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
-        result.futureValue mustBe None
-      }
-
-      "must return None when there is no previously saved answers and UnloadingRemarksRejectionMessage.originalAttributeValue is 'None'" in {
-        val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, None))
-        val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-        val messagesSummary =
-          MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some("/movements/arrivals/1234/messages/5")))
-
-        when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
-        when(mockConnector.getRejectionMessage(any())(any()))
-          .thenReturn(Future.successful(Some(rejectionMessage)))
-
-        val application = applicationBuilder(Some(emptyUserAnswers))
-          .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-          .build()
-
-        val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
-
-        val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
-        result.futureValue mustBe None
-      }
     }
+
   }
 
+}
+
+object UnloadingRemarksRejectionServiceSpec {
+
+  val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
+
+  val rejectionMessage: Option[String] => UnloadingRemarksRejectionMessage = {
+    rejectionReason =>
+      val errors = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, rejectionReason))
+      UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+  }
+
+  val arrivalId: ArrivalId = ArrivalId(1)
+
+  val messagesSummary =
+    MessagesSummary(
+      arrivalId,
+      MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",
+                       Some("/movements/arrivals/1234/messages/4"),
+                       Some("/movements/arrivals/1234/messages/5"))
+    )
 }
