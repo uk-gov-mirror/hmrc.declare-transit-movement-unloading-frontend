@@ -3,7 +3,6 @@ package connectors
 import java.time.LocalDate
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import config.FrontendAppConfig
 import generators.MessagesModelGenerators
 import models.XMLWrites._
 import models._
@@ -13,9 +12,7 @@ import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.Application
 import play.api.http.Status._
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 import uk.gov.hmrc.http.HeaderCarrier
@@ -23,15 +20,16 @@ import uk.gov.hmrc.http.HeaderCarrier
 import scala.concurrent.Future
 import scala.xml.NodeSeq
 
-class UnloadingConnectorSpec extends FreeSpec
-  with ScalaFutures
-  with IntegrationPatience
-  with WireMockSuite
-  with MustMatchers
-  with OptionValues
-  with MessagesModelGenerators
-  with StreamlinedXmlEquality
-  with ScalaCheckPropertyChecks {
+class UnloadingConnectorSpec
+    extends FreeSpec
+    with ScalaFutures
+    with IntegrationPatience
+    with WireMockSuite
+    with MustMatchers
+    with OptionValues
+    with MessagesModelGenerators
+    with StreamlinedXmlEquality
+    with ScalaCheckPropertyChecks {
 
   import UnloadingConnectorSpec._
 
@@ -43,7 +41,7 @@ class UnloadingConnectorSpec extends FreeSpec
 
   "UnloadingConnectorSpec" - {
 
-    "POST" - {
+    "post" - {
 
       "should handle an ACCEPTED response" in {
         server.stubFor(
@@ -63,7 +61,6 @@ class UnloadingConnectorSpec extends FreeSpec
 
         forAll(arbitrary[UnloadingRemarksRequest], errorResponsesCodes) {
           (unloadingRemarksRequest, errorResponseCode) =>
-
             server.stubFor(
               post(postUri)
                 .willReturn(aResponse().withStatus(errorResponseCode)))
@@ -73,73 +70,52 @@ class UnloadingConnectorSpec extends FreeSpec
       }
     }
 
-    "GET" - {
+    "getUnloadingPermission" - {
 
-      "should handle a 200 response" - {
+      "must return valid UnloadingPermission" in {
 
-        "containing single message" in {
-          server.stubFor(
-            get(getUri)
-              .willReturn(okJson(unloadingJson)
-              ))
-
-          val movement = connector.get(arrivalId).futureValue
-          movement.get.messages.length mustBe 1
-          movement.get.messages.head.messageType mustBe "IE043E"
-          movement.get.messages.head.message mustBe "<CC043A></CC043A>"
-        }
-
-        "containing multiple messages" in {
-          server.stubFor(
-            get(getUri)
-              .willReturn(okJson(jsonMultiple)
-              ))
-
-          val movement = connector.get(arrivalId).futureValue
-          movement.get.messages.length mustBe 2
-          movement.get.messages.head.messageType mustBe "IE015E"
-          movement.get.messages.head.message mustBe "<CC015A></CC015A>"
-          movement.get.messages(1).messageType mustBe "IE043E"
-          movement.get.messages(1).message mustBe "<CC043A></CC043A>"
-        }
-      }
-
-      "should handle a 404 response" in {
+        val json = Json.obj("message" -> unloadingPermission.toString())
 
         server.stubFor(
-          get(getUri)
-            .willReturn(notFound)
+          get(urlEqualTo(unloadingPermissionUrl))
+            .willReturn(
+              okJson(json.toString)
+            )
         )
-        connector.get(arrivalId).futureValue mustBe None
+
+        val result = connector.getUnloadingPermission(unloadingPermissionUrl).futureValue
+        result.value mustBe a[UnloadingPermission]
       }
 
-      "should handle client and server errors" in {
+      "must return None when xml fails conversion" in {
+
+        val expectedResult: NodeSeq = {
+          <CC043A>
+            </CC043A>
+        }
+
+        val json = Json.obj("message" -> expectedResult.toString())
+
+        server.stubFor(
+          get(urlEqualTo(unloadingPermissionUrl))
+            .willReturn(
+              okJson(json.toString)
+            )
+        )
+
+        connector.getUnloadingPermission(unloadingPermissionUrl).futureValue mustBe None
+      }
+
+      "must return 'None' when an error response is returned" in {
         forAll(responseCodes) {
-          code =>
+          code: Int =>
             server.stubFor(
-              get(getUri)
+              get(summaryUri)
                 .willReturn(aResponse().withStatus(code))
             )
-            connector.get(arrivalId).futureValue mustBe None
+
+            connector.getUnloadingPermission(unloadingPermissionUrl).futureValue mustBe None
         }
-      }
-
-      "should return None when empty object is returned" in {
-
-        server.stubFor(
-          get(getUri)
-            .willReturn(okJson(emptyObject))
-        )
-        connector.get(arrivalId).futureValue mustBe None
-      }
-
-      "should return None when json is malformed" in {
-
-        server.stubFor(
-          get(getUri)
-            .willReturn(okJson(malFormedJson))
-        )
-        connector.get(arrivalId).futureValue mustBe None
       }
     }
 
@@ -149,14 +125,15 @@ class UnloadingConnectorSpec extends FreeSpec
         val json = Json.obj(
           "arrivalId" -> arrivalId.value,
           "messages" -> Json.obj(
-            "IE044" -> s"/movements/arrivals/${arrivalId.value}/messages/3",
+            "IE043" -> s"/movements/arrivals/${arrivalId.value}/messages/3",
+            "IE044" -> s"/movements/arrivals/${arrivalId.value}/messages/4",
             "IE058" -> s"/movements/arrivals/${arrivalId.value}/messages/5"
           )
         )
 
         val messageAction =
           MessagesSummary(arrivalId,
-            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
+                          MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/4"), Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
 
         server.stubFor(
           get(urlEqualTo(summaryUri))
@@ -183,7 +160,7 @@ class UnloadingConnectorSpec extends FreeSpec
     "getRejectionMessage" - {
       "must return valid 'rejection message'" in {
         val genRejectionError     = arbitrary[ErrorType].sample.value
-        val rejectionXml: NodeSeq =             <CC058A>
+        val rejectionXml: NodeSeq = <CC058A>
           <HEAHEA>
             <DocNumHEA5>19IT021300100075E9</DocNumHEA5>
             <UnlRemRejDatHEA218>20191018</UnlRemRejDatHEA218>
@@ -295,7 +272,6 @@ class UnloadingConnectorSpec extends FreeSpec
 
         forAll(responseCodes) {
           responseCode =>
-
             server.stubFor(
               get(urlEqualTo(getPDFUrl))
                 .willReturn(
@@ -316,38 +292,102 @@ class UnloadingConnectorSpec extends FreeSpec
 
 object UnloadingConnectorSpec {
 
-  private val unloadingJson =
-      Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
-        Json.obj(
-        "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>"))).toString()
+  val unloadingPermission: NodeSeq = {
+    <CC043A>
+      <SynIdeMES1>UNOC</SynIdeMES1>
+      <SynVerNumMES2>3</SynVerNumMES2>
+      <MesSenMES3>NTA.GB</MesSenMES3>
+      <MesRecMES6>MDTP-000000000000000000000000091-01</MesRecMES6>
+      <DatOfPreMES9>20200914</DatOfPreMES9>
+      <TimOfPreMES10>1432</TimOfPreMES10>
+      <IntConRefMES11>66390912144854</IntConRefMES11>
+      <AppRefMES14>NCTS</AppRefMES14>
+      <TesIndMES18>0</TesIndMES18>
+      <MesIdeMES19>66390912144854</MesIdeMES19>
+      <MesTypMES20>GB043A</MesTypMES20>
+      <HEAHEA>
+        <DocNumHEA5>99IT9876AB88901209</DocNumHEA5>
+        <TypOfDecHEA24>T1</TypOfDecHEA24>
+        <CouOfDesCodHEA30>GB</CouOfDesCodHEA30>
+        <CouOfDisCodHEA55>IT</CouOfDisCodHEA55>
+        <IdeOfMeaOfTraAtDHEA78>abcd</IdeOfMeaOfTraAtDHEA78>
+        <NatOfMeaOfTraAtDHEA80>IT</NatOfMeaOfTraAtDHEA80>
+        <ConIndHEA96>0</ConIndHEA96>
+        <AccDatHEA158>20190912</AccDatHEA158>
+        <TotNumOfIteHEA305>1</TotNumOfIteHEA305>
+        <TotNumOfPacHEA306>1</TotNumOfPacHEA306>
+        <TotGroMasHEA307>1000</TotGroMasHEA307>
+      </HEAHEA>
+      <TRAPRIPC1>
+        <NamPC17>Mancini Carriers</NamPC17>
+        <StrAndNumPC122>90 Desio Way</StrAndNumPC122>
+        <PosCodPC123>MOD 5JJ</PosCodPC123>
+        <CitPC124>Modena</CitPC124>
+        <CouPC125>IT</CouPC125>
+        <TINPC159>IT444100201000</TINPC159>
+      </TRAPRIPC1>
+      <TRACONCO1>
+        <NamCO17>Mancini Carriers</NamCO17>
+        <StrAndNumCO122>90 Desio Way</StrAndNumCO122>
+        <PosCodCO123>MOD 5JJ</PosCodCO123>
+        <CitCO124>Modena</CitCO124>
+        <CouCO125>IT</CouCO125>
+        <TINCO159>IT444100201000</TINCO159>
+      </TRACONCO1>
+      <TRACONCE1>
+        <NamCE17>Mancini Carriers</NamCE17>
+        <StrAndNumCE122>90 Desio Way</StrAndNumCE122>
+        <PosCodCE123>MOD 5JJ</PosCodCE123>
+        <CitCE124>Modena</CitCE124>
+        <CouCE125>IT</CouCE125>
+        <TINCE159>IT444100201000</TINCE159>
+      </TRACONCE1>
+      <TRADESTRD>
+        <NamTRD7>The Luggage Carriers</NamTRD7>
+        <StrAndNumTRD22>225 Suedopolish Yard,</StrAndNumTRD22>
+        <PosCodTRD23>SS8 2BB</PosCodTRD23>
+        <CitTRD24>,</CitTRD24>
+        <CouTRD25>GB</CouTRD25>
+        <TINTRD59>GB163910077000</TINTRD59>
+      </TRADESTRD>
+      <CUSOFFDEPEPT>
+        <RefNumEPT1>IT021100</RefNumEPT1>
+      </CUSOFFDEPEPT>
+      <CUSOFFPREOFFRES>
+        <RefNumRES1>GB000060</RefNumRES1>
+      </CUSOFFPREOFFRES>
+      <GOOITEGDS>
+        <IteNumGDS7>1</IteNumGDS7>
+        <GooDesGDS23>Flowers</GooDesGDS23>
+        <GroMasGDS46>1000</GroMasGDS46>
+        <NetMasGDS48>999</NetMasGDS48>
+        <CouOfDisGDS58>GB</CouOfDisGDS58>
+        <CouOfDesGDS59>GB</CouOfDesGDS59>
+        <PRODOCDC2>
+          <DocTypDC21>18</DocTypDC21>
+          <DocRefDC23>Ref.</DocRefDC23>
+        </PRODOCDC2>
+        <PACGS2>
+          <MarNumOfPacGS21>Ref.</MarNumOfPacGS21>
+          <KinOfPacGS23>BX</KinOfPacGS23>
+          <NumOfPacGS24>1</NumOfPacGS24>
+        </PACGS2>
+        <SGICODSD2>
+          <SenGooCodSD22>1</SenGooCodSD22>
+          <SenQuaSD23>1</SenQuaSD23>
+        </SGICODSD2>
+      </GOOITEGDS>
+    </CC043A>
+  }
 
-  private val jsonMultiple =
-      Json.obj("movementReferenceNumber" -> "19IT02110010007827", "messages" -> Json.arr(
-        Json.obj(
-          "messageType" -> "IE015E",
-          "message" -> "<CC015A></CC015A>"
-          ),
-        Json.obj(
-          "messageType" -> "IE043E",
-          "message" -> "<CC043A></CC043A>"
-          ))).toString()
+  private val arrivalId           = ArrivalId(1)
+  private val postUri             = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
+  private val summaryUri          = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
+  private val rejectionUri        = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
+  private val unloadingRemarksUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
+  private val getPDFUrl           = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/unloading-permission"
 
-  private val malFormedJson =
-    """
-      ||{
-      |[
-      |}
-    """.stripMargin
-
-   private val arrivalId = ArrivalId(1)
-   private val emptyObject: String = JsObject.empty.toString()
-   private val getUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-   private val postUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/"
-   private val summaryUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/summary"
-   private val rejectionUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
-   private val unloadingRemarksUri = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/messages/1"
-   private val getPDFUrl = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/unloading-permission"
+  private val unloadingPermissionUrl = s"/transit-movements-trader-at-destination/movements/arrivals/${arrivalId.value}/unloading-permission"
 
   val responseCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
 }
