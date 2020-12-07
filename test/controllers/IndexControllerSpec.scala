@@ -16,90 +16,83 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import cats.data.NonEmptyList
 import models.{EoriNumber, UnloadingPermission, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.SessionRepository
-import services.UnloadingPermissionServiceImpl
+import services.UnloadingPermissionService
 
 import scala.concurrent.Future
 
-class IndexControllerSpec extends SpecBase {
+class IndexControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
 
-  private lazy val onwardRoute: String = routes.UnloadingGuidanceController.onPageLoad(arrivalId).url
+  private val mockUnloadingPermissionService = mock[UnloadingPermissionService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUnloadingPermissionService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService))
+
+  private val nextPage = routes.UnloadingGuidanceController.onPageLoad(arrivalId).url
 
   "Index Controller" - {
     "must redirect to onward route for a GET when there are no UserAnswers" in {
-      val mockUnloadingPermissionServiceImpl = mock[UnloadingPermissionServiceImpl]
-      when(mockUnloadingPermissionServiceImpl.getUnloadingPermission(any())(any(), any()))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any()))
         .thenReturn(Future.successful(Some(unloadingPermission)))
 
-      val mockSessionRepository = mock[SessionRepository]
-      when(mockSessionRepository.set(any()))
-        .thenReturn(Future.successful(true))
+      when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
       val userAnswersCaptor = ArgumentCaptor.forClass(classOf[UserAnswers])
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[UnloadingPermissionServiceImpl].toInstance(mockUnloadingPermissionServiceImpl),
-          bind[SessionRepository].toInstance(mockSessionRepository)
-        )
-        .build()
+      setNoExistingUserAnswers()
 
       val request                = FakeRequest(GET, routes.IndexController.onPageLoad(arrivalId).url)
-      val result: Future[Result] = route(application, request).value
+      val result: Future[Result] = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual onwardRoute
+      redirectLocation(result).value mustEqual nextPage
 
       verify(mockSessionRepository).set(userAnswersCaptor.capture())
 
       userAnswersCaptor.getValue.mrn.toString mustBe unloadingPermission.movementReferenceNumber
       userAnswersCaptor.getValue.id mustBe arrivalId
       userAnswersCaptor.getValue.eoriNumber mustBe EoriNumber("id")
-
-      application.stop()
     }
 
     "must redirect to onward route for a when there are UserAnswers" in {
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-        .build()
+      setExistingUserAnswers(emptyUserAnswers)
 
       val request = FakeRequest(GET, routes.IndexController.onPageLoad(arrivalId).url)
-      val result  = route(application, request).value
+      val result  = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual onwardRoute
-
-      application.stop()
+      redirectLocation(result).value mustEqual nextPage
     }
 
     "must redirect to session expired when no response for arrivalId" in {
-      val mockUnloadingPermissionServiceImpl = mock[UnloadingPermissionServiceImpl]
-      when(mockUnloadingPermissionServiceImpl.getUnloadingPermission(any())(any(), any()))
+
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any()))
         .thenReturn(Future.successful(None))
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[UnloadingPermissionServiceImpl].toInstance(mockUnloadingPermissionServiceImpl)
-        )
-        .build()
+      setNoExistingUserAnswers()
 
       val request = FakeRequest(GET, routes.IndexController.onPageLoad(arrivalId).url)
-      val result  = route(application, request).value
+      val result  = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
 
     "must redirect to session expired when bad mrn received" in {
@@ -116,28 +109,19 @@ class IndexControllerSpec extends SpecBase {
         goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
       )
 
-      val mockUnloadingPermissionServiceImpl = mock[UnloadingPermissionServiceImpl]
-      when(mockUnloadingPermissionServiceImpl.getUnloadingPermission(any())(any(), any()))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any()))
         .thenReturn(Future.successful(Some(badUnloadingPermission)))
 
-      val mockSessionRepository = mock[SessionRepository]
       when(mockSessionRepository.set(any()))
         .thenReturn(Future.successful(true))
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[UnloadingPermissionServiceImpl].toInstance(mockUnloadingPermissionServiceImpl),
-          bind[SessionRepository].toInstance(mockSessionRepository)
-        )
-        .build()
+      setNoExistingUserAnswers()
 
       val request = FakeRequest(GET, routes.IndexController.onPageLoad(arrivalId).url)
-      val result  = route(application, request).value
+      val result  = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
   }
 }

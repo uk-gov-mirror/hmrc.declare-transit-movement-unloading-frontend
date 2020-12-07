@@ -18,56 +18,60 @@ package controllers
 
 import java.time.LocalDate
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import forms.GrossMassAmountFormProvider
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
 import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class GrossMassAmountRejectionControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
-
-  def onwardRoute = Call("GET", "/foo")
+class GrossMassAmountRejectionControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
   val formProvider = new GrossMassAmountFormProvider()
   val form         = formProvider()
 
   lazy val grossMassAmountRejectionRoute = routes.GrossMassAmountRejectionController.onPageLoad(arrivalId).url
 
-  "GrossMassAmount Controller" - {
+  private val mockRejectionService = mock[UnloadingRemarksRejectionService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRejectionService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+
+  "GrossMassAmountRejection Controller" - {
 
     "must populate the view correctly on a GET" in {
 
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
-      val originalValue        = "100000.123"
+      val originalValue = "100000.123"
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
       when(mockRejectionService.getRejectedValueAsString(any(), any())(any())(any())).thenReturn(Future.successful(Some(originalValue)))
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-        )
-        .build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request        = FakeRequest(GET, grossMassAmountRejectionRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -80,90 +84,60 @@ class GrossMassAmountRejectionControllerSpec extends SpecBase with MockitoSugar 
 
       templateCaptor.getValue mustEqual "grossMassAmount.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must go to technical difficulties when there is no rejection message" in {
 
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
-
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.getRejectedValueAsString(any(), any())(any())(any())).thenReturn(Future.successful(None))
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
-        .build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request = FakeRequest(GET, grossMassAmountRejectionRoute)
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
-
-      application.stop()
     }
-
   }
 
   "must redirect to the next page when valid data is submitted" in {
 
-    val mockSessionRepository = mock[SessionRepository]
-    val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-    val originalValue         = "some reference"
-    val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-    val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+    val originalValue    = "some reference"
+    val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
+    val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
     when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(rejectionMessage)))
     when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
-    val application = applicationBuilder(userAnswers = None)
-      .overrides(
-        bind[SessionRepository].toInstance(mockSessionRepository),
-        bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-      )
-      .build()
+    setExistingUserAnswers(emptyUserAnswers)
 
     val request =
       FakeRequest(POST, grossMassAmountRejectionRoute)
         .withFormUrlEncodedBody(("value", "123456.123"))
 
-    val result = route(application, request).value
+    val result = route(app, request).value
 
     status(result) mustEqual SEE_OTHER
     redirectLocation(result).value mustEqual routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url
-
-    application.stop()
   }
 
   "must redirect to the technical difficulties page when rejection message is None" in {
 
-    val mockSessionRepository = mock[SessionRepository]
-    val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-    val originalValue         = "some reference"
-    val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-    val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-
     when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(None))
     when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
-    val application = applicationBuilder(userAnswers = None)
-      .overrides(
-        bind[SessionRepository].toInstance(mockSessionRepository),
-        bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-      )
-      .build()
+    setNoExistingUserAnswers()
 
     val request =
       FakeRequest(POST, grossMassAmountRejectionRoute)
         .withFormUrlEncodedBody(("value", "123456.123"))
 
-    val result = route(application, request).value
+    val result = route(app, request).value
 
     status(result) mustEqual SEE_OTHER
     redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
-
-    application.stop()
   }
 
   "must return a Bad Request and errors when invalid data is submitted" in {
@@ -171,13 +145,14 @@ class GrossMassAmountRejectionControllerSpec extends SpecBase with MockitoSugar 
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(Html("")))
 
-    val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+    setExistingUserAnswers(emptyUserAnswers)
+
     val request        = FakeRequest(POST, grossMassAmountRejectionRoute).withFormUrlEncodedBody(("value", ""))
     val boundForm      = form.bind(Map("value" -> ""))
     val templateCaptor = ArgumentCaptor.forClass(classOf[String])
     val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-    val result = route(application, request).value
+    val result = route(app, request).value
 
     status(result) mustEqual BAD_REQUEST
 
@@ -190,8 +165,5 @@ class GrossMassAmountRejectionControllerSpec extends SpecBase with MockitoSugar 
 
     templateCaptor.getValue mustEqual "grossMassAmount.njk"
     jsonCaptor.getValue must containJson(expectedJson)
-
-    application.stop()
   }
-
 }

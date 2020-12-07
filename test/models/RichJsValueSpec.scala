@@ -17,7 +17,7 @@
 package models
 
 import generators.Generators
-import org.scalacheck.{Gen, Shrink}
+import org.scalacheck.Gen
 import org.scalatest.{FreeSpec, MustMatchers, OptionValues}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.libs.json._

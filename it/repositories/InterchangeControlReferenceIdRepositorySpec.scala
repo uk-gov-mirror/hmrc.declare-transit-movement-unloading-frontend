@@ -7,10 +7,12 @@ import play.api.Application
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
+import play.api.test.Helpers.running
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import reactivemongo.play.json.collection.JSONCollection
 import services.DateTimeService
 import services.mocks.MockDateTimeService
+
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class InterchangeControlReferenceIdRepositorySpec
@@ -19,36 +21,38 @@ class InterchangeControlReferenceIdRepositorySpec
     with MongoSuite
     with ScalaFutures
     with BeforeAndAfterEach
-    with GuiceOneAppPerSuite
     with IntegrationPatience
     with MockDateTimeService {
 
-  implicit override lazy val app: Application = new GuiceApplicationBuilder()
+  private val appBuilder: GuiceApplicationBuilder = new GuiceApplicationBuilder()
     .overrides(
       bind[DateTimeService].toInstance(mockTimeService)
     )
-    .build()
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     database.flatMap(_.drop()).futureValue
   }
 
-  val service: InterchangeControlReferenceIdRepository = app.injector.instanceOf[InterchangeControlReferenceIdRepository]
-
   "InterchangeControlReferenceIdRepository" - {
 
     "must generate correct InterchangeControlReference when no record exists within the database" in {
 
-      mockDateFormatted("20190101")
+      val app = appBuilder.build()
 
-      val first = service.nextInterchangeControlReferenceId().futureValue
+      running(app) {
+        mockDateFormatted("20190101")
 
-      first mustBe InterchangeControlReference("20190101", 1)
+        val service: InterchangeControlReferenceIdRepository = app.injector.instanceOf[InterchangeControlReferenceIdRepository]
 
-      val second = service.nextInterchangeControlReferenceId().futureValue
+        val first = service.nextInterchangeControlReferenceId().futureValue
 
-      second mustBe InterchangeControlReference("20190101", 2)
+        first mustBe InterchangeControlReference("20190101", 1)
+
+        val second = service.nextInterchangeControlReferenceId().futureValue
+
+        second mustBe InterchangeControlReference("20190101", 2)
+      }
     }
 
     "must generate correct InterchangeControlReference when the collection already has a document in the database" in {
@@ -66,12 +70,17 @@ class InterchangeControlReferenceIdRepositorySpec
               ))
       }.futureValue
 
-      val first  = service.nextInterchangeControlReferenceId().futureValue
-      val second = service.nextInterchangeControlReferenceId().futureValue
+      val app = appBuilder.build()
 
-      first.index mustEqual 2
-      second.index mustEqual 3
+      running(app) {
+        val service: InterchangeControlReferenceIdRepository = app.injector.instanceOf[InterchangeControlReferenceIdRepository]
 
+        val first = service.nextInterchangeControlReferenceId().futureValue
+        val second = service.nextInterchangeControlReferenceId().futureValue
+
+        first.index mustEqual 2
+        second.index mustEqual 3
+      }
     }
 
   }

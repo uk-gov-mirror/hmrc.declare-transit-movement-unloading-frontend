@@ -15,9 +15,9 @@
  */
 
 package viewModels
+
 import base.SpecBase
 import models.Seals
-import org.scalatest.{FreeSpec, MustMatchers}
 import pages.{GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
 
@@ -96,8 +96,6 @@ class UnloadingSummaryViewModelSpec extends SpecBase {
         data.sections.head.sectionTitle mustBe defined
         data.sections.head.rows.length mustBe 2
       }
-      val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "99").success.value
-
     }
 
     "items sections should" - {
@@ -123,7 +121,6 @@ class UnloadingSummaryViewModelSpec extends SpecBase {
         data.sections.length mustBe 1
         data.sections.head.rows(1).value.content mustBe Literal("8")
         data.sections.head.rows.head.actions.isEmpty mustBe false
-
       }
 
       "contain number of packages details " in {

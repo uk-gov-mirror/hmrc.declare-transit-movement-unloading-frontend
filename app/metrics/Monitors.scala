@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package forms
+package metrics
 
-import forms.mappings.Mappings
-import javax.inject.Inject
-import models.messages.RemarksNonConform
-import play.api.data.Form
+import models.reference.Country
 
-class ChangesToReportFormProvider @Inject() extends Mappings {
+trait RequestMonitor[A] {
+  val name: String
 
-  def apply(): Form[String] =
-    Form(
-      "value" -> text("changesToReport.error.required")
-        .verifying(maxLength(RemarksNonConform.unloadingRemarkLength, "changesToReport.error.length"))
-    )
+  val path: String         = s"$name.request"
+  val timer: Timer         = Timer(path)
+  val callCounter: Counter = Counter(path)
+
+  def completionCounter(result: A): Option[Counter] = None
+  val failureCounter: Counter                       = Counter(s"$path.failed")
+}
+
+case class DefaultRequestMonitor[A](name: String) extends RequestMonitor[A]
+
+object Monitors {
+  val getCountryListMonitor: DefaultRequestMonitor[Seq[Country]] = DefaultRequestMonitor[Seq[Country]]("get-country-list")
 }

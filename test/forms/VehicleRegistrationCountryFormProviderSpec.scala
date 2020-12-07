@@ -18,7 +18,6 @@ package forms
 
 import forms.behaviours.StringFieldBehaviours
 import models.reference.Country
-import org.scalatest.MustMatchers
 import play.api.data.FormError
 
 class VehicleRegistrationCountryFormProviderSpec extends StringFieldBehaviours {

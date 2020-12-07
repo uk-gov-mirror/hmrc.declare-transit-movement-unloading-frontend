@@ -16,11 +16,9 @@
 
 package forms
 
-import models.messages.UnloadingRemarksRequest
 import forms.behaviours.StringFieldBehaviours
-import org.scalacheck.Gen
-import play.api.data.{Field, FormError}
-import wolfendale.scalacheck.regexp.RegexpGen
+import models.messages.UnloadingRemarksRequest
+import play.api.data.FormError
 
 class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehaviours {
 

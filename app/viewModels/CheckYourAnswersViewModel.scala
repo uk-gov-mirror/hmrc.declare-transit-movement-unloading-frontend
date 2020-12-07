@@ -15,10 +15,11 @@
  */
 
 package viewModels
+
 import cats.data.NonEmptyList
 import controllers.routes
 import models.reference.Country
-import models.{ArrivalId, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, UnloadingPermission, UserAnswers}
 import pages._
 import play.api.i18n.Messages
 import queries.SealsQuery

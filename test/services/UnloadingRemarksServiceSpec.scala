@@ -15,28 +15,29 @@
  */
 
 package services
+
 import java.time.LocalDate
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import connectors.UnloadingConnector
 import generators.MessagesModelGenerators
+import models.UnloadingPermission
 import models.messages.{InterchangeControlReference, _}
-import models.{EoriNumber, UnloadingPermission}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages._
-import play.api.Application
 import play.api.http.Status._
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import repositories.InterchangeControlReferenceIdRepository
 import services.UnloadingRemarksRequestServiceSpec.header
-import uk.gov.hmrc.http.HttpResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpResponse}
 
 import scala.concurrent.Future
 
-class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
+class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtures with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
   private val mockRemarksService                                                 = mock[RemarksService]
   private val mockMetaService                                                    = mock[MetaService]
@@ -45,16 +46,19 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
   private val mockUnloadingConnector: UnloadingConnector                         = mock[UnloadingConnector]
   private val mockUnloadingRemarksMessageService: UnloadingRemarksMessageService = mock[UnloadingRemarksMessageService]
 
-  override lazy val app: Application = applicationBuilder(Some(emptyUserAnswers))
-    .overrides(bind[RemarksService].toInstance(mockRemarksService))
-    .overrides(bind[MetaService].toInstance(mockMetaService))
-    .overrides(bind[UnloadingRemarksRequestService].toInstance(mockUnloadingRemarksRequestService))
-    .overrides(bind[InterchangeControlReferenceIdRepository].toInstance(mockInterchangeControlReferenceIdRepository))
-    .overrides(bind[UnloadingConnector].toInstance(mockUnloadingConnector))
-    .overrides(bind[UnloadingRemarksMessageService].toInstance(mockUnloadingRemarksMessageService))
-    .build()
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(
+        bind[RemarksService].toInstance(mockRemarksService),
+        bind[MetaService].toInstance(mockMetaService),
+        bind[UnloadingRemarksRequestService].toInstance(mockUnloadingRemarksRequestService),
+        bind[InterchangeControlReferenceIdRepository].toInstance(mockInterchangeControlReferenceIdRepository),
+        bind[UnloadingConnector].toInstance(mockUnloadingConnector),
+        bind[UnloadingRemarksMessageService].toInstance(mockUnloadingRemarksMessageService)
+      )
 
-  private val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "UnloadingRemarksServiceSpec" - {
 
@@ -63,14 +67,13 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       "should return 202 for successful submission" in {
 
         forAll(
-          arbitrary[EoriNumber],
           arbitrary[UnloadingPermission],
           arbitrary[Meta],
           arbitrary[RemarksConform],
           arbitrary[InterchangeControlReference],
           arbitrary[LocalDate]
         ) {
-          (eori, unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
+          (unloadingPermission, meta, unloadingRemarks, interchangeControlReference, localDate) =>
             {
               val userAnswersUpdated =
                 emptyUserAnswers
@@ -104,6 +107,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
               when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.successful(HttpResponse(ACCEPTED)))
 
+              val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
               arrivalNotificationService.submit(arrivalId, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(ACCEPTED)
 
               reset(mockInterchangeControlReferenceIdRepository)
@@ -118,7 +122,6 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       //TODO: Do we need to be more specific for different connector failures?
       "should return 503 when connector fails" in {
 
-        val eori                        = arbitrary[EoriNumber].sample.value
         val unloadingPermission         = arbitrary[UnloadingPermission].sample.value
         val meta                        = arbitrary[Meta].sample.value
         val unloadingRemarks            = arbitrary[RemarksConform].sample.value
@@ -148,6 +151,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
         when(mockUnloadingConnector.post(any(), any())(any())).thenReturn(Future.failed(new Throwable))
 
+        val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
         arrivalNotificationService.submit(arrivalId, userAnswersUpdated, unloadingPermission).futureValue mustBe Some(SERVICE_UNAVAILABLE)
 
         reset(mockInterchangeControlReferenceIdRepository)
@@ -159,8 +163,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
       "should return None when unloading remarks returns FailedToFindUnloadingDate" in {
 
-        forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
-          (eori, unloadingPermission, meta, interchangeControlReference) =>
+        forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[InterchangeControlReference]) {
+          (unloadingPermission, meta, interchangeControlReference) =>
             when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
               .thenReturn(Future.successful(interchangeControlReference))
 
@@ -170,6 +174,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             when(mockRemarksService.build(emptyUserAnswers, unloadingPermission))
               .thenReturn(Future.failed(new Throwable))
 
+            val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
             arrivalNotificationService.submit(arrivalId, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
             reset(mockInterchangeControlReferenceIdRepository)
@@ -181,11 +186,12 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
       "should return None when failed to generate InterchangeControlReference" in {
 
-        forAll(arbitrary[EoriNumber], arbitrary[UnloadingPermission]) {
-          (eori, unloadingPermission) =>
+        forAll(arbitrary[UnloadingPermission]) {
+          unloadingPermission =>
             when(mockInterchangeControlReferenceIdRepository.nextInterchangeControlReferenceId())
               .thenReturn(Future.failed(new Exception("failed to get InterchangeControlReference")))
 
+            val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
             arrivalNotificationService.submit(arrivalId, emptyUserAnswers, unloadingPermission).futureValue mustBe None
 
             reset(mockInterchangeControlReferenceIdRepository)
@@ -209,7 +215,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
 
         val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "new registration").get
 
-        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, userAnswers)
+        val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+        val result                     = arrivalNotificationService.resubmit(arrivalId, eoriNumber, userAnswers)
         result.futureValue.value mustBe ACCEPTED
         verify(mockUnloadingRemarksMessageService).unloadingRemarksMessage(any())(any(), any())
 
@@ -220,7 +227,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
       "should return None if service return unloading remarks value as None" in {
         when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(None)
 
-        val result = arrivalNotificationService.resubmit(arrivalId, eoriNumber, emptyUserAnswers)
+        val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+        val result                     = arrivalNotificationService.resubmit(arrivalId, eoriNumber, emptyUserAnswers)
         result.futureValue mustBe None
 
         reset(mockUnloadingRemarksMessageService)
@@ -243,7 +251,8 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == TransportIdentity => y.copy(correctedValue = "new registration")
             case x                                                                                       => x
           }
-          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
 
         }
@@ -257,13 +266,15 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             .thenReturn(Future.successful(interchangeControlReference))
           when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
-          val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 1234).get
+          val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, 1234).success.value
 
           val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
             case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == NumberOfPackages => y.copy(correctedValue = "1234")
             case x                                                                                      => x
           }
-          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+
+          val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
         }
 
@@ -276,13 +287,15 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             .thenReturn(Future.successful(interchangeControlReference))
           when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
-          val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 1234).get
+          val userAnswers = emptyUserAnswers.set(TotalNumberOfItemsPage, 1234).success.value
 
           val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
             case y: ResultsOfControlDifferentValues if y.pointerToAttribute.pointer == NumberOfItems => y.copy(correctedValue = "1234")
             case x                                                                                   => x
           }
-          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+
+          val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
         }
 
@@ -295,13 +308,15 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             .thenReturn(Future.successful(interchangeControlReference))
           when(mockMetaService.build(interchangeControlReference))
             .thenReturn(meta)
-          val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "1234").get
+          val userAnswers = emptyUserAnswers.set(GrossMassAmountPage, "1234").success.value
 
           val expectedResultOfControl: Seq[ResultsOfControl] = unloadingRemarksRequest.resultOfControl.map {
             case y: ResultsOfControlDifferentValues if (y.pointerToAttribute.pointer == GrossMass) => y.copy(correctedValue = "1234")
             case x                                                                                 => x
           }
-          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+
+          val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
 
         }
@@ -321,7 +336,9 @@ class UnloadingRemarksServiceSpec extends SpecBase with MessagesModelGenerators 
             case y: RemarksNonConform => y.copy(unloadingDate = localDate)
             case x                    => x
           }
-          val result = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+
+          val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
           result.futureValue.value.unloadingRemark mustBe expectedUnloadingRemark
 
         }

@@ -18,19 +18,16 @@ package controllers
 
 import controllers.actions._
 import javax.inject.Inject
-import models.requests.OptionalDataRequest
-import models.{ArrivalId, Mode, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, Mode}
 import navigation.Navigator
 import pages.UnloadingGuidancePage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
-import repositories.SessionRepository
-import services.UnloadingPermissionServiceImpl
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class UnloadingGuidanceController @Inject()(
   override val messagesApi: MessagesApi,

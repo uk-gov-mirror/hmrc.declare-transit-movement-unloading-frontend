@@ -16,36 +16,44 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import forms.NewSealNumberFormProvider
 import matchers.JsonMatchers
 import models.{Index, MovementReferenceNumber, NormalMode, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, times, verify, when}
 import pages.NewSealNumberPage
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
+import services.UnloadingPermissionService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
-
-  def onwardRoute = Call("GET", "/foo")
+class NewSealNumberControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
   val formProvider = new NewSealNumberFormProvider()
   val form         = formProvider()
   val index        = Index(0)
 
   lazy val newSealNumberRoute = routes.NewSealNumberController.onPageLoad(arrivalId, index, NormalMode).url
+
+  private def mockUnloadingPermissionService = mock[UnloadingPermissionService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUnloadingPermissionService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService))
 
   "NewSealNumber Controller" - {
 
@@ -54,12 +62,13 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request        = FakeRequest(GET, newSealNumberRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -74,8 +83,6 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
       templateCaptor.getValue mustEqual "newSealNumber.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
@@ -83,13 +90,14 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val userAnswers    = emptyUserAnswers.set(NewSealNumberPage(index), "answer").success.value
-      val application    = applicationBuilder(userAnswers = Some(userAnswers)).build()
+      val userAnswers = emptyUserAnswers.set(NewSealNumberPage(index), "answer").success.value
+      setExistingUserAnswers(userAnswers)
+
       val request        = FakeRequest(GET, newSealNumberRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -106,38 +114,27 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
       templateCaptor.getValue mustEqual "newSealNumber.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "onSubmit" - {
       "must redirect to the next page when valid data is submitted" in {
-
-        val mockSessionRepository = mock[SessionRepository]
 
         when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
         when(mockUnloadingPermissionService.convertSeals(any())(any(), any()))
           .thenReturn(Future.successful(Some(emptyUserAnswers)))
 
-        val application =
-          applicationBuilder(userAnswers = Some(emptyUserAnswers))
-            .overrides(
-              bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-              bind[SessionRepository].toInstance(mockSessionRepository)
-            )
-            .build()
+        val userAnswers = emptyUserAnswers.set(NewSealNumberPage(index), "answer").success.value
+        setExistingUserAnswers(userAnswers)
 
         val request =
           FakeRequest(POST, newSealNumberRoute)
             .withFormUrlEncodedBody(("value", "answer"))
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual onwardRoute.url
-
-        application.stop()
       }
 
       "must return a Bad Request and errors when invalid data is submitted" in {
@@ -148,13 +145,15 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
         when(mockUnloadingPermissionService.convertSeals(any())(any(), any()))
           .thenReturn(Future.successful(Some(emptyUserAnswers)))
 
-        val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        val userAnswers = emptyUserAnswers.set(NewSealNumberPage(index), "answer").success.value
+        setExistingUserAnswers(userAnswers)
+
         val request        = FakeRequest(POST, newSealNumberRoute).withFormUrlEncodedBody(("value", ""))
         val boundForm      = form.bind(Map("value" -> ""))
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
         val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual BAD_REQUEST
 
@@ -168,82 +167,64 @@ class NewSealNumberControllerSpec extends SpecBase with MockitoSugar with Nunjuc
 
         templateCaptor.getValue mustEqual "newSealNumber.njk"
         jsonCaptor.getValue must containJson(expectedJson)
-
-        application.stop()
       }
 
       "must redirect to Session Expired for a GET if no existing data is found" in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        setNoExistingUserAnswers()
 
         val request = FakeRequest(GET, newSealNumberRoute)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-        application.stop()
       }
 
       "must redirect to Session Expired for a POST if no existing data is found" in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        setNoExistingUserAnswers()
 
         val request =
           FakeRequest(POST, newSealNumberRoute)
             .withFormUrlEncodedBody(("value", "answer"))
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-        application.stop()
       }
 
       "must redirect to the correct page when seals already in the UserAnswers" in {
-        val userAnswers           = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj("seals" -> Seq("Seals01")))
-        val mockSessionRepository = mock[SessionRepository]
+        val userAnswers = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj("seals" -> Seq("Seals01")))
 
         when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
-        val application =
-          applicationBuilder(userAnswers = Some(userAnswers))
-            .overrides(
-              bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-              bind[SessionRepository].toInstance(mockSessionRepository)
-            )
-            .build()
+        setExistingUserAnswers(userAnswers)
 
         val request =
           FakeRequest(POST, routes.NewSealNumberController.onPageLoad(arrivalId, Index(1), NormalMode).url)
             .withFormUrlEncodedBody(("value", "answer"))
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
         redirectLocation(result).value mustEqual onwardRoute.url
-
-        application.stop()
       }
 
       "redirect to error page when no UserAnswers returned from unloading permissions service" in {
         val ua = UserAnswers(arrivalId, MovementReferenceNumber("41", "IT", "0211001000782"), eoriNumber, Json.obj())
-        val application = applicationBuilder(Some(ua))
-          .build()
+        setExistingUserAnswers(ua)
 
         val request =
           FakeRequest(POST, routes.NewSealNumberController.onPageLoad(arrivalId, Index(0), NormalMode).url)
             .withFormUrlEncodedBody(("value", "answer"))
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         //todo: Test this
-
-        application.stop()
       }
     }
   }

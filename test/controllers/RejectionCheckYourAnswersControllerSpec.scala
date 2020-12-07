@@ -16,12 +16,13 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import pages.VehicleNameRegistrationReferencePage
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -30,83 +31,77 @@ import services.UnloadingRemarksService
 
 import scala.concurrent.Future
 
-class RejectionCheckYourAnswersControllerSpec extends SpecBase {
+class RejectionCheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
+
+  private val mockUnloadingRemarksService = mock[UnloadingRemarksService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUnloadingRemarksService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
 
   "return OK and the Rejection view for a GET when unloading rejection message returns a Some" in {
 
     when(mockRenderer.render(any(), any())(any()))
       .thenReturn(Future.successful(Html("")))
 
-    val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+    setExistingUserAnswers(emptyUserAnswers)
 
     val request                = FakeRequest(GET, routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url)
     val templateCaptor         = ArgumentCaptor.forClass(classOf[String])
-    val result: Future[Result] = route(application, request).value
+    val result: Future[Result] = route(app, request).value
 
     status(result) mustEqual OK
 
     verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
     templateCaptor.getValue mustEqual "rejection-check-your-answers.njk"
-
-    application.stop()
   }
 
   "onSubmit" - {
     "must redirect to Confirmation on valid submission" in {
-      val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-      val userAnswers                 = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").toOption
+      val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").success.value
 
       when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any()))
         .thenReturn(Future.successful(Some(ACCEPTED)))
 
-      val application =
-        applicationBuilder(userAnswers = userAnswers)
-          .overrides(
-            bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService)
-          )
-          .build()
+      setExistingUserAnswers(userAnswers)
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.ConfirmationController.onPageLoad(arrivalId).url
-
-      application.stop()
     }
 
     "return UNAUTHORIZED when backend returns 401" in {
 
-      val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-      val userAnswers                 = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").toOption
+      val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").success.value
 
-      val application = applicationBuilder(userAnswers = userAnswers)
-        .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-        .build()
+      setExistingUserAnswers(userAnswers)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual UNAUTHORIZED
-
-      application.stop()
     }
 
     "return INTERNAL_SERVER_ERROR on internal failure" in {
 
-      val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-      val userAnswers                 = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").toOption
+      val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").success.value
 
-      val application = applicationBuilder(userAnswers = userAnswers)
-        .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-        .build()
+      setExistingUserAnswers(userAnswers)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
@@ -114,12 +109,9 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase {
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual INTERNAL_SERVER_ERROR
-
-      application.stop()
     }
-
   }
 }

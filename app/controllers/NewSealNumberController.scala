@@ -21,15 +21,15 @@ import derivable.DeriveNumberOfSeals
 import forms.NewSealNumberFormProvider
 import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{ArrivalId, Index, Mode, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, Index, Mode, UserAnswers}
 import navigation.Navigator
 import pages.NewSealNumberPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
 import repositories.SessionRepository
-import services.{UnloadingPermissionService, UnloadingPermissionServiceImpl}
+import services.UnloadingPermissionService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 

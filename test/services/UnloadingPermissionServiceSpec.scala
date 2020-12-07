@@ -19,27 +19,28 @@ import base.SpecBase
 import connectors.UnloadingConnector
 import generators.Generators
 import models.{MessagesLocation, MessagesSummary, Seals, UnloadingPermission, UserAnswers}
-import org.mockito.Matchers.{any, eq => eqTo}
+import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.MustMatchers
-import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
-import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.BeforeAndAfterEach
 import play.api.libs.json.Json
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UnloadingPermissionServiceSpec extends SpecBase with MustMatchers with Generators with MockitoSugar with ScalaFutures with IntegrationPatience {
+class UnloadingPermissionServiceSpec extends SpecBase with BeforeAndAfterEach with Generators {
 
   private val mockConnector = mock[UnloadingConnector]
 
   private val service = new UnloadingPermissionServiceImpl(mockConnector)
 
-  override def beforeEach = {
+  override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockConnector)
   }
+
+  implicit private val hc: HeaderCarrier = HeaderCarrier()
 
   "UnloadingPermissionService" - {
 

@@ -20,7 +20,7 @@ import controllers.actions._
 import derivable.DeriveNumberOfSeals
 import handlers.ErrorHandler
 import javax.inject.Inject
-import models.{ArrivalId, Index, MovementReferenceNumber, NormalMode}
+import models.{ArrivalId, Index, NormalMode}
 import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json

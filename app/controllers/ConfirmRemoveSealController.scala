@@ -20,7 +20,7 @@ import controllers.actions._
 import forms.ConfirmRemoveSealFormProvider
 import javax.inject.Inject
 import models.requests.DataRequest
-import models.{ArrivalId, Index, Mode, MovementReferenceNumber}
+import models.{ArrivalId, Index, Mode}
 import navigation.Navigator
 import pages.{ConfirmRemoveSealPage, NewSealNumberPage}
 import play.api.data.Form

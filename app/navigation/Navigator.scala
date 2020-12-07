@@ -18,8 +18,7 @@ package navigation
 
 import com.google.inject.{Inject, Singleton}
 import controllers.routes
-import derivable.DeriveNumberOfSeals
-import models.{CheckMode, Index, Mode, NormalMode, UserAnswers}
+import models.{CheckMode, Mode, NormalMode, UserAnswers}
 import pages.{ConfirmRemoveSealPage, _}
 import play.api.mvc.Call
 

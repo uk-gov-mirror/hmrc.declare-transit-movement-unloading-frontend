@@ -17,8 +17,6 @@
 package base
 
 import cats.data.NonEmptyList
-import config.FrontendAppConfig
-import controllers.actions._
 import models.{
   ArrivalId,
   EoriNumber,
@@ -30,76 +28,39 @@ import models.{
   UnloadingPermission,
   UserAnswers
 }
-import org.mockito.Mockito
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.guice._
-import play.api.i18n.{Messages, MessagesApi}
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.inject.{bind, Injector}
+import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.i18n.Messages
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
-import play.api.test.FakeRequest
-import services.UnloadingPermissionService
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
+import play.api.test.{FakeRequest, Helpers}
 
 trait SpecBase
     extends FreeSpec
     with MustMatchers
-    with GuiceOneAppPerSuite
+    with ScalaCheckPropertyChecks
     with OptionValues
     with TryValues
     with ScalaFutures
     with IntegrationPatience
-    with MockitoSugar
-    with BeforeAndAfterEach {
-
-  override def beforeEach {
-    Mockito.reset(mockRenderer, mockUnloadingPermissionService)
-  }
+    with MockitoSugar {
 
   val arrivalId: ArrivalId = ArrivalId(1)
 
-  val mrn: MovementReferenceNumber = MovementReferenceNumber("19", "GB", "1234567890123")
-  val eoriNumber: EoriNumber       = EoriNumber("id")
-  def emptyUserAnswers             = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
+  val mrn: MovementReferenceNumber  = MovementReferenceNumber("19", "GB", "1234567890123")
+  val eoriNumber: EoriNumber        = EoriNumber("id")
+  def emptyUserAnswers: UserAnswers = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
 
-  def injector: Injector = app.injector
+  protected lazy val traderWithoutEori: TraderAtDestinationWithoutEori =
+    TraderAtDestinationWithoutEori("The Luggage Carriers", "1 The Street,", "SS8 2BB", ",", "GB")
 
-  def frontendAppConfig: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
+  protected lazy val packages: Packages = Packages(Some("Ref."), "BX", Some(1), None)
 
-  def messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
+  protected lazy val producedDocuments: ProducedDocument = ProducedDocument("235", Some("Ref."), None)
 
-  implicit val hc: HeaderCarrier = HeaderCarrier()
-
-  def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
-
-  val mockRenderer: NunjucksRenderer = mock[NunjucksRenderer]
-
-  val mockUnloadingPermissionService: UnloadingPermissionService = mock[UnloadingPermissionService]
-
-  implicit def messages: Messages = messagesApi.preferred(fakeRequest)
-
-  protected def applicationBuilder(userAnswers: Option[UserAnswers] = None): GuiceApplicationBuilder =
-    new GuiceApplicationBuilder()
-      .overrides(
-        bind[DataRequiredAction].to[DataRequiredActionImpl],
-        bind[IdentifierAction].to[FakeIdentifierAction],
-        bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService),
-        bind[DataRetrievalActionProvider].toInstance(new FakeDataRetrievalActionProvider(userAnswers)),
-        bind[NunjucksRenderer].toInstance(mockRenderer)
-      )
-
-  protected lazy val traderWithoutEori =
-    TraderAtDestinationWithoutEori("The Luggage Carriers", "225 Suedopolish Yard,", "SS8 2BB", ",", "GB")
-
-  protected lazy val packages = Packages(Some("Ref."), "BX", Some(1), None)
-
-  protected lazy val producedDocuments = ProducedDocument("235", Some("Ref."), None)
-
-  protected lazy val goodsItemMandatory = GoodsItem(
+  protected lazy val goodsItemMandatory: GoodsItem = GoodsItem(
     itemNumber                = 1,
     commodityCode             = None,
     description               = "Flowers",
@@ -111,7 +72,7 @@ trait SpecBase
     sensitiveGoodsInformation = Seq.empty
   )
 
-  protected val unloadingPermission = UnloadingPermission(
+  protected val unloadingPermission: UnloadingPermission = UnloadingPermission(
     movementReferenceNumber = "19IT02110010007827",
     transportIdentity       = None,
     transportCountry        = None,
@@ -123,4 +84,8 @@ trait SpecBase
     seals                   = None,
     goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
   )
+
+  def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+
+  implicit def messages: Messages = Helpers.stubMessages()
 }

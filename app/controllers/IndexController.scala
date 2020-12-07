@@ -23,7 +23,7 @@ import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
-import services.UnloadingPermissionServiceImpl
+import services.UnloadingPermissionService
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ class IndexController @Inject()(
   val controllerComponents: MessagesControllerComponents,
   identify: IdentifierAction,
   getData: DataRetrievalActionProvider,
-  unloadingPermissionServiceImpl: UnloadingPermissionServiceImpl,
+  unloadingPermissionService: UnloadingPermissionService,
   sessionRepository: SessionRepository
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -46,7 +46,7 @@ class IndexController @Inject()(
         case Some(_) =>
           Future.successful(Redirect(nextPage(arrivalId)))
         case None =>
-          unloadingPermissionServiceImpl.getUnloadingPermission(arrivalId) flatMap {
+          unloadingPermissionService.getUnloadingPermission(arrivalId) flatMap {
             case Some(unloadingPermission) =>
               MovementReferenceNumber(unloadingPermission.movementReferenceNumber) match {
                 case Some(mrn) =>
