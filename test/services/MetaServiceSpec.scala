@@ -17,30 +17,37 @@
 package services
 import java.time.LocalDateTime
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import generators.MessagesModelGenerators
 import models.EoriNumber
 import models.messages.{InterchangeControlReference, Meta}
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
+class MetaServiceSpec extends SpecBase with AppWithDefaultMockFixtures with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
-  val mockDateTimeService = mock[DateTimeService]
+  private val mockDateTimeService = mock[DateTimeService]
 
-  override lazy val app = applicationBuilder(Some(emptyUserAnswers))
-    .overrides(bind[DateTimeService].toInstance(mockDateTimeService))
-    .build()
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockDateTimeService)
+  }
 
-  val metaService = app.injector.instanceOf[MetaService]
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[DateTimeService].toInstance(mockDateTimeService))
 
   "MetaServiceSpec" - {
 
     "return a Meta model" in {
-      forAll(arbitrary[EoriNumber], arbitrary[InterchangeControlReference]) {
-        (eori, interchangeControlReference) =>
+      val metaService = app.injector.instanceOf[MetaService]
+
+      forAll(arbitrary[InterchangeControlReference]) {
+        interchangeControlReference =>
           val localDateTime = LocalDateTime.now()
 
           when(mockDateTimeService.currentDateTime).thenReturn(localDateTime)
@@ -53,5 +60,4 @@ class MetaServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCh
       }
     }
   }
-
 }

@@ -16,33 +16,28 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import connectors.ReferenceDataConnector
 import forms.VehicleRegistrationCountryFormProvider
 import matchers.JsonMatchers
 import models.NormalMode
 import models.reference.Country
-import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, times, verify, when}
 import pages.VehicleRegistrationCountryPage
 import play.api.data.Form
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
-
-  def onwardRoute = Call("GET", "/foo")
+class VehicleRegistrationCountryControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
   val formProvider                                       = new VehicleRegistrationCountryFormProvider()
   private val country: Country                           = Country("valid", "GB", "United Kingdom")
@@ -56,6 +51,16 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
     Json.obj("text" -> "United Kingdom", "value" -> "GB", "selected" -> selected)
   )
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockReferenceDataConnector)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector))
+
   "VehicleRegistrationCountry Controller" - {
 
     "must return OK and the correct view for a GET" in {
@@ -65,17 +70,14 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
 
       when(mockReferenceDataConnector.getCountryList()(any(), any())).thenReturn(Future.successful(countries))
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-        .overrides {
-          bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)
-        }
-        .build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request = FakeRequest(GET, vehicleRegistrationCountryRoute)
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -90,8 +92,6 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
 
       templateCaptor.getValue mustEqual "vehicleRegistrationCountry.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
@@ -104,15 +104,12 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
       )
 
       val userAnswers = emptyUserAnswers.set(VehicleRegistrationCountryPage, country).success.value
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
-        .overrides {
-          bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)
-        }
-        .build()
+      setExistingUserAnswers(userAnswers)
+
       val request        = FakeRequest(GET, vehicleRegistrationCountryRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-      val result         = route(application, request).value
+      val result         = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -128,54 +125,38 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
       )
       templateCaptor.getValue mustEqual "vehicleRegistrationCountry.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must redirect to the next page when valid data is submitted" in {
 
-      val mockSessionRepository = mock[SessionRepository]
-
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
       when(mockReferenceDataConnector.getCountryList()(any(), any())).thenReturn(Future.successful(countries))
 
-      val application =
-        applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(
-            bind[Navigator].toInstance(new FakeNavigator(onwardRoute)),
-            bind[SessionRepository].toInstance(mockSessionRepository),
-            bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)
-          )
-          .build()
+      setExistingUserAnswers(emptyUserAnswers)
 
       val request =
         FakeRequest(POST, vehicleRegistrationCountryRoute)
           .withFormUrlEncodedBody(("value", "GB"))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual onwardRoute.url
-
-      application.stop()
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
 
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockReferenceDataConnector.getCountryList()(any(), any())).thenReturn(Future.successful(countries))
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-        .overrides {
-          bind[ReferenceDataConnector].toInstance(mockReferenceDataConnector)
-        }
-        .build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request        = FakeRequest(POST, vehicleRegistrationCountryRoute).withFormUrlEncodedBody(("value", ""))
       val boundForm      = form.bind(Map("value" -> ""))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -190,40 +171,34 @@ class VehicleRegistrationCountryControllerSpec extends SpecBase with MockitoSuga
 
       templateCaptor.getValue mustEqual "vehicleRegistrationCountry.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must redirect to Session Expired for a GET if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      setNoExistingUserAnswers()
 
       val request = FakeRequest(GET, vehicleRegistrationCountryRoute)
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
 
     "must redirect to Session Expired for a POST if no existing data is found" in {
 
-      val application = applicationBuilder(userAnswers = None).build()
+      setNoExistingUserAnswers()
 
       val request =
         FakeRequest(POST, vehicleRegistrationCountryRoute)
           .withFormUrlEncodedBody(("value", "answer"))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-      application.stop()
     }
   }
 }

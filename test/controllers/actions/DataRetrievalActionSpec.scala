@@ -16,54 +16,19 @@
 
 package controllers.actions
 
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import generators.Generators
-import models.requests.IdentifierRequest
-import models.requests.OptionalDataRequest
-import models.{ArrivalId, EoriNumber, MovementReferenceNumber, UserAnswers}
+import models.requests.{IdentifierRequest, OptionalDataRequest}
+import models.{EoriNumber, MovementReferenceNumber, UserAnswers}
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalacheck.Arbitrary.arbitrary
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.FreeSpec
-import org.scalatest.MustMatchers
-import org.scalatest.OptionValues
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.Application
-import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.mvc.AnyContent
-import play.api.mvc.Request
-import play.api.mvc.Results
+import play.api.mvc.{AnyContent, Request, Results}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import repositories.SessionRepository
 
 import scala.concurrent.Future
 
-class DataRetrievalActionSpec
-    extends FreeSpec
-    with MustMatchers
-    with GuiceOneAppPerSuite
-    with ScalaFutures
-    with MockitoSugar
-    with Generators
-    with OptionValues {
-
-  val sessionRepository: SessionRepository = mock[SessionRepository]
-  val arrivalId                            = ArrivalId(1)
-  val eoriNumber                           = arbitrary[EoriNumber].sample.value
-  val mrn: MovementReferenceNumber         = arbitrary[MovementReferenceNumber].sample.value
-
-  override lazy val app: Application = {
-
-    import play.api.inject._
-
-    new GuiceApplicationBuilder()
-      .overrides(
-        bind[SessionRepository].toInstance(sessionRepository)
-      )
-      .build()
-  }
+class DataRetrievalActionSpec extends SpecBase with AppWithDefaultMockFixtures with Generators {
 
   def harness(mrn: MovementReferenceNumber, f: OptionalDataRequest[AnyContent] => Unit): Unit = {
 
@@ -86,7 +51,7 @@ class DataRetrievalActionSpec
 
       "where there are no existing answers for this MRN" in {
 
-        when(sessionRepository.get(any(), any())) thenReturn Future.successful(None)
+        when(mockSessionRepository.get(any(), any())) thenReturn Future.successful(None)
 
         harness(mrn, {
           request =>
@@ -99,7 +64,7 @@ class DataRetrievalActionSpec
 
       "when there are existing answers for this MRN" in {
 
-        when(sessionRepository.get(any(), any())) thenReturn Future.successful(Some(UserAnswers(arrivalId, mrn, eoriNumber)))
+        when(mockSessionRepository.get(any(), any())) thenReturn Future.successful(Some(UserAnswers(arrivalId, mrn, eoriNumber)))
 
         harness(mrn, {
           request =>

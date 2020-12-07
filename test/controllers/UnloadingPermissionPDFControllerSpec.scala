@@ -16,17 +16,17 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import connectors.UnloadingConnector
 import generators.Generators
 import models.ArrivalId
 import org.mockito.Matchers.any
-import org.mockito.Mockito.when
+import org.mockito.Mockito.{reset, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.Application
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.ahc.AhcWSResponse
 import play.api.libs.ws.ahc.cache.{CacheableHttpResponseBodyPart, CacheableHttpResponseStatus}
 import play.api.test.FakeRequest
@@ -36,15 +36,25 @@ import play.shaded.ahc.org.asynchttpclient.uri.Uri
 
 import scala.concurrent.Future
 
-class UnloadingPermissionPDFControllerSpec extends SpecBase with Generators with ScalaCheckPropertyChecks {
+class UnloadingPermissionPDFControllerSpec extends SpecBase with AppWithDefaultMockFixtures with Generators with ScalaCheckPropertyChecks {
+
+  private val mockUnloadingConnector: UnloadingConnector = mock[UnloadingConnector]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUnloadingConnector)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingConnector].toInstance(mockUnloadingConnector))
 
   "UnloadingPermissionPDFController" - {
 
     "getPDF" - {
 
       "must return OK and PDF" in {
-
-        val mockUnloadingConnector: UnloadingConnector = mock[UnloadingConnector]
 
         forAll(arbitrary[Array[Byte]]) {
           pdf =>
@@ -60,56 +70,35 @@ class UnloadingPermissionPDFControllerSpec extends SpecBase with Generators with
 
             val arrivalId = ArrivalId(0)
 
-            val application: Application =
-              applicationBuilder()
-                .overrides(
-                  bind[UnloadingConnector].toInstance(mockUnloadingConnector)
-                )
-                .build()
+            setNoExistingUserAnswers()
 
             val request = FakeRequest(GET, routes.UnloadingPermissionPDFController.getPDF(arrivalId).url)
               .withSession(("authToken" -> "BearerToken"))
 
-            running(application) {
+            val result = route(app, request).value
 
-              val result = route(application, request).value
-
-              status(result) mustEqual OK
-            }
+            status(result) mustEqual OK
         }
       }
 
       "must redirect to UnauthorisedController if bearer token is missing" in {
 
-        val mockUnloadingConnector: UnloadingConnector = mock[UnloadingConnector]
-
         val arrivalId = ArrivalId(0)
 
-        val application: Application =
-          applicationBuilder()
-            .overrides(
-              bind[UnloadingConnector].toInstance(mockUnloadingConnector)
-            )
-            .build()
+        setNoExistingUserAnswers()
 
         val request = FakeRequest(
           GET,
           routes.UnloadingPermissionPDFController.getPDF(arrivalId).url
         )
 
-        running(application) {
+        val result = route(app, request).value
 
-          val result = route(application, request).value
-
-          status(result) mustEqual SEE_OTHER
-
-          redirectLocation(result).value mustEqual controllers.routes.UnauthorisedController.onPageLoad().url
-        }
+        status(result) mustEqual SEE_OTHER
+        redirectLocation(result).value mustEqual controllers.routes.UnauthorisedController.onPageLoad().url
       }
 
       "must redirect to TechnicalDifficultiesController if connector returns error" in {
-
-        val mockUnloadingConnector: UnloadingConnector = mock[UnloadingConnector]
 
         val genErrorResponse = Gen.oneOf(300, 500)
 
@@ -125,27 +114,18 @@ class UnloadingPermissionPDFControllerSpec extends SpecBase with Generators with
 
             val arrivalId = ArrivalId(0)
 
-            val application: Application =
-              applicationBuilder()
-                .overrides(
-                  bind[UnloadingConnector].toInstance(mockUnloadingConnector)
-                )
-                .build()
+            setNoExistingUserAnswers()
 
             val request = FakeRequest(GET, routes.UnloadingPermissionPDFController.getPDF(arrivalId).url)
               .withSession(("authToken" -> "BearerToken"))
 
-            running(application) {
+            val result = route(app, request).value
 
-              val result = route(application, request).value
+            status(result) mustEqual SEE_OTHER
 
-              status(result) mustEqual SEE_OTHER
-
-              redirectLocation(result).value mustEqual controllers.routes.TechnicalDifficultiesController.onPageLoad().url
-            }
+            redirectLocation(result).value mustEqual controllers.routes.TechnicalDifficultiesController.onPageLoad().url
         }
       }
     }
   }
-
 }

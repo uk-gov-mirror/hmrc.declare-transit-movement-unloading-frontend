@@ -18,42 +18,39 @@ package controllers
 
 import java.time.LocalDate
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
+import config.FrontendAppConfig
 import matchers.JsonMatchers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
 import pages.DateGoodsUnloadedPage
-import play.api.inject.bind
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
 
 import scala.concurrent.Future
 
-class ConfirmationControllerSpec extends SpecBase with MockitoSugar with JsonMatchers {
+class ConfirmationControllerSpec extends SpecBase with AppWithDefaultMockFixtures with JsonMatchers {
 
   "Confirmation Controller" - {
 
     "return correct view and remove UserAnswers" in {
 
-      val mockSessionRepository = mock[SessionRepository]
-      val userAnswers           = emptyUserAnswers.set(DateGoodsUnloadedPage, LocalDate.now()).success.value
+      val userAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, LocalDate.now()).success.value
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(Some(userAnswers))
-        .overrides(bind[SessionRepository].toInstance(mockSessionRepository))
-        .build()
-      val request        = FakeRequest(GET, routes.ConfirmationController.onPageLoad(arrivalId).url)
-      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
-      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+      setExistingUserAnswers(userAnswers)
 
-      val result = route(application, request).value
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val request           = FakeRequest(GET, routes.ConfirmationController.onPageLoad(arrivalId).url)
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -64,8 +61,6 @@ class ConfirmationControllerSpec extends SpecBase with MockitoSugar with JsonMat
 
       templateCaptor.getValue mustEqual "confirmation.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
   }
 }

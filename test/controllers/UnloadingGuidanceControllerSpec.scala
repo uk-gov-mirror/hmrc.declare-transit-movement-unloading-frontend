@@ -16,7 +16,7 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import matchers.JsonMatchers
 import navigation.{FakeNavigator, Navigator}
 import org.mockito.ArgumentCaptor
@@ -32,24 +32,20 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class UnloadingGuidanceControllerSpec extends SpecBase with MockitoSugar with JsonMatchers {
+class UnloadingGuidanceControllerSpec extends SpecBase with AppWithDefaultMockFixtures with JsonMatchers {
 
   "UnloadingGuidance Controller" - {
     "return OK and the correct view for a GET" in {
-      val nextPage = Call("GET", "/foo")
-
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-        .overrides(bind[Navigator].toInstance(new FakeNavigator(nextPage)))
-        .build()
+      setExistingUserAnswers(emptyUserAnswers)
 
       val request        = FakeRequest(GET, routes.UnloadingGuidanceController.onPageLoad(arrivalId).url)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -57,14 +53,12 @@ class UnloadingGuidanceControllerSpec extends SpecBase with MockitoSugar with Js
 
       val expectedJson = Json.obj(
         "mrn"         -> mrn,
-        "nextPageUrl" -> nextPage.url,
+        "nextPageUrl" -> onwardRoute.url,
         "pdfUrl"      -> routes.UnloadingPermissionPDFController.getPDF(arrivalId).url
       )
 
       templateCaptor.getValue mustEqual "unloadingGuidance.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
   }
 }

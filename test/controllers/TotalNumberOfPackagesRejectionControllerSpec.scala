@@ -18,60 +18,60 @@ package controllers
 
 import java.time.LocalDate
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import forms.TotalNumberOfPackagesFormProvider
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
-import models.{DefaultPointer, FunctionalError, NormalMode, UnloadingRemarksRejectionMessage, UserAnswers}
-import navigation.{FakeNavigator, Navigator}
+import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, times, verify, when}
 import pages.TotalNumberOfPackagesPage
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.Call
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.Future
 
-class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
+class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
   val formProvider = new TotalNumberOfPackagesFormProvider()
   val form         = formProvider()
-
-  def onwardRoute = Call("GET", "/foo")
 
   val validAnswer = 1
 
   lazy val totalNumberOfPackagesRoute = routes.TotalNumberOfPackagesRejectionController.onPageLoad(arrivalId).url
 
+  private val mockRejectionService = mock[UnloadingRemarksRejectionService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRejectionService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+
   "TotalNumberOfPackages Controller" - {
 
     "must populate the view correctly on a GET when the question has previously been answered" in {
-      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-      val mockSessionRepository = mock[SessionRepository]
-
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
       when(mockRejectionService.getRejectedValueAsInt(any(), any())(any())(any())).thenReturn(Future.successful(Some(validAnswer)))
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService),
-          bind[SessionRepository].toInstance(mockSessionRepository)
-        )
-        .build()
+      setNoExistingUserAnswers()
+
       val request        = FakeRequest(GET, totalNumberOfPackagesRoute)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
-      val result         = route(application, request).value
+      val result         = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -86,59 +86,42 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
 
       templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must redirect to Technical Difficulties page when get rejected value is None" in {
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
-
       when(mockRejectionService.getRejectedValueAsInt(any(), any())(any())(any())).thenReturn(Future.successful(None))
 
       val userAnswers = emptyUserAnswers.set(TotalNumberOfPackagesPage, validAnswer).success.value
-      val application = applicationBuilder(userAnswers = Some(userAnswers))
-        .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-        )
-        .build()
+      setExistingUserAnswers(userAnswers)
+
       val request = FakeRequest(GET, totalNumberOfPackagesRoute)
-      val result  = route(application, request).value
+      val result  = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
-      application.stop()
     }
 
     "must redirect to the next page when valid data is submitted" in {
 
-      val mockSessionRepository = mock[SessionRepository]
-      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
-      val originalValue         = "some reference"
-      val errors                = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-      val rejectionMessage      = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
+      val originalValue    = "some reference"
+      val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
+      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
 
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(rejectionMessage)))
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[SessionRepository].toInstance(mockSessionRepository),
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-        )
-        .build()
+      setNoExistingUserAnswers()
 
       val request =
         FakeRequest(POST, totalNumberOfPackagesRoute)
           .withFormUrlEncodedBody(("value", validAnswer.toString))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url
-
-      application.stop()
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
@@ -146,13 +129,14 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request        = FakeRequest(POST, totalNumberOfPackagesRoute).withFormUrlEncodedBody(("value", "invalid value"))
       val boundForm      = form.bind(Map("value" -> "invalid value"))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -165,32 +149,22 @@ class TotalNumberOfPackagesRejectionControllerSpec extends SpecBase with Mockito
 
       templateCaptor.getValue mustEqual "totalNumberOfPackages.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
     "must redirect to Technical Difficulties when there is no rejection message on submission" in {
 
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
-
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(None))
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-        )
-        .build()
+      setNoExistingUserAnswers()
 
       val request =
         FakeRequest(POST, totalNumberOfPackagesRoute)
           .withFormUrlEncodedBody(("value", validAnswer.toString))
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual SEE_OTHER
 
       redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
-
-      application.stop()
     }
   }
 }
