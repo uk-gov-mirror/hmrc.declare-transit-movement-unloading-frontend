@@ -18,23 +18,24 @@ package connectors
 
 import config.FrontendAppConfig
 import javax.inject.Inject
+import metrics.{MetricsService, Monitors}
 import models.reference.Country
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class ReferenceDataConnector @Inject()(config: FrontendAppConfig, http: HttpClient) {
+class ReferenceDataConnector @Inject()(config: FrontendAppConfig, http: HttpClient, metricsService: MetricsService) {
 
   def getCountryList()(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[Country]] = {
     val serviceUrl = s"${config.referenceDataUrl}/countries-full-list"
-    http
-      .GET[Seq[Country]](serviceUrl)
-      .map {
-        case x => x
-      }
-      .recover {
-        case _ => Nil
-      }
+
+    metricsService.timeAsyncCall(Monitors.getCountryListMonitor) {
+      http
+        .GET[Seq[Country]](serviceUrl)
+        .recover {
+          case _ => Nil
+        }
+    }
   }
 }
