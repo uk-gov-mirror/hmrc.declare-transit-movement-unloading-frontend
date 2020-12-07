@@ -24,7 +24,7 @@ import models.{Index, Seals, UnloadingPermission, UserAnswers}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import pages._
+import pages.{ChangesToReportPage, _}
 
 class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropertyChecks {
 
@@ -33,8 +33,6 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
   private val mockResultOfControlService: ResultOfControlService = mock[ResultOfControlService]
 
   private val service = new RemarksServiceImpl(mockResultOfControlService)
-
-  //TODO: What do we set in Remarks when (a) seals are broken and (b) seals can't be read
 
   "RemarksServiceSpec" - {
 
@@ -57,36 +55,42 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
       "results of control exist with seals" in {
 
-        forAll(arbitrary[UnloadingPermission], arbitrary[ResultsOfControl]) {
-          (unloadingPermission, resultsOfControlValues) =>
+        forAll(arbitrary[UnloadingPermission], arbitrary[ResultsOfControl], stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength)) {
+          (unloadingPermission, resultsOfControlValues, unloadingRemarks) =>
             val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
 
             val userAnswers = emptyUserAnswers
               .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
               .success
               .value
+              .set(ChangesToReportPage, unloadingRemarks)
+              .success
+              .value
 
             when(mockResultOfControlService.build(userAnswers)).thenReturn(Seq(resultsOfControlValues))
 
             service.build(userAnswers, unloadingPermissionWithSeals).futureValue mustBe
-              RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+              RemarksConformWithSeals(unloadingRemark = Some(unloadingRemarks), unloadingDate = dateGoodsUnloaded)
         }
       }
 
       "results of control exist without seals" in {
 
-        forAll(arbitrary[UnloadingPermission], arbitrary[ResultsOfControl]) {
-          (unloadingPermission, resultsOfControlValues) =>
+        forAll(arbitrary[UnloadingPermission], arbitrary[ResultsOfControl], stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength)) {
+          (unloadingPermission, resultsOfControlValues, unloadingRemarks) =>
             val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None)
             val userAnswers = emptyUserAnswers
               .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+              .success
+              .value
+              .set(ChangesToReportPage, unloadingRemarks)
               .success
               .value
 
             when(mockResultOfControlService.build(userAnswers)).thenReturn(Seq(resultsOfControlValues))
 
             service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
-              RemarksNonConform(stateOfSeals = None, unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+              RemarksConform(unloadingRemark = Some(unloadingRemarks), unloadingDate = dateGoodsUnloaded)
 
         }
       }
@@ -95,22 +99,26 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
         "without seals" in {
 
-          forAll(arbitrary[UnloadingPermission], listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)) {
-            (unloadingPermission, resultsOfControlValues) =>
+          forAll(
+            arbitrary[UnloadingPermission],
+            listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength),
+            stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength)
+          ) {
+            (unloadingPermission, resultsOfControlValues, unloadingRemarks) =>
               val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None)
 
               val userAnswers = emptyUserAnswers
                 .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
                 .success
                 .value
-                .set(ChangesToReportPage, "changes reported")
+                .set(ChangesToReportPage, unloadingRemarks)
                 .success
                 .value
 
               when(mockResultOfControlService.build(userAnswers)).thenReturn(resultsOfControlValues)
 
               service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
-                RemarksNonConform(stateOfSeals = None, unloadingRemark = Some("changes reported"), unloadingDate = dateGoodsUnloaded)
+                RemarksConform(unloadingRemark = Some(unloadingRemarks), unloadingDate = dateGoodsUnloaded)
 
           }
 
@@ -118,22 +126,26 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
         "with seals" in {
 
-          forAll(arbitrary[UnloadingPermission], listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength)) {
-            (unloadingPermission, resultsOfControlValues) =>
+          forAll(
+            arbitrary[UnloadingPermission],
+            listWithMaxLength[ResultsOfControl](RemarksNonConform.resultsOfControlLength),
+            stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength)
+          ) {
+            (unloadingPermission, resultsOfControlValues, unloadingRemarks) =>
               val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
 
               val userAnswers = emptyUserAnswers
                 .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
                 .success
                 .value
-                .set(ChangesToReportPage, "changes reported")
+                .set(ChangesToReportPage, unloadingRemarks)
                 .success
                 .value
 
               when(mockResultOfControlService.build(userAnswers)).thenReturn(resultsOfControlValues)
 
               service.build(userAnswers, unloadingPermissionWithSeals).futureValue mustBe
-                RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = Some("changes reported"), unloadingDate = dateGoodsUnloaded)
+                RemarksConformWithSeals(unloadingRemark = Some(unloadingRemarks), unloadingDate = dateGoodsUnloaded)
 
           }
         }
@@ -144,31 +156,30 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
         "have same values in unloading permission and user answers" in {
 
-          val unloadingPermissionObject = arbitrary[UnloadingPermission]
+          forAll(arbitrary[UnloadingPermission]) {
+            unloadingPermission =>
+              val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(1, Seq("seal 1", "seal 2", "seal 3"))))
 
-          val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
+              val userAnswersUpdated =
+                emptyUserAnswers
+                  .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                  .success
+                  .value
+                  .set(NewSealNumberPage(Index(0)), "seal 2")
+                  .success
+                  .value
+                  .set(NewSealNumberPage(Index(1)), "seal 1")
+                  .success
+                  .value
+                  .set(NewSealNumberPage(Index(2)), "seal 3")
+                  .success
+                  .value
 
-          val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(1, Seq("seal 1", "seal 2", "seal 3"))))
+              when(mockResultOfControlService.build(userAnswersUpdated)).thenReturn(Nil)
 
-          val userAnswersUpdated =
-            emptyUserAnswers
-              .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
-              .success
-              .value
-              .set(NewSealNumberPage(Index(0)), "seal 2")
-              .success
-              .value
-              .set(NewSealNumberPage(Index(1)), "seal 1")
-              .success
-              .value
-              .set(NewSealNumberPage(Index(2)), "seal 3")
-              .success
-              .value
-
-          when(mockResultOfControlService.build(userAnswersUpdated)).thenReturn(Nil)
-
-          service.build(userAnswersUpdated, unloadingPermissionWithSeals).futureValue mustBe
-            RemarksConformWithSeals(dateGoodsUnloaded)
+              service.build(userAnswersUpdated, unloadingPermissionWithSeals).futureValue mustBe
+                RemarksConformWithSeals(dateGoodsUnloaded, None)
+          }
         }
 
         "cannot be read" in {
@@ -192,7 +203,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
               service.build(userAnswersUpdated, unloadingPermissionWithSeals).futureValue mustBe
                 RemarksNonConform(
                   stateOfSeals    = Some(0),
-                  unloadingRemark = userAnswersUpdated.get(ChangesToReportPage),
+                  unloadingRemark = userAnswers.get(ChangesToReportPage),
                   unloadingDate   = dateGoodsUnloaded
                 )
           }
@@ -227,35 +238,47 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
         "don't exist in unloading permission and user hasn't changed anything" in {
 
-          val unloadingPermissionObject = arbitrary[UnloadingPermission]
+          forAll(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength), arbitrary[UnloadingPermission]) {
+            (unloadingRemarks, unloadingPermission) =>
+              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None)
 
-          val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
+              val userAnswersUpdated =
+                emptyUserAnswers
+                  .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                  .success
+                  .value
+                  .set(ChangesToReportPage, unloadingRemarks)
+                  .success
+                  .value
 
-          val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None)
+              when(mockResultOfControlService.build(userAnswersUpdated)).thenReturn(Nil)
 
-          val userAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, dateGoodsUnloaded).success.value
-
-          when(mockResultOfControlService.build(userAnswers)).thenReturn(Nil)
-
-          service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe RemarksConform(dateGoodsUnloaded)
+              service.build(userAnswersUpdated, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksConform(dateGoodsUnloaded, Some(unloadingRemarks))
+          }
         }
 
         "exist in unloading permission and user hasn't changed anything" in {
+          forAll(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength), arbitrary[UnloadingPermission]) {
+            (unloadingRemarks, unloadingPermission) =>
+              val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
 
-          val unloadingPermissionObject = arbitrary[UnloadingPermission]
+              val userAnswersUpdated =
+                emptyUserAnswers
+                  .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                  .success
+                  .value
+                  .set(ChangesToReportPage, unloadingRemarks)
+                  .success
+                  .value
 
-          val unloadingPermission: UnloadingPermission = unloadingPermissionObject.sample.get
+              when(mockResultOfControlService.build(userAnswersUpdated)).thenReturn(Nil)
 
-          val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
-
-          val userAnswers = emptyUserAnswers.set(DateGoodsUnloadedPage, dateGoodsUnloaded).success.value
-
-          when(mockResultOfControlService.build(userAnswers)).thenReturn(Nil)
-
-          service.build(userAnswers, unloadingPermissionWithSeals).futureValue mustBe RemarksConformWithSeals(dateGoodsUnloaded)
+              service.build(userAnswersUpdated, unloadingPermissionWithSeals).futureValue mustBe
+                RemarksConformWithSeals(dateGoodsUnloaded, Some(unloadingRemarks))
+          }
         }
 
-        //TODO: See comments below, need clarification
         "don't exist in unloading permission and user has added a new seal" in {
 
           forAll(arbitrary[UserAnswers], arbitrary[UnloadingPermission]) {
@@ -269,7 +292,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
               service.build(userAnswersUpdated, unloadingPermissionWithSeals).futureValue mustBe
                 RemarksNonConform(
-                  stateOfSeals    = None, // Should this be Some(0)? (no seals existed but we've added new ones)
+                  stateOfSeals    = None,
                   unloadingRemark = userAnswers.get(ChangesToReportPage),
                   unloadingDate   = dateGoodsUnloaded
                 )

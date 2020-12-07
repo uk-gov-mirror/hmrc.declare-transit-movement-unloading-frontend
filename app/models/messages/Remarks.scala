@@ -44,24 +44,38 @@ object Remarks {
   }
 }
 
-case class RemarksConform(unloadingDate: LocalDate) extends Remarks {
+case class RemarksConform(unloadingDate: LocalDate, unloadingRemark: Option[String]) extends Remarks {
   val conform = "1"
 }
 
 object RemarksConform {
   implicit val writes: XMLWrites[RemarksConform] = {
 
-    XMLWrites(remarks => <UNLREMREM>
-      <ConREM65>{remarks.conform}</ConREM65>
-      <UnlComREM66>{remarks.unloadingCompleted}</UnlComREM66>
-      <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
-    </UNLREMREM>)
+    XMLWrites(remarks => {
+
+      val unloadingRemarks = remarks.unloadingRemark.map {
+        remarks =>
+          <UnlRemREM53>{remarks}</UnlRemREM53>
+            <UnlRemREM53LNG>{LanguageCodeEnglish.code}</UnlRemREM53LNG>
+      }
+
+      <UNLREMREM>
+        {unloadingRemarks.getOrElse(NodeSeq.Empty)}
+        <ConREM65>{remarks.conform}</ConREM65>
+        <UnlComREM66>{remarks.unloadingCompleted}</UnlComREM66>
+        <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
+      </UNLREMREM>
+    })
   }
 
-  implicit val xmlReader: XmlReader[RemarksConform] = (__ \ "UnlDatREM67").read[LocalDate] map apply
+  implicit val xmlReader: XmlReader[RemarksConform] =
+    (
+      (__ \ "UnlDatREM67").read[LocalDate],
+      (__ \ "UnlRemREM53").read[String].optional
+    ) mapN apply
 }
 
-case class RemarksConformWithSeals(unloadingDate: LocalDate) extends Remarks {
+case class RemarksConformWithSeals(unloadingDate: LocalDate, unloadingRemark: Option[String]) extends Remarks {
   val conform      = "1"
   val stateOfSeals = "1"
 }
@@ -69,20 +83,35 @@ case class RemarksConformWithSeals(unloadingDate: LocalDate) extends Remarks {
 object RemarksConformWithSeals {
   implicit val writes: XMLWrites[RemarksConformWithSeals] = {
 
-    XMLWrites(remarks => <UNLREMREM>
-      <StaOfTheSeaOKREM19>{remarks.stateOfSeals}</StaOfTheSeaOKREM19>
-      <ConREM65>{remarks.conform}</ConREM65>
-      <UnlComREM66>{remarks.unloadingCompleted}</UnlComREM66>
-      <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
-    </UNLREMREM>)
+    XMLWrites(remarks => {
+
+      val unloadingRemarks = remarks.unloadingRemark.map {
+        remarks =>
+          <UnlRemREM53>{remarks}</UnlRemREM53>
+            <UnlRemREM53LNG>{LanguageCodeEnglish.code}</UnlRemREM53LNG>
+      }
+
+      <UNLREMREM>
+        <StaOfTheSeaOKREM19>{remarks.stateOfSeals}</StaOfTheSeaOKREM19>
+        {unloadingRemarks.getOrElse(NodeSeq.Empty)}
+        <ConREM65>{remarks.conform}</ConREM65>
+        <UnlComREM66>{remarks.unloadingCompleted}</UnlComREM66>
+        <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>
+      </UNLREMREM>
+
+    })
   }
 
-  implicit val xmlReader: XmlReader[RemarksConformWithSeals] = (__ \ "UnlDatREM67").read[LocalDate] map apply
+  implicit val xmlReader: XmlReader[RemarksConformWithSeals] =
+    (
+      (__ \ "UnlDatREM67").read[LocalDate],
+      (__ \ "UnlRemREM53").read[String].optional
+    ) mapN apply
 }
 
 case class RemarksNonConform(
   stateOfSeals: Option[Int],
-  unloadingRemark: Option[String], //TODO: Can we have non conform with no results of control and unloading remarks
+  unloadingRemark: Option[String],
   unloadingDate: LocalDate
 ) extends Remarks {
   val conform = "0"
@@ -105,12 +134,12 @@ object RemarksNonConform {
       val unloadingRemarks = remarks.unloadingRemark.map {
         remarks =>
           <UnlRemREM53>{remarks}</UnlRemREM53>
+          <UnlRemREM53LNG>{LanguageCodeEnglish.code}</UnlRemREM53LNG>
       }
 
       <UNLREMREM>
         {stateOfSeals.getOrElse(NodeSeq.Empty)}
         {unloadingRemarks.getOrElse(NodeSeq.Empty)}
-        <UnlRemREM53LNG>{LanguageCodeEnglish.code}</UnlRemREM53LNG>
         <ConREM65>{remarks.conform}</ConREM65>
         <UnlComREM66>{remarks.unloadingCompleted}</UnlComREM66>
         <UnlDatREM67>{Format.dateFormatted(remarks.unloadingDate)}</UnlDatREM67>

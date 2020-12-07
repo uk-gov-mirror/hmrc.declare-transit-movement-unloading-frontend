@@ -60,30 +60,12 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             unloadingDate   = unloadingDate
           ))
       } else {
-        userAnswers.get(ChangesToReportPage) match {
-          case Some(unloadingRemarks) =>
-            Future.successful(
-              RemarksNonConform(
-                stateOfSeals    = Some(1),
-                unloadingRemark = Some(unloadingRemarks),
-                unloadingDate   = unloadingDate
-              )
-            )
-          case None => {
-
-            if (resultsOfControl.isEmpty) {
-              Future.successful(RemarksConformWithSeals(unloadingDate))
-            } else {
-              Future.successful(
-                RemarksNonConform(
-                  stateOfSeals    = Some(1),
-                  unloadingRemark = None,
-                  unloadingDate   = unloadingDate
-                ))
-            }
-
-          }
-        }
+        Future.successful(
+          RemarksConformWithSeals(
+            unloadingRemark = userAnswers.get(ChangesToReportPage),
+            unloadingDate   = unloadingDate
+          )
+        )
       }
     }
 
@@ -91,7 +73,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
 
   private def unloadingPermissionDoesNotContainSeals(
     userAnswers: UserAnswers)(implicit unloadingDate: LocalDate, resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
-    case None => {
+    case None =>
       userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) =>
           Future.successful(
@@ -101,31 +83,14 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
               unloadingDate   = unloadingDate
             )
           )
-        case None => {
-          userAnswers.get(ChangesToReportPage) match {
-            case Some(unloadingRemarks) =>
-              Future.successful(
-                RemarksNonConform(
-                  stateOfSeals    = None,
-                  unloadingRemark = Some(unloadingRemarks),
-                  unloadingDate   = unloadingDate
-                )
-              )
-            case None =>
-              if (resultsOfControl.isEmpty) {
-                Future.successful(RemarksConform(unloadingDate))
-              } else {
-                Future.successful(
-                  RemarksNonConform(
-                    stateOfSeals    = None,
-                    unloadingRemark = None,
-                    unloadingDate   = unloadingDate
-                  ))
-              }
-          }
-        }
+        case None =>
+          Future.successful(
+            RemarksConform(
+              unloadingRemark = userAnswers.get(ChangesToReportPage),
+              unloadingDate   = unloadingDate
+            )
+          )
       }
-    }
   }
 }
 

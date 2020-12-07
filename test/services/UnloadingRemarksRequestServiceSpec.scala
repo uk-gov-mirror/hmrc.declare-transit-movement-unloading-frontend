@@ -22,6 +22,7 @@ import generators.MessagesModelGenerators
 import models.messages._
 import models.{Index, Seals, UnloadingPermission}
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.{NewSealNumberPage, VehicleNameRegistrationReferencePage}
 
@@ -37,9 +38,12 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with AppWithDefaultMoc
 
         val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
-        forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
-          (unloadingPermission, meta, localDateTime) =>
-            val unloadingRemarks = RemarksConform(localDateTime.toLocalDate)
+        forAll(arbitrary[UnloadingPermission],
+               arbitrary[Meta],
+               arbitrary[LocalDateTime],
+               Gen.option(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength))) {
+          (unloadingPermission, meta, localDateTime, unloadingRemark) =>
+            val unloadingRemarks = RemarksConform(localDateTime.toLocalDate, unloadingRemark)
 
             unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, emptyUserAnswers) mustBe
               UnloadingRemarksRequest(
@@ -58,9 +62,12 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with AppWithDefaultMoc
 
         val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
-        forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
-          (unloadingPermission, meta, localDateTime) =>
-            val unloadingRemarks = RemarksConformWithSeals(localDateTime.toLocalDate)
+        forAll(arbitrary[UnloadingPermission],
+               arbitrary[Meta],
+               arbitrary[LocalDateTime],
+               Gen.option(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength))) {
+          (unloadingPermission, meta, localDateTime, unloadingRemark) =>
+            val unloadingRemarks = RemarksConformWithSeals(localDateTime.toLocalDate, unloadingRemark)
 
             unloadingRemarksRequestService.build(meta, unloadingRemarks, unloadingPermission, emptyUserAnswers) mustBe
               UnloadingRemarksRequest(
