@@ -16,7 +16,6 @@
 
 package controllers
 
-import config.FrontendAppConfig
 import connectors.UnloadingConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
@@ -29,7 +28,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingPermissionPDFController @Inject()(identify: IdentifierAction,
                                                  val controllerComponents: MessagesControllerComponents,
-                                                 unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext, appConfig: FrontendAppConfig)
+                                                 unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 

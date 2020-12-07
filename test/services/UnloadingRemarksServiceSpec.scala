@@ -15,13 +15,14 @@
  */
 
 package services
+
 import java.time.LocalDate
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import connectors.UnloadingConnector
 import generators.MessagesModelGenerators
+import models.UnloadingPermission
 import models.messages.{InterchangeControlReference, _}
-import models.{EoriNumber, UnloadingPermission}
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{when, _}
 import org.scalacheck.Arbitrary.arbitrary

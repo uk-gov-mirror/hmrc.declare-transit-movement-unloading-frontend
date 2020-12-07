@@ -125,9 +125,6 @@ class GrossMassAmountRejectionControllerSpec extends SpecBase with AppWithDefaul
 
   "must redirect to the technical difficulties page when rejection message is None" in {
 
-    val originalValue = "some reference"
-    val errors        = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-
     when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(None))
     when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 

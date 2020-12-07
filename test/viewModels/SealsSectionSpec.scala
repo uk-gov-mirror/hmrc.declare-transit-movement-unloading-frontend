@@ -15,9 +15,9 @@
  */
 
 package viewModels
+
 import base.SpecBase
-import cats.data.NonEmptyList
-import models.{GoodsItem, Index, Packages, ProducedDocument, Seals, TraderAtDestinationWithEori, UnloadingPermission}
+import models.{Index, Seals}
 import pages.NewSealNumberPage
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.UnloadingSummaryRow

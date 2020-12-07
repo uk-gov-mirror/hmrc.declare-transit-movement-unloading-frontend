@@ -16,9 +16,9 @@
 
 package forms
 
-import javax.inject.Inject
 import forms.mappings.Mappings
-import models.messages.{RemarksNonConform, UnloadingRemarksRequest}
+import javax.inject.Inject
+import models.messages.RemarksNonConform
 import play.api.data.Form
 
 class ChangesToReportFormProvider @Inject() extends Mappings {

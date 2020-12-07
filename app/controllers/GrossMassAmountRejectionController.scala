@@ -20,7 +20,6 @@ import controllers.actions._
 import forms.GrossMassAmountFormProvider
 import javax.inject.Inject
 import models.{ArrivalId, UserAnswers}
-import navigation.Navigator
 import pages.GrossMassAmountPage
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json

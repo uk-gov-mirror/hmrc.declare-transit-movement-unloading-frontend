@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.ChangesToReportFormProvider
 import javax.inject.Inject
-import models.{ArrivalId, Mode, MovementReferenceNumber, UserAnswers}
+import models.{ArrivalId, Mode}
 import navigation.Navigator
 import pages.ChangesToReportPage
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -31,7 +31,6 @@ import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Try
 
 class ChangesToReportController @Inject()(
   override val messagesApi: MessagesApi,

@@ -15,11 +15,11 @@
  */
 
 package services
+
 import java.time.LocalDateTime
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import generators.MessagesModelGenerators
-import models.EoriNumber
 import models.messages.{InterchangeControlReference, Meta}
 import org.mockito.Mockito.{reset, when}
 import org.scalacheck.Arbitrary.arbitrary

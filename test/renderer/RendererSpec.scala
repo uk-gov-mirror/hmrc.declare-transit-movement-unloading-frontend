@@ -17,19 +17,12 @@
 package renderer
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{times, verify, when}
-import org.mockito.{ArgumentCaptor, Mockito}
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterEach, FreeSpec, MustMatchers}
-import org.scalatestplus.mockito.MockitoSugar
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.inject.bind
-import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json._
 import play.api.test.FakeRequest
 import play.twirl.api.Html
-import uk.gov.hmrc.nunjucks.NunjucksRenderer
 
 import scala.concurrent.Future
 

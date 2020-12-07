@@ -18,7 +18,6 @@ package repositories
 
 import java.time.LocalDateTime
 
-import akka.stream.Materializer
 import javax.inject.Inject
 import models.{ArrivalId, EoriNumber, UserAnswers}
 import play.api.Configuration
@@ -34,7 +33,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class DefaultSessionRepository @Inject()(
   mongo: ReactiveMongoApi,
   config: Configuration
-)(implicit ec: ExecutionContext, m: Materializer)
+)(implicit ec: ExecutionContext)
     extends SessionRepository {
 
   private val collectionName: String = "user-answers"

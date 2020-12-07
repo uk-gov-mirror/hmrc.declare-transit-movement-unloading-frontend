@@ -15,11 +15,12 @@
  */
 
 package viewModels
+
 import java.time.LocalDate
 
 import base.SpecBase
 import cats.data.NonEmptyList
-import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithEori, UnloadingPermission, UserAnswers}
+import models.{UnloadingPermission, UserAnswers}
 import org.scalatest.{FreeSpec, MustMatchers}
 import pages._
 import uk.gov.hmrc.viewmodels.Text.Literal
