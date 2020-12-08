@@ -41,7 +41,7 @@ class UnloadingConnectorImpl @Inject()(
 
     val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
-    val headers = Seq(("Content-Type", "application/xml"))
+    val headers = Seq("Content-Type" -> "application/xml", "Channel" -> "web")
 
     http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }

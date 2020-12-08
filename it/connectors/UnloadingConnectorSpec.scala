@@ -46,6 +46,8 @@ class UnloadingConnectorSpec
       "should handle an ACCEPTED response" in {
         server.stubFor(
           post(postUri)
+            .withHeader("Channel", containing("web"))
+            .withHeader("Content-Type", containing("application/xml"))
             .willReturn(status(ACCEPTED)))
 
         val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
