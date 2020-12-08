@@ -18,6 +18,7 @@ package connectors
 
 import config.FrontendAppConfig
 import javax.inject.Inject
+import logging.Logging
 import models.XMLWrites._
 import models.{XMLReads, _}
 import models.messages.UnloadingRemarksRequest
@@ -36,7 +37,8 @@ class UnloadingConnectorImpl @Inject()(
   val ws: WSClient
 )(implicit ec: ExecutionContext)
     extends UnloadingConnector
-    with HttpErrorFunctions {
+    with HttpErrorFunctions
+    with Logging {
 
   private val channel: String = "web"
 
@@ -59,7 +61,7 @@ class UnloadingConnectorImpl @Inject()(
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingPermission](message)
       case _ =>
-        Logger.error(s"Get UnloadingPermission failed to return data")
+        logger.error(s"Get UnloadingPermission failed to return data")
         None
     }
   }
@@ -73,7 +75,7 @@ class UnloadingConnectorImpl @Inject()(
       case responseMessage if is2xx(responseMessage.status) =>
         Some(responseMessage.json.as[MessagesSummary])
       case _ =>
-        Logger.error(s"Get Summary failed to return data")
+        logger.error(s"Get Summary failed to return data")
         None
     }
   }
@@ -87,7 +89,7 @@ class UnloadingConnectorImpl @Inject()(
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingRemarksRejectionMessage](message)
       case _ =>
-        Logger.error(s"Get Rejection Message failed to return data")
+        logger.error(s"Get Rejection Message failed to return data")
         None
     }
   }
@@ -101,7 +103,7 @@ class UnloadingConnectorImpl @Inject()(
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingRemarksRequest](message)
       case _ =>
-        Logger.error(s"getUnloadingRemarksMessage failed to return data")
+        logger.error(s"getUnloadingRemarksMessage failed to return data")
         None
     }
   }

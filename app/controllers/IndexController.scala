@@ -18,8 +18,8 @@ package controllers
 
 import controllers.actions.{DataRetrievalActionProvider, IdentifierAction}
 import javax.inject.Inject
+import logging.Logging
 import models.{ArrivalId, MovementReferenceNumber, UserAnswers}
-import play.api.Logger
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import repositories.SessionRepository
@@ -36,7 +36,8 @@ class IndexController @Inject()(
   sessionRepository: SessionRepository
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with Logging {
 
   private val nextPage: ArrivalId => String = arrivalId => routes.UnloadingGuidanceController.onPageLoad(arrivalId).url
 
@@ -56,11 +57,11 @@ class IndexController @Inject()(
                       Future.successful(Redirect(nextPage(arrivalId)))
                   }
                 case _ =>
-                  Logger.error(s"Failed to get validate mrn: ${unloadingPermission.movementReferenceNumber}")
+                  logger.error(s"Failed to get validate mrn: ${unloadingPermission.movementReferenceNumber}")
                   Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
               }
             case None =>
-              Logger.error(s"Failed to get unloading permission for arrivalId: ${arrivalId.value}")
+              logger.error(s"Failed to get unloading permission for arrivalId: ${arrivalId.value}")
               Future.successful(Redirect(routes.SessionExpiredController.onPageLoad()))
           }
       }
