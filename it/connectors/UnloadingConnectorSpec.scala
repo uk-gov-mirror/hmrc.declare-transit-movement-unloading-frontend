@@ -73,6 +73,8 @@ class UnloadingConnectorSpec
             (unloadingRemarksRequest, errorResponseCode) =>
               server.stubFor(
                 post(postUri)
+                  .withHeader("Channel", containing("web"))
+                  .withHeader("Content-Type", containing("application/xml"))
                   .willReturn(aResponse().withStatus(errorResponseCode)))
 
               connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
@@ -89,6 +91,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(unloadingPermissionUrl))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               okJson(json.toString)
             )
@@ -129,7 +132,8 @@ class UnloadingConnectorSpec
         forAll(responseCodes) {
           code: Int =>
             server.stubFor(
-              get(summaryUri)
+              get(unloadingPermissionUrl)
+                .withHeader("Channel", containing("web"))
                 .willReturn(aResponse().withStatus(code))
             )
 
@@ -160,6 +164,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(summaryUri))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               okJson(json.toString)
             )
@@ -177,6 +182,7 @@ class UnloadingConnectorSpec
           code: Int =>
             server.stubFor(
               get(summaryUri)
+                .withHeader("Channel", containing("web"))
                 .willReturn(aResponse().withStatus(code))
             )
 

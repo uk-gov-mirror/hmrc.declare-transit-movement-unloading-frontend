@@ -23,7 +23,7 @@ import models.{XMLReads, _}
 import models.messages.UnloadingRemarksRequest
 import play.api.Logger
 import play.api.libs.ws.{WSClient, WSResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpReads, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -46,10 +46,12 @@ class UnloadingConnectorImpl @Inject()(
     http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
-  def getUnloadingPermission(unloadingPermission: String)(implicit headerCarrier: HeaderCarrier): Future[Option[UnloadingPermission]] = {
+  def getUnloadingPermission(unloadingPermission: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingPermission"
-    http.GET[HttpResponse](serviceUrl) map {
+    val header     = hc.withExtraHeaders(("Channel", "web"))
+
+    http.GET[HttpResponse](serviceUrl)(HttpReads.readRaw, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingPermission](message)
@@ -62,7 +64,10 @@ class UnloadingConnectorImpl @Inject()(
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
 
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/summary"
-    http.GET[HttpResponse](serviceUrl) map {
+
+    val header = hc.withExtraHeaders(("Channel", "web"))
+
+    http.GET[HttpResponse](serviceUrl)(HttpReads.readRaw, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         Some(responseMessage.json.as[MessagesSummary])
       case _ =>
