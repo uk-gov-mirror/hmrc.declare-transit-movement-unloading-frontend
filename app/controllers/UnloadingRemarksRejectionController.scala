@@ -19,8 +19,8 @@ package controllers
 import config.FrontendAppConfig
 import controllers.actions._
 import javax.inject.Inject
+import logging.Logging
 import models.ArrivalId
-import play.api.Logger
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import renderer.Renderer
@@ -39,9 +39,8 @@ class UnloadingRemarksRejectionController @Inject()(
   service: UnloadingRemarksRejectionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
-
-  val Log: Logger = Logger(getClass)
+    with I18nSupport
+    with Logging {
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
@@ -50,11 +49,11 @@ class UnloadingRemarksRejectionController @Inject()(
           UnloadingRemarksRejectionViewModel(rejectionMessage.errors, arrivalId, appConfig.nctsEnquiriesUrl) match {
             case Some(viewModel) => renderer.render(viewModel.page, viewModel.json).map(Ok(_))
             case _ =>
-              Log.debug(s"Couldn't build a UnloadingRemarksRejectionViewModel for arrival: $arrivalId")
+              logger.debug(s"Couldn't build a UnloadingRemarksRejectionViewModel for arrival: $arrivalId")
               Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }
         case _ =>
-          Log.error(s"Failed to pull back a rejection message for arrival: $arrivalId")
+          logger.error(s"Failed to pull back a rejection message for arrival: $arrivalId")
           Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
       }
   }

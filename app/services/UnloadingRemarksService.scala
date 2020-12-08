@@ -15,14 +15,15 @@
  */
 
 package services
+
 import java.time.LocalDate
 
 import com.google.inject.Inject
 import connectors.UnloadingConnector
+import logging.Logging
 import models.messages._
 import models.{ArrivalId, EoriNumber, UnloadingPermission, UserAnswers}
 import pages.{DateGoodsUnloadedPage, GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage, VehicleNameRegistrationReferencePage}
-import play.api.Logger
 import play.api.http.Status._
 import repositories.InterchangeControlReferenceIdRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,7 +35,8 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingRemarksMessageService: UnloadingRemarksMessageService,
-                                        unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext) {
+                                        unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext)
+    extends Logging {
 
   def submit(arrivalId: ArrivalId, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     interchangeControlReferenceIdRepository
@@ -56,7 +58,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                     .flatMap(response => Future.successful(Some(response.status)))
                     .recover {
                       case ex =>
-                        Logger.error(s"$ex")
+                        logger.error(s"$ex")
                         Some(SERVICE_UNAVAILABLE)
                     }
               }
@@ -64,7 +66,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       }
       .recover {
         case ex =>
-          Logger.error(s"$ex")
+          logger.error(s"$ex")
           None
       }
 
@@ -73,9 +75,9 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       case Some(unloadingRemarksRequest) =>
         getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
           case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
-          case _                             => Logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
+          case _                             => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
         }
-      case _ => Logger.debug("Failed to get unloading remarks request: Service.unloadingRemarksMessage(arrivalId)"); Future.successful(None)
+      case _ => logger.debug("Failed to get unloading remarks request: Service.unloadingRemarksMessage(arrivalId)"); Future.successful(None)
     }
 
   private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,

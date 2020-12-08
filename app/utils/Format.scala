@@ -15,10 +15,11 @@
  */
 
 package utils
+
 import java.time.format.DateTimeFormatter
 import java.time.{LocalDate, LocalTime}
 
-import play.api.Logger
+import logging.Logging
 
 object Format {
 
@@ -31,16 +32,16 @@ object Format {
   val cyaDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMMM yyyy")
 }
 
-object Date {
+object Date extends Logging {
 
   def getDate(date: String): Option[LocalDate] =
     try Some(LocalDate.parse(date, Format.dateFormatter))
-    catch { case _: Exception => Logger.debug("Failed to parse the date"); None }
+    catch { case _: Exception => logger.debug("Failed to parse the date"); None }
 }
 
-object IntValue {
+object IntValue extends Logging {
 
   def getInt(value: String): Option[Int] =
     try Some(value.toInt)
-    catch { case _: Exception => Logger.debug("failed to get string as Int"); None }
+    catch { case _: Exception => logger.debug("failed to get string as Int"); None }
 }
