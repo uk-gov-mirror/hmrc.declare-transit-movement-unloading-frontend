@@ -49,9 +49,9 @@ class UnloadingConnectorImpl @Inject()(
   def getUnloadingPermission(unloadingPermission: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingPermission"
-    val header     = hc.withExtraHeaders(("Channel", "web"))
+    val header     = hc.withExtraHeaders("Channel" -> "web")
 
-    http.GET[HttpResponse](serviceUrl)(HttpReads.readRaw, header, ec) map {
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingPermission](message)
@@ -64,10 +64,9 @@ class UnloadingConnectorImpl @Inject()(
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
 
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/summary"
+    val header             = hc.withExtraHeaders(("Channel", "web"))
 
-    val header = hc.withExtraHeaders(("Channel", "web"))
-
-    http.GET[HttpResponse](serviceUrl)(HttpReads.readRaw, header, ec) map {
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         Some(responseMessage.json.as[MessagesSummary])
       case _ =>
@@ -78,8 +77,9 @@ class UnloadingConnectorImpl @Inject()(
 
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = {
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$rejectionLocation"
+    val header     = hc.withExtraHeaders(("Channel", "web"))
 
-    http.GET[HttpResponse](serviceUrl) map {
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingRemarksRejectionMessage](message)
@@ -91,8 +91,9 @@ class UnloadingConnectorImpl @Inject()(
 
   def getUnloadingRemarksMessage(unloadingRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]] = {
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingRemarksLocation"
+    val header     = hc.withExtraHeaders(("Channel", "web"))
 
-    http.GET[HttpResponse](serviceUrl) map {
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingRemarksRequest](message)
@@ -105,7 +106,7 @@ class UnloadingConnectorImpl @Inject()(
   def getPDF(arrivalId: ArrivalId, bearerToken: String)(implicit hc: HeaderCarrier): Future[WSResponse] = {
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/unloading-permission"
     ws.url(serviceUrl)
-      .withHttpHeaders(("Authorization", bearerToken))
+      .withHttpHeaders(("Channel", "web"), ("Authorization", bearerToken))
       .get
   }
 

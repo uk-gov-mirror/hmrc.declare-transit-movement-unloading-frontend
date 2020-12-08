@@ -116,6 +116,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(unloadingPermissionUrl))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               okJson(json.toString)
             )
@@ -214,6 +215,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(rejectionUri))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               okJson(json.toString)
             )
@@ -246,6 +248,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(rejectionUri))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               okJson(json.toString)
             )
@@ -263,6 +266,7 @@ class UnloadingConnectorSpec
           code: Int =>
             server.stubFor(
               get(rejectionUri)
+                .withHeader("Channel", containing("web"))
                 .willReturn(aResponse().withStatus(code))
             )
 
@@ -283,6 +287,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(unloadingRemarksUri))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               okJson(json.toString)
             )
@@ -301,6 +306,7 @@ class UnloadingConnectorSpec
           code: Int =>
             server.stubFor(
               get(unloadingRemarksUri)
+                .withHeader("Channel", containing("web"))
                 .willReturn(aResponse().withStatus(code))
             )
 
@@ -318,6 +324,7 @@ class UnloadingConnectorSpec
 
         server.stubFor(
           get(urlEqualTo(getPDFUrl))
+            .withHeader("Channel", containing("web"))
             .willReturn(
               aResponse()
                 .withStatus(200)
@@ -338,6 +345,7 @@ class UnloadingConnectorSpec
           responseCode =>
             server.stubFor(
               get(urlEqualTo(getPDFUrl))
+                .withHeader("Channel", containing("web"))
                 .willReturn(
                   aResponse()
                     .withStatus(responseCode)
