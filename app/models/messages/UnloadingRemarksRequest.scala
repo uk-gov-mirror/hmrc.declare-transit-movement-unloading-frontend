@@ -16,13 +16,11 @@
 
 package models.messages
 
-import cats.data.NonEmptyList
 import cats.syntax.all._
 import com.lucidchart.open.xtract.XmlReader.strictReadSeq
 import com.lucidchart.open.xtract.{__, XmlReader}
 import models.XMLWrites._
-import models.{GoodsItem, Seals, TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, XMLWrites}
-import xml.NonEmptyListOps
+import models.{Seals, TraderAtDestination, TraderAtDestinationWithEori, TraderAtDestinationWithoutEori, XMLWrites}
 
 import scala.xml.{Elem, Node, NodeSeq}
 

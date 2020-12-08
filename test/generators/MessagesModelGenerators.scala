@@ -24,7 +24,6 @@ import models.{
   ErrorPointer,
   ErrorType,
   FunctionalError,
-  GoodsItem,
   GrossMassPointer,
   MovementReferenceNumber,
   NumberOfItemsPointer,

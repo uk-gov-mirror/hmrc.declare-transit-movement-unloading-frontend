@@ -18,29 +18,28 @@ package controllers
 
 import java.time.{LocalDate, ZoneOffset}
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
 import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
+import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.data.Form
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import repositories.SessionRepository
 import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.Future
 
-class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with MockitoSugar with NunjucksSupport with JsonMatchers {
+class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
   val formProvider                  = new DateGoodsUnloadedFormProvider()
   private def form: Form[LocalDate] = formProvider()
@@ -60,22 +59,31 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with MockitoSuga
         "value.year"  -> validAnswer.getYear.toString
       )
 
+  private val mockRejectionService = mock[UnloadingRemarksRejectionService]
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockRejectionService)
+  }
+
   "DateGoodsUnloaded Controller" - {
 
     "must populate the view correctly on a GET" in {
-      val mockRejectionService = mock[UnloadingRemarksRejectionService]
-
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
       when(mockRejectionService.getRejectedValueAsDate(any(), any())(any())(any())).thenReturn(Future.successful(Some(validAnswer)))
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
-        .build()
+      setNoExistingUserAnswers()
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, getRequest()).value
+      val result = route(app, getRequest()).value
 
       status(result) mustEqual OK
 
@@ -99,14 +107,9 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with MockitoSuga
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
 
     "must redirect to the next page when valid data is submitted" in {
-
-      val mockSessionRepository = mock[SessionRepository]
-      val mockRejectionService  = mock[UnloadingRemarksRejectionService]
 
       val originalValue    = "some reference"
       val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
@@ -115,32 +118,26 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with MockitoSuga
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(rejectionMessage)))
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
-      val application = applicationBuilder(userAnswers = None)
-        .overrides(
-          bind[SessionRepository].toInstance(mockSessionRepository),
-          bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService)
-        )
-        .build()
+      setNoExistingUserAnswers()
 
-      val result = route(application, postRequest()).value
+      val result = route(app, postRequest()).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url
-
-      application.stop()
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request        = FakeRequest(POST, dateGoodsUnloadedRoute).withFormUrlEncodedBody(("value", "invalid value"))
       val boundForm      = form.bind(Map("value" -> "invalid value"))
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -156,8 +153,6 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with MockitoSuga
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
   }
 }

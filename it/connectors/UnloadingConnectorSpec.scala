@@ -15,6 +15,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.http.Status._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
+import play.api.test.Helpers.running
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
@@ -35,9 +36,7 @@ class UnloadingConnectorSpec
 
   override protected def portConfigKey: String = "microservice.services.arrivals-backend.port"
 
-  private lazy val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnectorImpl]
-
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "UnloadingConnectorSpec" - {
 
@@ -50,24 +49,34 @@ class UnloadingConnectorSpec
             .withHeader("Content-Type", containing("application/xml"))
             .willReturn(status(ACCEPTED)))
 
-        val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
+        val app = appBuilder.build()
 
-        val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
 
-        result.status mustBe ACCEPTED
+          val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
+
+          result.status mustBe ACCEPTED
+        }
       }
 
       "should handle client and server errors" in {
 
-        val errorResponsesCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
+        val app = appBuilder.build()
 
-        forAll(arbitrary[UnloadingRemarksRequest], errorResponsesCodes) {
-          (unloadingRemarksRequest, errorResponseCode) =>
-            server.stubFor(
-              post(postUri)
-                .willReturn(aResponse().withStatus(errorResponseCode)))
+        running(app) {
+          val errorResponsesCodes: Gen[Int] = Gen.chooseNum(400: Int, 599: Int)
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
 
-            connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
+          forAll(arbitrary[UnloadingRemarksRequest], errorResponsesCodes) {
+            (unloadingRemarksRequest, errorResponseCode) =>
+              server.stubFor(
+                post(postUri)
+                  .willReturn(aResponse().withStatus(errorResponseCode)))
+
+              connector.post(arrivalId, unloadingRemarksRequest).futureValue.status mustBe errorResponseCode
+          }
         }
       }
     }
@@ -85,15 +94,19 @@ class UnloadingConnectorSpec
             )
         )
 
-        val result = connector.getUnloadingPermission(unloadingPermissionUrl).futureValue
-        result.value mustBe a[UnloadingPermission]
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          val result = connector.getUnloadingPermission(unloadingPermissionUrl).futureValue
+          result.value mustBe an[UnloadingPermission]
+        }
       }
 
       "must return None when xml fails conversion" in {
 
         val expectedResult: NodeSeq = {
           <CC043A>
-            </CC043A>
+          </CC043A>
         }
 
         val json = Json.obj("message" -> expectedResult.toString())
@@ -105,7 +118,11 @@ class UnloadingConnectorSpec
             )
         )
 
-        connector.getUnloadingPermission(unloadingPermissionUrl).futureValue mustBe None
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          connector.getUnloadingPermission(unloadingPermissionUrl).futureValue mustBe None
+        }
       }
 
       "must return 'None' when an error response is returned" in {
@@ -116,7 +133,11 @@ class UnloadingConnectorSpec
                 .willReturn(aResponse().withStatus(code))
             )
 
-            connector.getUnloadingPermission(unloadingPermissionUrl).futureValue mustBe None
+            val app = appBuilder.build()
+            running(app) {
+              val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+              connector.getUnloadingPermission(unloadingPermissionUrl).futureValue mustBe None
+            }
         }
       }
     }
@@ -135,7 +156,7 @@ class UnloadingConnectorSpec
 
         val messageAction =
           MessagesSummary(arrivalId,
-                          MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/4"), Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
+            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/4"), Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
 
         server.stubFor(
           get(urlEqualTo(summaryUri))
@@ -143,7 +164,12 @@ class UnloadingConnectorSpec
               okJson(json.toString)
             )
         )
-        connector.getSummary(arrivalId).futureValue mustBe Some(messageAction)
+
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          connector.getSummary(arrivalId).futureValue mustBe Some(messageAction)
+        }
       }
 
       "must return 'None' when an error response is returned from getSummary" in {
@@ -154,14 +180,18 @@ class UnloadingConnectorSpec
                 .willReturn(aResponse().withStatus(code))
             )
 
-            connector.getSummary(ArrivalId(1)).futureValue mustBe None
+            val app = appBuilder.build()
+            running(app) {
+              val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+              connector.getSummary(ArrivalId(1)).futureValue mustBe None
+            }
         }
       }
     }
 
     "getRejectionMessage" - {
       "must return valid 'rejection message'" in {
-        val genRejectionError     = arbitrary[ErrorType].sample.value
+        val genRejectionError = arbitrary[ErrorType].sample.value
         val rejectionXml: NodeSeq = <CC058A>
           <HEAHEA>
             <DocNumHEA5>19IT021300100075E9</DocNumHEA5>
@@ -182,6 +212,7 @@ class UnloadingConnectorSpec
               okJson(json.toString)
             )
         )
+
         val expectedResult = Some(
           UnloadingRemarksRejectionMessage(
             MovementReferenceNumber("19IT021300100075E9").get,
@@ -189,13 +220,19 @@ class UnloadingConnectorSpec
             None,
             List(FunctionalError(genRejectionError, DefaultPointer("Message type"), None, Some("GB007A")))
           ))
-        val result = connector.getRejectionMessage(rejectionUri).futureValue
-        result mustBe expectedResult
+
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          val result = connector.getRejectionMessage(rejectionUri).futureValue
+          result mustBe expectedResult
+        }
       }
 
       "must return None for malformed xml'" in {
         val rejectionXml: NodeSeq = <CC058A>
-          <HEAHEA><DocNumHEA5>19IT021300100075E9</DocNumHEA5>
+          <HEAHEA>
+            <DocNumHEA5>19IT021300100075E9</DocNumHEA5>
           </HEAHEA>
         </CC058A>
 
@@ -208,7 +245,11 @@ class UnloadingConnectorSpec
             )
         )
 
-        connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+        }
       }
 
       "must return None when an error response is returned from getRejectionMessage" in {
@@ -219,7 +260,11 @@ class UnloadingConnectorSpec
                 .willReturn(aResponse().withStatus(code))
             )
 
-            connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+            val app = appBuilder.build()
+            running(app) {
+              val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+              connector.getRejectionMessage(rejectionUri).futureValue mustBe None
+            }
         }
       }
     }
@@ -237,8 +282,12 @@ class UnloadingConnectorSpec
             )
         )
 
-        val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue.value
-        result mustBe unloadingRemarksRequest
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue.value
+          result mustBe unloadingRemarksRequest
+        }
       }
 
       "must return None when an error response is returned from getUnloadingRemarksMessage" in {
@@ -249,7 +298,11 @@ class UnloadingConnectorSpec
                 .willReturn(aResponse().withStatus(code))
             )
 
-            connector.getUnloadingRemarksMessage(rejectionUri).futureValue mustBe None
+            val app = appBuilder.build()
+            running(app) {
+              val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+              connector.getUnloadingRemarksMessage(rejectionUri).futureValue mustBe None
+            }
         }
       }
     }
@@ -265,11 +318,14 @@ class UnloadingConnectorSpec
             )
         )
 
-        val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
+        val app = appBuilder.build()
+        running(app) {
+          val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+          val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
 
-        result.futureValue.status mustBe 200
+          result.futureValue.status mustBe 200
+        }
       }
-
       "must return other error status codes without exceptions" in {
 
         forAll(responseCodes) {
@@ -282,9 +338,13 @@ class UnloadingConnectorSpec
                 )
             )
 
-            val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
+            val app = appBuilder.build()
+            running(app) {
+              val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
+              val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
 
-            result.futureValue.status mustBe responseCode
+              result.futureValue.status mustBe responseCode
+            }
         }
       }
     }

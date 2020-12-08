@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
 import javax.inject.Inject
-import models.{ArrivalId, Mode, MovementReferenceNumber, UnloadingPermission, UserAnswers}
+import models.{ArrivalId, Mode}
 import navigation.NavigatorUnloadingPermission
 import pages.DateGoodsUnloadedPage
 import play.api.i18n.{I18nSupport, MessagesApi}

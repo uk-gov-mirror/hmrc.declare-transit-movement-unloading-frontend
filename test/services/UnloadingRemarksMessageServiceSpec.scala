@@ -16,7 +16,7 @@
 
 package services
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import connectors.UnloadingConnector
 import generators.MessagesModelGenerators
 import models.messages.UnloadingRemarksRequest
@@ -25,19 +25,27 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import play.api.inject.bind
 import org.scalacheck.Arbitrary.arbitrary
+import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UnloadingRemarksMessageServiceSpec extends SpecBase with MessagesModelGenerators {
+class UnloadingRemarksMessageServiceSpec extends SpecBase with AppWithDefaultMockFixtures with MessagesModelGenerators {
 
   private val mockConnector = mock[UnloadingConnector]
-  val service               = new UnloadingRemarksMessageService(mockConnector)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  implicit private val hc: HeaderCarrier = HeaderCarrier()
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockConnector)
   }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingConnector].toInstance(mockConnector))
 
   "UnloadingRemarksMessageService" - {
     "must return UnloadingRemarksMessage for the input arrivalId" in {
@@ -50,10 +58,9 @@ class UnloadingRemarksMessageServiceSpec extends SpecBase with MessagesModelGene
       when(mockConnector.getUnloadingRemarksMessage(any())(any()))
         .thenReturn(Future.successful(Some(unloadingRemarksRequest)))
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-        .build()
-      val unloadingRemarksMessageService = application.injector.instanceOf[UnloadingRemarksMessageService]
+      setExistingUserAnswers(emptyUserAnswers)
+
+      val unloadingRemarksMessageService = app.injector.instanceOf[UnloadingRemarksMessageService]
 
       unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId).futureValue.value mustBe unloadingRemarksRequest
     }
@@ -62,13 +69,11 @@ class UnloadingRemarksMessageServiceSpec extends SpecBase with MessagesModelGene
 
       when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(None))
 
-      val application = applicationBuilder(Some(emptyUserAnswers))
-        .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-        .build()
-      val unloadingRemarksMessage = application.injector.instanceOf[UnloadingRemarksMessageService]
+      setExistingUserAnswers(emptyUserAnswers)
+
+      val unloadingRemarksMessage = app.injector.instanceOf[UnloadingRemarksMessageService]
 
       unloadingRemarksMessage.unloadingRemarksMessage(arrivalId).futureValue mustBe None
     }
   }
-
 }

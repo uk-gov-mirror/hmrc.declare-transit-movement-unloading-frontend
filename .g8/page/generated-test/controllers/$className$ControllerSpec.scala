@@ -1,6 +1,6 @@
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import matchers.JsonMatchers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -13,7 +13,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.Future
 
-class $className$ControllerSpec extends SpecBase with MockitoSugar with JsonMatchers {
+class $className$ControllerSpec extends AppWithDefaultMockFixtures with MockitoSugar with JsonMatchers {
 
   "$className$ Controller" - {
 
@@ -22,12 +22,13 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with JsonMatc
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request = FakeRequest(GET, routes.$className$Controller.onPageLoad(mrn).url)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -37,8 +38,6 @@ class $className$ControllerSpec extends SpecBase with MockitoSugar with JsonMatc
 
       templateCaptor.getValue mustEqual "$className;format="decap"$.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
   }
 }

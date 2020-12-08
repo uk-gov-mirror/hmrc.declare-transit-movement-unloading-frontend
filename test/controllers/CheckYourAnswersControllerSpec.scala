@@ -16,21 +16,39 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.http.Status.ACCEPTED
 import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.UnloadingRemarksService
+import services.{UnloadingPermissionService, UnloadingRemarksService}
 
 import scala.concurrent.Future
 
-class CheckYourAnswersControllerSpec extends SpecBase {
+class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
+
+  val mockUnloadingPermissionService: UnloadingPermissionService = mock[UnloadingPermissionService]
+  val mockUnloadingRemarksService: UnloadingRemarksService       = mock[UnloadingRemarksService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUnloadingPermissionService)
+    reset(mockUnloadingRemarksService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(
+        bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService),
+        bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService)
+      )
 
   "Check Your Answers Controller" - {
 
@@ -43,11 +61,11 @@ class CheckYourAnswersControllerSpec extends SpecBase {
         when(mockRenderer.render(any(), any())(any()))
           .thenReturn(Future.successful(Html("")))
 
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual OK
 
@@ -57,23 +75,19 @@ class CheckYourAnswersControllerSpec extends SpecBase {
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
         templateCaptor.getValue mustEqual "check-your-answers.njk"
-
-        application.stop()
       }
 
       "redirect to Session Expired for a GET if no existing data is found" in {
 
-        val application = applicationBuilder(userAnswers = None).build()
+        setNoExistingUserAnswers()
 
         val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result).value mustEqual routes.SessionExpiredController.onPageLoad().url
-
-        application.stop()
       }
 
       "return BAD REQUEST when unloading permission does not exist" in {
@@ -82,11 +96,11 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         val request = FakeRequest(GET, routes.CheckYourAnswersController.onPageLoad(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
@@ -95,8 +109,6 @@ class CheckYourAnswersControllerSpec extends SpecBase {
         verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
 
         templateCaptor.getValue mustEqual "badRequest.njk"
-
-        application.stop()
       }
 
     }
@@ -105,11 +117,7 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
       "redirect to Confirmation on valid submission" in {
 
-        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-          .build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
@@ -117,22 +125,16 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
 
         redirectLocation(result).value mustEqual routes.ConfirmationController.onPageLoad(arrivalId).url
-
-        application.stop()
       }
 
       "redirect to Technical Difficulties on failed submission (invalid response code)" in {
 
-        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-          .build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
@@ -140,22 +142,16 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual SEE_OTHER
 
-        redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad.url
-
-        application.stop()
+        redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
       }
 
       "return UNAUTHORIZED when backend returns 401" in {
 
-        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-          .build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
@@ -165,20 +161,14 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual UNAUTHORIZED
-
-        application.stop()
       }
 
       "return INTERNAL_SERVER_ERROR on internal failure" in {
 
-        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-          .build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
@@ -188,20 +178,14 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual INTERNAL_SERVER_ERROR
-
-        application.stop()
       }
 
       "return INTERNAL_SERVER_ERROR when UnloadingPermission can't be retrieved" in {
 
-        val mockUnloadingRemarksService = mock[UnloadingRemarksService]
-
-        val application = applicationBuilder(userAnswers = Some(emptyUserAnswers))
-          .overrides(bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService))
-          .build()
+        setExistingUserAnswers(emptyUserAnswers)
 
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
@@ -209,11 +193,9 @@ class CheckYourAnswersControllerSpec extends SpecBase {
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
-        val result = route(application, request).value
+        val result = route(app, request).value
 
         status(result) mustEqual INTERNAL_SERVER_ERROR
-
-        application.stop()
       }
     }
   }

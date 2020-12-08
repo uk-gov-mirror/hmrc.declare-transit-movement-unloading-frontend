@@ -19,7 +19,7 @@ package controllers
 import controllers.actions._
 import forms.TotalNumberOfPackagesFormProvider
 import javax.inject.Inject
-import models.{ArrivalId, Mode, MovementReferenceNumber}
+import models.{ArrivalId, Mode}
 import navigation.Navigator
 import pages.TotalNumberOfPackagesPage
 import play.api.i18n.{I18nSupport, MessagesApi}

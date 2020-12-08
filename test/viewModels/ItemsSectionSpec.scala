@@ -17,8 +17,6 @@
 package viewModels
 
 import base.SpecBase
-import cats.data.NonEmptyList
-import models.{GoodsItem, Packages, ProducedDocument, TraderAtDestinationWithEori, UnloadingPermission}
 import pages.{ChangesToReportPage, GrossMassAmountPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.UnloadingSummaryRow

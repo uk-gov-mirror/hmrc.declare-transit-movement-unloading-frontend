@@ -16,21 +16,34 @@
 
 package controllers
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import matchers.JsonMatchers
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{times, verify, when}
-import org.scalatestplus.mockito.MockitoSugar
-import pages.ChangesToReportPage
+import org.mockito.Mockito.{reset, times, verify, when}
+import play.api.inject.bind
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
+import services.UnloadingPermissionService
 
 import scala.concurrent.Future
 
-class UnloadingSummaryControllerSpec extends SpecBase with MockitoSugar with JsonMatchers {
+class UnloadingSummaryControllerSpec extends SpecBase with AppWithDefaultMockFixtures with JsonMatchers {
+
+  private val mockUnloadingPermissionService = mock[UnloadingPermissionService]
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    reset(mockUnloadingPermissionService)
+  }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService))
 
   "UnloadingSummary Controller" - {
 
@@ -41,12 +54,13 @@ class UnloadingSummaryControllerSpec extends SpecBase with MockitoSugar with Jso
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
 
-      val application    = applicationBuilder(userAnswers = Some(emptyUserAnswers)).build()
+      setExistingUserAnswers(emptyUserAnswers)
+
       val request        = FakeRequest(GET, routes.UnloadingSummaryController.onPageLoad(arrivalId).url)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(application, request).value
+      val result = route(app, request).value
 
       status(result) mustEqual OK
 
@@ -57,8 +71,6 @@ class UnloadingSummaryControllerSpec extends SpecBase with MockitoSugar with Jso
 
       templateCaptor.getValue mustEqual "unloadingSummary.njk"
       jsonCaptor.getValue must containJson(expectedJson)
-
-      application.stop()
     }
   }
 }

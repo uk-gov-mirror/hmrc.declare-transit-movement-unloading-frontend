@@ -22,6 +22,7 @@ import org.scalacheck.Gen
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.{Assertion, FreeSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.test.Helpers.running
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -34,9 +35,7 @@ class ReferenceDataConnectorSpec extends FreeSpec with ScalaFutures with WireMoc
 
   override protected def portConfigKey: String = "microservice.services.reference-data.port"
 
-  private lazy val connector: ReferenceDataConnector = app.injector.instanceOf[ReferenceDataConnector]
-
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "Reference Data" - {
 
@@ -48,17 +47,27 @@ class ReferenceDataConnectorSpec extends FreeSpec with ScalaFutures with WireMoc
             .willReturn(okJson(countryListResponseJson))
         )
 
-        val expectedResult = Seq(
-          Country("valid", "GB", "United Kingdom"),
-          Country("valid", "AD", "Andorra")
-        )
+        val app = appBuilder.build()
 
-        connector.getCountryList.futureValue mustBe expectedResult
+        running(app) {
+          val expectedResult = Seq(
+            Country("valid", "GB", "United Kingdom"),
+            Country("valid", "AD", "Andorra")
+          )
+
+          val connector: ReferenceDataConnector = app.injector.instanceOf[ReferenceDataConnector]
+          connector.getCountryList.futureValue mustBe expectedResult
+        }
       }
 
       "should handle client and server errors" in {
 
-        checkErrorResponse(uri, connector.getCountryList)
+        val app = appBuilder.build()
+
+        running(app) {
+          val connector: ReferenceDataConnector = app.injector.instanceOf[ReferenceDataConnector]
+          checkErrorResponse(uri, connector.getCountryList)
+        }
       }
     }
   }

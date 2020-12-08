@@ -15,16 +15,14 @@
  */
 
 package services
+
 import com.google.inject.Inject
-import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import connectors.UnloadingConnector
-import models.{ArrivalId, Movement, UnloadingPermission, UserAnswers}
-import play.api.Logger
+import models.{ArrivalId, UnloadingPermission, UserAnswers}
 import queries.SealsQuery
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.xml.XML
 
 class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) extends UnloadingPermissionService {
 

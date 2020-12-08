@@ -15,6 +15,7 @@
  */
 
 package viewModels
+
 import config.FrontendAppConfig
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite

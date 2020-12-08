@@ -18,7 +18,7 @@ package services
 
 import java.time.LocalDate
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import connectors.UnloadingConnector
 import models.ErrorType.IncorrectValue
 import models.{ArrivalId, DefaultPointer, FunctionalError, MessagesLocation, MessagesSummary, MovementReferenceNumber, UnloadingRemarksRejectionMessage}
@@ -26,21 +26,27 @@ import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, when}
 import pages.{DateGoodsUnloadedPage, TotalNumberOfItemsPage, VehicleNameRegistrationReferencePage}
 import play.api.inject.bind
-import services.UnloadingRemarksRejectionServiceSpec.{messagesSummary, rejectionMessage}
+import play.api.inject.guice.GuiceApplicationBuilder
+import uk.gov.hmrc.http.HeaderCarrier
 import utils.Date
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class UnloadingRemarksRejectionServiceSpec extends SpecBase {
+class UnloadingRemarksRejectionServiceSpec extends SpecBase with AppWithDefaultMockFixtures {
 
   private val mockConnector = mock[UnloadingConnector]
-  val service               = new UnloadingRemarksRejectionService(mockConnector)
 
-  override def beforeEach: Unit = {
-    super.beforeEach
+  implicit private val hc: HeaderCarrier = HeaderCarrier()
+
+  override def beforeEach(): Unit = {
+    super.beforeEach()
     reset(mockConnector)
   }
+
+  override def guiceApplicationBuilder(): GuiceApplicationBuilder =
+    super
+      .guiceApplicationBuilder()
+      .overrides(bind[UnloadingConnector].toInstance(mockConnector))
 
   import UnloadingRemarksRejectionServiceSpec._
 
@@ -58,10 +64,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(Some(notificationMessage)))
 
-          val application = applicationBuilder(Some(emptyUserAnswers))
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          setExistingUserAnswers(emptyUserAnswers)
+
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe Some(notificationMessage)
         }
@@ -71,10 +76,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
             MessagesSummary(arrivalId, MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", None))
           when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(Some(messagesSummary)))
 
-          val application = applicationBuilder(Some(emptyUserAnswers))
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          setExistingUserAnswers(emptyUserAnswers)
+
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
         }
@@ -83,16 +87,13 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
 
           when(mockConnector.getSummary(any())(any())).thenReturn(Future.successful(None))
 
-          val application = applicationBuilder(Some(emptyUserAnswers))
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          setExistingUserAnswers(emptyUserAnswers)
+
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           unloadingRemarksRejectionService.unloadingRemarksRejectionMessage(arrivalId).futureValue mustBe None
         }
-
       }
-
     }
 
     "getRejectedValueAsString" - {
@@ -105,11 +106,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(Some(rejectionMessage(Some("some reference")))))
 
-          val application = applicationBuilder(None)
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
+          setNoExistingUserAnswers()
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
           result.futureValue mustBe Some("some reference")
@@ -121,11 +120,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(Some(rejectionMessage(Some("some reference")))))
 
-          val application = applicationBuilder(None)
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
+          setNoExistingUserAnswers()
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, Some(emptyUserAnswers))(VehicleNameRegistrationReferencePage)
           result.futureValue mustBe Some("some reference")
@@ -139,11 +136,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(None))
 
-          val application = applicationBuilder(Some(emptyUserAnswers))
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
+          setExistingUserAnswers(emptyUserAnswers)
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
           result.futureValue mustBe None
@@ -153,10 +148,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           val originalValue = "some reference"
           val userAnswers   = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, originalValue).get
 
-          val application = applicationBuilder(Some(userAnswers))
-            .build()
+          setExistingUserAnswers(userAnswers)
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, Some(userAnswers))(VehicleNameRegistrationReferencePage)
           result.futureValue mustBe Some("some reference")
@@ -172,11 +166,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(Some(rejectionMessage)))
 
-          val application = applicationBuilder(Some(emptyUserAnswers))
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
+          setExistingUserAnswers(emptyUserAnswers)
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsString(arrivalId, None)(VehicleNameRegistrationReferencePage)
           result.futureValue mustBe None
@@ -196,11 +188,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(Some(rejectionMessage(Some("1000")))))
 
-          val application = applicationBuilder(None)
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
+          setNoExistingUserAnswers()
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsInt(arrivalId, None)(TotalNumberOfItemsPage)
           result.futureValue.value mustBe 1000
@@ -210,17 +200,14 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           val originalValue = 2000
           val userAnswers   = emptyUserAnswers.set(TotalNumberOfItemsPage, originalValue).get
 
-          val application = applicationBuilder(Some(userAnswers))
-            .build()
+          setExistingUserAnswers(userAnswers)
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsInt(arrivalId, Some(userAnswers))(TotalNumberOfItemsPage)
           result.futureValue.value mustBe 2000
         }
-
       }
-
     }
 
     "getRejectedValueAsDate" - {
@@ -232,11 +219,9 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           when(mockConnector.getRejectionMessage(any())(any()))
             .thenReturn(Future.successful(Some(rejectionMessage(Some("20200721")))))
 
-          val application = applicationBuilder(None)
-            .overrides(bind[UnloadingConnector].toInstance(mockConnector))
-            .build()
+          setNoExistingUserAnswers()
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsDate(arrivalId, None)(DateGoodsUnloadedPage)
           result.futureValue.value mustBe LocalDate.parse("2020-07-21")
@@ -246,21 +231,16 @@ class UnloadingRemarksRejectionServiceSpec extends SpecBase {
           val originalValue: LocalDate = Date.getDate("20200721").get
           val userAnswers              = emptyUserAnswers.set(DateGoodsUnloadedPage, originalValue).get
 
-          val application = applicationBuilder(Some(userAnswers))
-            .build()
+          setExistingUserAnswers(userAnswers)
 
-          val unloadingRemarksRejectionService = application.injector.instanceOf[UnloadingRemarksRejectionService]
+          val unloadingRemarksRejectionService = app.injector.instanceOf[UnloadingRemarksRejectionService]
 
           val result = unloadingRemarksRejectionService.getRejectedValueAsDate(arrivalId, Some(userAnswers))(DateGoodsUnloadedPage)
           result.futureValue.value mustBe LocalDate.parse("2020-07-21")
         }
-
       }
-
     }
-
   }
-
 }
 
 object UnloadingRemarksRejectionServiceSpec {
@@ -275,7 +255,7 @@ object UnloadingRemarksRejectionServiceSpec {
 
   val arrivalId: ArrivalId = ArrivalId(1)
 
-  val messagesSummary =
+  val messagesSummary: MessagesSummary =
     MessagesSummary(
       arrivalId,
       MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3",

@@ -17,7 +17,7 @@
 package services
 import java.time.LocalDateTime
 
-import base.SpecBase
+import base.{AppWithDefaultMockFixtures, SpecBase}
 import generators.MessagesModelGenerators
 import models.messages._
 import models.{Index, Seals, UnloadingPermission}
@@ -25,17 +25,17 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.{NewSealNumberPage, VehicleNameRegistrationReferencePage}
 
-class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGenerators with ScalaCheckPropertyChecks {
+class UnloadingRemarksRequestServiceSpec extends SpecBase with AppWithDefaultMockFixtures with MessagesModelGenerators with ScalaCheckPropertyChecks {
 
   import UnloadingRemarksRequestServiceSpec._
-
-  val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
   "UnloadingRemarksRequestServiceSpec" - {
 
     "return UnloadingRemarksRequest" - {
 
       "when unloading remarks conform with no seals" in {
+
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
@@ -56,6 +56,8 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
 
       "when unloading remarks conform with seals" in {
 
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
+
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
             val unloadingRemarks = RemarksConformWithSeals(localDateTime.toLocalDate)
@@ -74,6 +76,8 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
       }
 
       "when unloading remarks don't conform and stateOfSeals is None" in {
+
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
@@ -98,6 +102,8 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
 
       "when unloading remarks don't conform and stateOfSeals is OK" in {
 
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
+
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
             val unloadingRemarks = RemarksNonConform(
@@ -121,6 +127,8 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
 
       "when unloading remarks don't conform and stateOfSeals is NOT OK" in {
 
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
+
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
             val unloadingRemarks = RemarksNonConform(
@@ -143,6 +151,8 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
       }
 
       "when unloading remarks don't conform and stateOfSeals is NOT OK and seals exist in UserAnswers" in {
+
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
@@ -178,6 +188,8 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with MessagesModelGene
       }
 
       "when unloading remarks don't conform and stateOfSeals is NOT OK and seals and result control exist in UserAnswers" in {
+
+        val unloadingRemarksRequestService = app.injector.instanceOf[UnloadingRemarksRequestService]
 
         forAll(arbitrary[UnloadingPermission], arbitrary[Meta], arbitrary[LocalDateTime]) {
           (unloadingPermission, meta, localDateTime) =>
@@ -233,5 +245,4 @@ object UnloadingRemarksRequestServiceSpec {
       numberOfPackages        = unloadingPermission.numberOfPackages,
       grossMass               = unloadingPermission.grossMass
   )
-
 }
