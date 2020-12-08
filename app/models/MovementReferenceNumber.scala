@@ -19,14 +19,15 @@ package models
 import java.util.InvalidPropertiesFormatException
 
 import com.lucidchart.open.xtract.{XmlReader, __ => XmlPath}
-import models.MovementReferenceNumber._
-import play.api.Logger
+import logging.Logging
 import play.api.libs.json._
 import play.api.mvc.PathBindable
 
 import scala.math.pow
 
 final case class MovementReferenceNumber(year: String, countryCode: String, serial: String) {
+
+  import models.MovementReferenceNumber._
 
   override def toString: String = s"$year$countryCode$serial$checkCharacter"
 
@@ -43,7 +44,7 @@ final case class MovementReferenceNumber(year: String, countryCode: String, seri
   }
 }
 
-object MovementReferenceNumber {
+object MovementReferenceNumber extends Logging {
 
   private val mrnFormat = """^(\d{2})([A-Z]{2})([A-Z0-9]{13})(\d)$""".r
 
@@ -80,7 +81,7 @@ object MovementReferenceNumber {
     (XmlPath \ "DocNumHEA5").read[String] map {
       mrn =>
         MovementReferenceNumber(mrn).getOrElse {
-          Logger.error(s"DocNumHEA5: MRN not in right format mrn:$mrn")
+          logger.error(s"DocNumHEA5: MRN not in right format mrn:$mrn")
           throw new InvalidPropertiesFormatException("DocNumHEA5: MRN not in right format")
         }
     } // TODO needs to handle get
