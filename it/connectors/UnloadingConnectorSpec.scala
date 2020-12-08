@@ -325,6 +325,7 @@ class UnloadingConnectorSpec
         server.stubFor(
           get(urlEqualTo(getPDFUrl))
             .withHeader("Channel", containing("web"))
+            .withHeader("Authorization", containing("bearerToken"))
             .willReturn(
               aResponse()
                 .withStatus(200)
