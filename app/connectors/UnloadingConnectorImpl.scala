@@ -22,6 +22,8 @@ import logging.Logging
 import models.XMLWrites._
 import models.{XMLReads, _}
 import models.messages.UnloadingRemarksRequest
+import play.api.Logger
+import play.api.http.HeaderNames
 import play.api.libs.ws.{WSClient, WSResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
@@ -38,19 +40,23 @@ class UnloadingConnectorImpl @Inject()(
     with HttpErrorFunctions
     with Logging {
 
+  private val channel: String = "web"
+
   def post(arrivalId: ArrivalId, unloadingRemarksRequest: UnloadingRemarksRequest)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
 
     val url = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/"
 
-    val headers = Seq(("Content-Type", "application/xml"))
+    val headers = Seq(ContentTypeHeader("application/xml"), ChannelHeader(channel))
 
     http.POSTString[HttpResponse](url, unloadingRemarksRequest.toXml.toString, headers)
   }
 
-  def getUnloadingPermission(unloadingPermission: String)(implicit headerCarrier: HeaderCarrier): Future[Option[UnloadingPermission]] = {
+  def getUnloadingPermission(unloadingPermission: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingPermission]] = {
 
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingPermission"
-    http.GET[HttpResponse](serviceUrl) map {
+    val header     = hc.withExtraHeaders(ChannelHeader(channel))
+
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingPermission](message)
@@ -63,7 +69,9 @@ class UnloadingConnectorImpl @Inject()(
   def getSummary(arrivalId: ArrivalId)(implicit hc: HeaderCarrier): Future[Option[MessagesSummary]] = {
 
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/messages/summary"
-    http.GET[HttpResponse](serviceUrl) map {
+    val header             = hc.withExtraHeaders(ChannelHeader(channel))
+
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         Some(responseMessage.json.as[MessagesSummary])
       case _ =>
@@ -74,8 +82,9 @@ class UnloadingConnectorImpl @Inject()(
 
   def getRejectionMessage(rejectionLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRejectionMessage]] = {
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$rejectionLocation"
+    val header     = hc.withExtraHeaders(ChannelHeader(channel))
 
-    http.GET[HttpResponse](serviceUrl) map {
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingRemarksRejectionMessage](message)
@@ -87,8 +96,9 @@ class UnloadingConnectorImpl @Inject()(
 
   def getUnloadingRemarksMessage(unloadingRemarksLocation: String)(implicit hc: HeaderCarrier): Future[Option[UnloadingRemarksRequest]] = {
     val serviceUrl = s"${config.arrivalsBackendBaseUrl}$unloadingRemarksLocation"
+    val header     = hc.withExtraHeaders(ChannelHeader(channel))
 
-    http.GET[HttpResponse](serviceUrl) map {
+    http.GET[HttpResponse](serviceUrl)(httpReads, header, ec) map {
       case responseMessage if is2xx(responseMessage.status) =>
         val message: NodeSeq = responseMessage.json.as[ResponseMovementMessage].message
         XMLReads.readAs[UnloadingRemarksRequest](message)
@@ -101,8 +111,20 @@ class UnloadingConnectorImpl @Inject()(
   def getPDF(arrivalId: ArrivalId, bearerToken: String)(implicit hc: HeaderCarrier): Future[WSResponse] = {
     val serviceUrl: String = s"${config.arrivalsBackend}/movements/arrivals/${arrivalId.value}/unloading-permission"
     ws.url(serviceUrl)
-      .withHttpHeaders(("Authorization", bearerToken))
+      .withHttpHeaders(ChannelHeader(channel), AuthorizationHeader(bearerToken))
       .get
+  }
+
+  object ChannelHeader {
+    def apply(value: String): (String, String) = ("Channel", value)
+  }
+
+  object ContentTypeHeader {
+    def apply(value: String): (String, String) = (HeaderNames.CONTENT_TYPE, value)
+  }
+
+  object AuthorizationHeader {
+    def apply(value: String): (String, String) = (HeaderNames.AUTHORIZATION, value)
   }
 
 }
