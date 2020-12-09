@@ -23,8 +23,7 @@ import models.XMLWrites._
 import models.{XMLReads, _}
 import models.messages.UnloadingRemarksRequest
 import play.api.libs.ws.{WSClient, WSResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpErrorFunctions, HttpResponse}
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpErrorFunctions, HttpResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.xml.NodeSeq
