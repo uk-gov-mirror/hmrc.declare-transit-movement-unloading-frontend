@@ -48,8 +48,8 @@ checkYourAnswers.changeItems.hidden = change answers
 checkYourAnswers.confirmation.heading = Now send your unloading remarks
 checkYourAnswers.confirmation.paragraph = By sending this you are confirming that the details you are providing are correct, to the best of your knowledge.
 
-index.title = declare-transit-movement-unloading-frontend
-index.heading = declare-transit-movement-unloading-frontend
+index.title =  Manage your transit movements - GOV.UK
+index.heading = Manage your transit movements
 index.guidance = Welcome to your new frontend. Please see the README file for a guide to getting started.
 
 session_expired.title = For your security, this service has been reset
