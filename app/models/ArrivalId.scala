@@ -17,7 +17,7 @@
 package models
 
 import play.api.libs.json._
-import play.api.mvc.PathBindable
+import play.api.mvc.{JavascriptLiteral, PathBindable}
 
 import scala.util.Try
 
@@ -46,4 +46,6 @@ object ArrivalId {
     override def unbind(key: String, value: ArrivalId): String =
       value.value.toString
   }
+
+  implicit val arrivalIdJSLBinder: JavascriptLiteral[ArrivalId] = (value: ArrivalId) => value.value.toString
 }

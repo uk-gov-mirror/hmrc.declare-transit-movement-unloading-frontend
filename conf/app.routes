@@ -6,6 +6,9 @@ GET        /assets/*file                                           controllers.A
 
 GET        /:arrivalId/language/:lang                              controllers.LanguageSwitchController.switchToLanguage(arrivalId: ArrivalId, lang: String)
 
+GET         /keep-alive                                            controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId] = None)
+GET         /:arrivalId/keep-alive                                 controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId])
+
 GET        /error/this-service-has-been-reset                      controllers.SessionExpiredController.onPageLoad
 
 GET        /:arrivalId/check-your-answers                          controllers.CheckYourAnswersController.onPageLoad(arrivalId: ArrivalId)
