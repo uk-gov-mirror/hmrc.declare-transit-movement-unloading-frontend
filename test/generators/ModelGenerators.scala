@@ -219,16 +219,18 @@ trait ModelGenerators {
   implicit lazy val arbitraryRemarksConform: Arbitrary[RemarksConform] = {
     Arbitrary {
       for {
-        date <- arbitrary[LocalDate]
-      } yield RemarksConform(date)
+        date            <- arbitrary[LocalDate]
+        unloadingRemark <- Gen.option(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength))
+      } yield RemarksConform(date, unloadingRemark)
     }
   }
 
   implicit lazy val arbitraryRemarksConformWithSeals: Arbitrary[RemarksConformWithSeals] = {
     Arbitrary {
       for {
-        date <- arbitrary[LocalDate]
-      } yield RemarksConformWithSeals(date)
+        date            <- arbitrary[LocalDate]
+        unloadingRemark <- Gen.option(stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength))
+      } yield RemarksConformWithSeals(date, unloadingRemark)
     }
   }
 

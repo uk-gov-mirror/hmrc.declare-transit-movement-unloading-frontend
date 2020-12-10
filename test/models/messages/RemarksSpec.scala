@@ -37,8 +37,15 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
 
         forAll(arbitrary[RemarksConform]) {
           remarksConform =>
+            val unloadingRemarks: Option[NodeSeq] = remarksConform.unloadingRemark.map {
+              remarks =>
+                <UnlRemREM53>{remarks}</UnlRemREM53> ++
+                  <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+            }
+
             val xml: Node =
               <UNLREMREM>
+                {unloadingRemarks.getOrElse(NodeSeq.Empty)}
                 <ConREM65>1</ConREM65>
                 <UnlComREM66>1</UnlComREM66>
                 <UnlDatREM67>{Format.dateFormatted(remarksConform.unloadingDate)}</UnlDatREM67>
@@ -61,9 +68,16 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
 
         forAll(arbitrary[RemarksConformWithSeals]) {
           remarksConformWithSeals =>
+            val unloadingRemarks: Option[NodeSeq] = remarksConformWithSeals.unloadingRemark.map {
+              remarks =>
+                <UnlRemREM53>{remarks}</UnlRemREM53> ++
+                  <UnlRemREM53LNG>EN</UnlRemREM53LNG>
+            }
+
             val xml: Node =
               <UNLREMREM>
                 <StaOfTheSeaOKREM19>1</StaOfTheSeaOKREM19>
+                {unloadingRemarks.getOrElse(NodeSeq.Empty)}
                 <ConREM65>1</ConREM65>
                 <UnlComREM66>1</UnlComREM66>
                 <UnlDatREM67>{Format.dateFormatted(remarksConformWithSeals.unloadingDate)}</UnlDatREM67>
@@ -90,16 +104,16 @@ class RemarksSpec extends FreeSpec with MustMatchers with Generators with ModelG
                 <StaOfTheSeaOKREM19>{int}</StaOfTheSeaOKREM19>
             }
 
-            val unloadingRemarks: Option[Elem] = remarksNonConform.unloadingRemark.map {
+            val unloadingRemarks = remarksNonConform.unloadingRemark.map {
               remarks =>
-                <UnlRemREM53>{remarks}</UnlRemREM53>
+                <UnlRemREM53>{remarks}</UnlRemREM53> ++
+                  <UnlRemREM53LNG>EN</UnlRemREM53LNG>
             }
 
             val xml: NodeSeq =
               <UNLREMREM>
                 {stateOfSeals.getOrElse(NodeSeq.Empty)}
                 {unloadingRemarks.getOrElse(NodeSeq.Empty)}
-                <UnlRemREM53LNG>EN</UnlRemREM53LNG>
                 <ConREM65>0</ConREM65>
                 <UnlComREM66>1</UnlComREM66>
                 <UnlDatREM67>{Format.dateFormatted(remarksNonConform.unloadingDate)}</UnlDatREM67>
