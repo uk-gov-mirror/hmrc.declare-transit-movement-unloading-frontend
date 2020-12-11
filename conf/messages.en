@@ -11,7 +11,7 @@ site.no = No
 site.yes = Yes
 site.continue = Continue
 site.confirmAndSend = Confirm and send
-site.service_name = declare-transit-movement-unloading-frontend
+site.service_name = Manage your transit movements
 site.textarea.char_limit = (Limit is {0} characters)
 site.title.suffix = - declare-transit-movement-unloading-frontend - GOV.UK
 
@@ -49,7 +49,7 @@ checkYourAnswers.confirmation.heading = Now send your unloading remarks
 checkYourAnswers.confirmation.paragraph = By sending this you are confirming that the details you are providing are correct, to the best of your knowledge.
 
 index.title =  Manage your transit movements - GOV.UK
-index.heading = Manage your transit movements
+index.heading = Manage transit movements
 index.guidance = Welcome to your new frontend. Please see the README file for a guide to getting started.
 
 session_expired.title = For your security, this service has been reset
