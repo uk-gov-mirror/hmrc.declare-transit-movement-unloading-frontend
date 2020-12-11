@@ -27,19 +27,22 @@ import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{UnloadingPermissionService, UnloadingRemarksService}
+import services.{AuditEventSubmissionService, UnloadingPermissionService, UnloadingRemarksService}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult.{Failure, Success}
 
 import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
 
-  val mockUnloadingPermissionService: UnloadingPermissionService = mock[UnloadingPermissionService]
-  val mockUnloadingRemarksService: UnloadingRemarksService       = mock[UnloadingRemarksService]
+  val mockUnloadingPermissionService: UnloadingPermissionService   = mock[UnloadingPermissionService]
+  val mockUnloadingRemarksService: UnloadingRemarksService         = mock[UnloadingRemarksService]
+  val mockAuditEventSubmissionService: AuditEventSubmissionService = mock[AuditEventSubmissionService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUnloadingPermissionService)
     reset(mockUnloadingRemarksService)
+    reset(mockAuditEventSubmissionService)
   }
 
   override def guiceApplicationBuilder(): GuiceApplicationBuilder =
@@ -47,7 +50,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
       .guiceApplicationBuilder()
       .overrides(
         bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService),
-        bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService)
+        bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService),
+        bind[AuditEventSubmissionService].toInstance(mockAuditEventSubmissionService)
       )
 
   "Check Your Answers Controller" - {
@@ -123,6 +127,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
 
         when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(ACCEPTED)))
 
+        when(mockAuditEventSubmissionService.submitAudit(any())(any(), any())).thenReturn(Future.successful(Success))
+
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
         val result = route(app, request).value
@@ -139,6 +145,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
         when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
         when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(BAD_REQUEST)))
+
+        when(mockAuditEventSubmissionService.submitAudit(any())(any(), any())).thenReturn(Future.successful(Success))
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 
@@ -158,6 +166,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
         when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
         when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
+
+        when(mockAuditEventSubmissionService.submitAudit(any())(any(), any())).thenReturn(Future.successful(Success))
 
         val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
 

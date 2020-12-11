@@ -25,9 +25,10 @@ class AuditEventDataSpec extends SpecBase {
 
     "must serialise" in {
 
-      val ua             = emptyUserAnswers.copy(data = Json.obj(("key", "value")), autoData = Json.obj(("key", "value")))
+      val ua = emptyUserAnswers.copy(data = Json.obj(("key", "value")), prepopulateData = Json.obj(("key", "value")))
+
       val auditUserInput = AuditUserInput(ua.data)
-      val auditAutoInput = AuditAutoInput(ua.autoData)
+      val auditAutoInput = AuditAutoInput(ua.prepopulateData)
       val audit          = AuditEventData(auditUserInput, auditAutoInput)
 
       val expectedResult = Json.toJsObject(auditUserInput) ++ Json.toJsObject(auditAutoInput)

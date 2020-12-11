@@ -17,14 +17,16 @@
 package controllers
 
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import handlers.ErrorHandler
-import models.ArrivalId
+import models.{ArrivalId, AuditEventData}
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
-import services.{ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}
+import services.{AuditEventService, AuditEventSubmissionService, ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 import viewModels.CheckYourAnswersViewModel
@@ -42,7 +44,9 @@ class CheckYourAnswersController @Inject()(
   renderer: Renderer,
   referenceDataService: ReferenceDataService,
   errorHandler: ErrorHandler,
-  unloadingRemarksService: UnloadingRemarksService
+  unloadingRemarksService: UnloadingRemarksService,
+  auditEventSubmissionService: AuditEventSubmissionService,
+  appConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -79,10 +83,16 @@ class CheckYourAnswersController @Inject()(
         case Some(unloadingPermission) => {
           unloadingRemarksService.submit(arrivalId, request.userAnswers, unloadingPermission) flatMap {
             case Some(status) =>
-              status match {
-                case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
-                case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
-                case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+              val auditModel = AuditEventService.extendedDataEvent(request.userAnswers, "service name from app config", "auditEvent")
+
+              auditEventSubmissionService.submitAudit(auditModel).flatMap {
+                case AuditResult.Success =>
+                  status match {
+                    case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+                    case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
+                    case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+                  }
+                case _ => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR) //TODO we may want to log these failures
               }
             case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
           }

@@ -73,7 +73,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
   def resubmit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
       case Some(unloadingRemarksRequest) =>
-        getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
+        getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers) flatMap {
           case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
           case _                             => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
         }
@@ -81,7 +81,6 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
     }
 
   private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,
-                                                         eori: EoriNumber,
                                                          userAnswers: UserAnswers): Future[Option[UnloadingRemarksRequest]] =
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()

@@ -245,7 +245,7 @@ areAnySealsBroken.error.required = Select yes if any of the seals are broken
 anythingElseToReport.title = Is there anything else to report?
 anythingElseToReport.heading = Is there anything else to report?
 anythingElseToReport.checkYourAnswersLabel = Is there anything else to report?
-anythingElseToReport.error.required = Select yes if there is  anything else to report
+anythingElseToReport.error.required = Select yes if there is anything else to report
 
 confirmation.title = confirmation
 confirmation.heading = Sent unloading remarks

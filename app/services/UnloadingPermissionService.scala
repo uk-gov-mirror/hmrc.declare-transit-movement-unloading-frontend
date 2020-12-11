@@ -39,7 +39,12 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
       case Some(unloadingPermission) =>
         unloadingPermission.seals match {
           case Some(seals) =>
-            Future.successful(userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption)
+            for {
+              ua1 <- userAnswers.set(SealsQuery, seals.SealId).toOption
+              ua2 <- ua1.setPrepopulateData(SealsQuery, seals.SealId).toOption
+            } yield Future.successful(ua2)
+
+            Future.successful(userAnswers.set(SealsQuery, seals.SealId).toOption)
           case _ => Future.successful(Some(userAnswers))
         }
       case _ => Future.successful(None)
@@ -48,7 +53,10 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
   def convertSeals(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Option[UserAnswers] =
     unloadingPermission.seals match {
       case Some(seals) =>
-        userAnswers.set(SealsQuery, seals.SealId).map(ua => ua).toOption
+        for {
+          ua1 <- userAnswers.set(SealsQuery, seals.SealId).toOption
+          ua2 <- ua1.setPrepopulateData(SealsQuery, seals.SealId).toOption
+        } yield ua2
       case _ => Some(userAnswers)
     }
 }

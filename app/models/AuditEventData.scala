@@ -25,10 +25,8 @@ object AuditEventData {
   implicit lazy val writes: OWrites[AuditEventData] = {
 
     import play.api.libs.functional.syntax._
-    (
-      __.write[AuditUserInput] and
-        __.write[AuditAutoInput]
-    )(unlift(AuditEventData.unapply))
+
+    (__.write[AuditUserInput] and __.write[AuditAutoInput])(unlift(AuditEventData.unapply))
   }
 
 }

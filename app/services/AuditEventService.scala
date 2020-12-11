@@ -32,7 +32,7 @@ object AuditEventService {
   def extendedDataEvent(userAnswers: UserAnswers, serviceName: String, auditType: String): ExtendedDataEvent = {
 
     val auditUserInput: AuditUserInput = AuditUserInput(userAnswers.data)
-    val auditAutoInput: AuditAutoInput = AuditAutoInput(userAnswers.autoData)
+    val auditAutoInput: AuditAutoInput = AuditAutoInput(userAnswers.prepopulateData)
 
     val auditEventData: AuditEventData = AuditEventData(auditUserInput, auditAutoInput)
 
