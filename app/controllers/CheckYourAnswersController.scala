@@ -85,7 +85,7 @@ class CheckYourAnswersController @Inject()(
         case Some(unloadingPermission) => {
           unloadingRemarksService.submit(arrivalId, request.userAnswers, unloadingPermission) flatMap {
             case Some(status) =>
-              val auditModel = AuditEventService.extendedDataEvent(request.userAnswers, "service name from app config", "auditEvent")
+              val auditModel = AuditEventService.extendedDataEvent(request.userAnswers, appConfig.appName, "submitUnloadingRemarks")
 
               auditEventSubmissionService.submitAudit(auditModel).flatMap {
                 case AuditResult.Success =>
