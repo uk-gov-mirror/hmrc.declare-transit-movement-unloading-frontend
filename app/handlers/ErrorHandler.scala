@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.mvc.Results._
 import play.api.mvc.{RequestHeader, Result, Results}
 import renderer.Renderer
-import uk.gov.hmrc.play.bootstrap.http.ApplicationException
+import uk.gov.hmrc.play.bootstrap.frontend.http.ApplicationException
 
 import scala.concurrent.{ExecutionContext, Future}
 

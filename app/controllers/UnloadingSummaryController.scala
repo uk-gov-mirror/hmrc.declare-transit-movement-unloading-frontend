@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
 import services.{ReferenceDataService, UnloadingPermissionService, UnloadingPermissionServiceImpl}
-import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
+import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import utils.UnloadingSummaryRow
 import viewModels.{SealsSection, UnloadingSummaryViewModel}
 
