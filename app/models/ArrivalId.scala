@@ -21,7 +21,9 @@ import play.api.mvc.{JavascriptLiteral, PathBindable}
 
 import scala.util.Try
 
-case class ArrivalId(value: Int)
+final case class ArrivalId(value: Int) {
+  override def toString: String = value.toString
+}
 
 object ArrivalId {
   implicit val formatsArrivalId: Format[ArrivalId] = new Format[ArrivalId] {
@@ -44,8 +46,8 @@ object ArrivalId {
       implicitly[PathBindable[Int]].bind(key, value).right.map(ArrivalId(_))
 
     override def unbind(key: String, value: ArrivalId): String =
-      value.value.toString
+      value.toString
   }
 
-  implicit val arrivalIdJSLBinder: JavascriptLiteral[ArrivalId] = (value: ArrivalId) => value.value.toString
+  implicit val arrivalIdJSLBinder: JavascriptLiteral[ArrivalId] = (value: ArrivalId) => value.toString
 }
