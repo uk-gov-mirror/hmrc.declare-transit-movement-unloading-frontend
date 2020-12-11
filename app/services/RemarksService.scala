@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlService) extends RemarksService {
 
-  import RemarksServiceImpl._
+  import RemarksService._
 
   def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Response =
     userAnswers.get(DateGoodsUnloadedPage) match {
@@ -36,7 +36,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
       case Some(date) =>
         implicit val unloadingDate: LocalDate = date
 
-        implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
+        implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers, unloadingPermission)
 
         Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers))
           .reduce(_ orElse _)
@@ -94,17 +94,17 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
   }
 }
 
-object RemarksServiceImpl {
+object RemarksService {
 
   type Response = Future[Remarks]
 
-  private def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
+  def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
     !canSealsBeReadPage.getOrElse(true)
 
-  private def sealsBroken(areAnySealsBrokenPage: Option[Boolean]): Boolean =
+  def sealsBroken(areAnySealsBrokenPage: Option[Boolean]): Boolean =
     areAnySealsBrokenPage.getOrElse(false)
 
-  private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean =
+  def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean =
     userAnswers.get(SealsQuery).exists {
       userSeals =>
         userSeals.sorted != originalSeals.sorted
@@ -113,6 +113,5 @@ object RemarksServiceImpl {
 }
 
 trait RemarksService {
-  //TODO: Is it better to return a Future or Either?
   def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Future[Remarks]
 }
