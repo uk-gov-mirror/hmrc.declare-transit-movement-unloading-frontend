@@ -292,7 +292,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
 
               service.build(userAnswersUpdated, unloadingPermissionWithSeals).futureValue mustBe
                 RemarksNonConform(
-                  stateOfSeals    = None,
+                  stateOfSeals    = Some(0),
                   unloadingRemark = userAnswers.get(ChangesToReportPage),
                   unloadingDate   = dateGoodsUnloaded
                 )

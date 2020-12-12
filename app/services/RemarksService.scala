@@ -78,7 +78,7 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
         case Some(_) =>
           Future.successful(
             RemarksNonConform(
-              stateOfSeals    = None,
+              stateOfSeals    = Some(0),
               unloadingRemark = userAnswers.get(ChangesToReportPage),
               unloadingDate   = unloadingDate
             )
