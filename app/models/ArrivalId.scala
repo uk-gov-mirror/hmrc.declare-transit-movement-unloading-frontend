@@ -49,5 +49,6 @@ object ArrivalId {
       value.toString
   }
 
-  implicit val arrivalIdJSLBinder: JavascriptLiteral[ArrivalId] = (value: ArrivalId) => value.toString
+  implicit val arrivalIdJSLBinder: JavascriptLiteral[ArrivalId] = (value: ArrivalId) => s"""'${value.toString}'"""
+
 }
