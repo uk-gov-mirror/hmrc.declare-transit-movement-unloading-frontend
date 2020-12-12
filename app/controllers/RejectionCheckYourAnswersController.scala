@@ -56,7 +56,7 @@ class RejectionCheckYourAnswersController @Inject()(
       renderer
         .render(
           "rejection-check-your-answers.njk",
-          Json.obj("mrn" -> request.userAnswers.mrn, "sections" -> Json.toJson(answers), "redirectUrl" -> redirectUrl(arrivalId).url)
+          Json.obj("mrn" -> request.userAnswers.mrn, "sections" -> Json.toJson(answers), "arrivalId" -> arrivalId, "redirectUrl" -> redirectUrl(arrivalId).url)
         )
         .map(Ok(_))
   }

@@ -48,6 +48,7 @@ class UnloadingGuidanceController @Inject()(
       val json = Json.obj(
         "mrn"         -> request.userAnswers.mrn,
         "nextPageUrl" -> navigator.nextPage(UnloadingGuidancePage, mode, request.userAnswers).url,
+        "arrivalId"   -> arrivalId,
         "mode"        -> mode,
         "pdfUrl"      -> pdfUrl
       )

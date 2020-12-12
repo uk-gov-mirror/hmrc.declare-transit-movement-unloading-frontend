@@ -80,6 +80,7 @@ class UnloadingSummaryController @Inject()(
               val json =
                 Json.obj(
                   "mrn"                -> request.userAnswers.mrn,
+                  "arrivalId"          -> arrivalId,
                   "redirectUrl"        -> redirectUrl(arrivalId).url,
                   "showAddCommentLink" -> request.userAnswers.get(ChangesToReportPage).isEmpty,
                   "addCommentUrl"      -> addCommentUrl(arrivalId).url,

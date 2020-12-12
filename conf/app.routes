@@ -8,9 +8,6 @@ GET        /:arrivalId/language/:lang                              controllers.L
 
 GET        /error/this-service-has-been-reset                      controllers.SessionExpiredController.onPageLoad
 
-GET         /keep-alive                                            controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId] = None)
-GET         /:arrivalId/keep-alive                                 controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId])
-
 GET        /:arrivalId/check-your-answers                          controllers.CheckYourAnswersController.onPageLoad(arrivalId: ArrivalId)
 POST       /:arrivalId/check-your-answers                          controllers.CheckYourAnswersController.onSubmit(arrivalId: ArrivalId)
 
@@ -22,6 +19,9 @@ GET        /error/cannot-use-service-no-eori                       controllers.U
 GET        /error/accessibility-statement                          controllers.AccessibilityController.onPageLoad
 
 GET        /error/technical-difficulties                           controllers.TechnicalDifficultiesController.onPageLoad()
+
+GET         /data/keep-alive                                            controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId] = None)
+GET         /data/:arrivalId/keep-alive                                 controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId])
 
 GET        /:arrivalId/unloading-guidance                                   controllers.UnloadingGuidanceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
 
