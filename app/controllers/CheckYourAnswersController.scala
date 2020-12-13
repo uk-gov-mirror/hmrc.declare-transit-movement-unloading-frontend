@@ -37,20 +37,19 @@ import viewModels.sections.Section
 import scala.concurrent.{ExecutionContext, Future}
 
 class CheckYourAnswersController @Inject()(
-  override val messagesApi: MessagesApi,
-  identify: IdentifierAction,
-  getData: DataRetrievalActionProvider,
-  requireData: DataRequiredAction,
-  unloadingPermissionService: UnloadingPermissionService,
-  val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer,
-  referenceDataService: ReferenceDataService,
-  errorHandler: ErrorHandler,
-  unloadingRemarksService: UnloadingRemarksService,
-  auditEventSubmissionService: AuditEventSubmissionService,
-  appConfig: FrontendAppConfig
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
+                                            override val messagesApi: MessagesApi,
+                                            identify: IdentifierAction,
+                                            getData: DataRetrievalActionProvider,
+                                            requireData: DataRequiredAction,
+                                            unloadingPermissionService: UnloadingPermissionService,
+                                            val controllerComponents: MessagesControllerComponents,
+                                            renderer: Renderer,
+                                            referenceDataService: ReferenceDataService,
+                                            errorHandler: ErrorHandler,
+                                            unloadingRemarksService: UnloadingRemarksService,
+                                            auditEventSubmissionService: AuditEventSubmissionService
+                                          )(implicit ec: ExecutionContext)
+  extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
@@ -85,21 +84,20 @@ class CheckYourAnswersController @Inject()(
         case Some(unloadingPermission) => {
           unloadingRemarksService.submit(arrivalId, request.userAnswers, unloadingPermission) flatMap {
             case Some(status) =>
-              val auditModel = AuditEventService.extendedDataEvent(request.userAnswers, appConfig.appName, "submitUnloadingRemarks")
 
-              auditEventSubmissionService.submitAudit(auditModel).flatMap {
-                case AuditResult.Success =>
-                  status match {
-                    case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
-                    case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
-                    case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
-                  }
-                case _ => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR) //TODO we may want to log these failures
+              auditEventSubmissionService.auditUnloadingRemarks(request.userAnswers)
+
+              status match {
+                case ACCEPTED => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+                case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
+                case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
               }
+
             case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
           }
         }
         case _ => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
       }
   }
+
 }

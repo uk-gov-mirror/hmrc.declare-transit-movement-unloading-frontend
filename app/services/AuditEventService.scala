@@ -22,21 +22,12 @@ import uk.gov.hmrc.play.audit.model._
 
 object AuditEventService {
 
-  private def formatAuditEvent(serviceName: String, auditType: String, auditEventData: AuditEventData): ExtendedDataEvent =
-    ExtendedDataEvent(
-      auditSource = serviceName,
-      auditType   = auditType,
-      detail      = Json.toJson(auditEventData)
-    )
-
-  def extendedDataEvent(userAnswers: UserAnswers, serviceName: String, auditType: String): ExtendedDataEvent = {
+  def extendedDataEvent(userAnswers: UserAnswers): AuditEventData = {
 
     val auditUserInput: AuditUserInput = AuditUserInput(userAnswers.data)
     val auditAutoInput: AuditAutoInput = AuditAutoInput(userAnswers.prepopulateData)
 
-    val auditEventData: AuditEventData = AuditEventData(auditUserInput, auditAutoInput)
-
-    AuditEventService.formatAuditEvent(serviceName, auditType, auditEventData)
+    AuditEventData(auditUserInput, auditAutoInput)
   }
 
 }

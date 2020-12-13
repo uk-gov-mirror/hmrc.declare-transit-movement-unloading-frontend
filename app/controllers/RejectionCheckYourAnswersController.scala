@@ -63,7 +63,7 @@ class RejectionCheckYourAnswersController @Inject()(
 
   def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      unloadingRemarksService.resubmit(arrivalId, request.eoriNumber, request.userAnswers) flatMap {
+      unloadingRemarksService.resubmit(arrivalId, request.userAnswers) flatMap {
         case Some(status) =>
           status match {
             case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))

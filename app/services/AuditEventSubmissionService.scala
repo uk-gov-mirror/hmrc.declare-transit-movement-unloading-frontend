@@ -17,14 +17,20 @@
 package services
 
 import com.google.inject.Inject
+import models.UserAnswers
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 class AuditEventSubmissionService @Inject()(auditConnector: AuditConnector) {
 
-  def submitAudit(extendedDataEvent: ExtendedDataEvent)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[AuditResult] =
-    auditConnector.sendExtendedEvent(extendedDataEvent)
+  def auditUnloadingRemarks(userAnswers: UserAnswers)(implicit hc: HeaderCarrier, ec: ExecutionContext): Unit = {
+
+    val data = AuditEventService.extendedDataEvent(userAnswers)
+
+    auditConnector.sendExplicitAudit("submitUnloadingRemarks", data)
+  }
+
+
 }
