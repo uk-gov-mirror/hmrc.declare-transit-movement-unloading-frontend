@@ -81,7 +81,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
 
             unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
           }
-          case _                             => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
+          case _ => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
         }
       case _ => logger.debug("Failed to get unloading remarks request: Service.unloadingRemarksMessage(arrivalId)"); Future.successful(None)
     }

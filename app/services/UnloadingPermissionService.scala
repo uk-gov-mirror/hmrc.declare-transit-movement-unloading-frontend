@@ -33,21 +33,18 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
       case _ => Future.successful(None)
     }
 
-  //TODO: Refactor
   def convertSeals(userAnswers: UserAnswers)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Option[UserAnswers]] =
-    getUnloadingPermission(userAnswers.id).flatMap {
-      case Some(unloadingPermission) =>
-        unloadingPermission.seals match {
-          case Some(seals) =>
-            for {
-              ua1 <- userAnswers.set(SealsQuery, seals.SealId).toOption
-              ua2 <- ua1.setPrepopulateData(SealsQuery, seals.SealId).toOption
-            } yield Future.successful(ua2)
-
-            Future.successful(userAnswers.set(SealsQuery, seals.SealId).toOption)
-          case _ => Future.successful(Some(userAnswers))
-        }
-      case _ => Future.successful(None)
+    getUnloadingPermission(userAnswers.id).map {
+      _.flatMap {
+        unloadingPermission =>
+          unloadingPermission.seals.fold(Option(userAnswers)) {
+            seals =>
+              for {
+                ua1 <- userAnswers.set(SealsQuery, seals.SealId).toOption
+                ua2 <- ua1.setPrepopulateData(SealsQuery, seals.SealId).toOption
+              } yield ua2
+          }
+      }
     }
 
   def convertSeals(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Option[UserAnswers] =

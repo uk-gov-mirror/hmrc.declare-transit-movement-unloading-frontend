@@ -32,5 +32,4 @@ class AuditEventSubmissionService @Inject()(auditConnector: AuditConnector) {
     auditConnector.sendExplicitAudit("submitUnloadingRemarks", data)
   }
 
-
 }

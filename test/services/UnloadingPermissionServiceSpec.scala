@@ -112,8 +112,18 @@ class UnloadingPermissionServiceSpec extends SpecBase with BeforeAndAfterEach wi
 
         when(mockConnector.getUnloadingPermission(any())(any()))
           .thenReturn(Future.successful(Some(unloadingPermissionMessage.copy(seals = Some(Seals(2, Seq("Seals01", "Seals02")))))))
-        val userAnswers          = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj())
-        val userAnswersWithSeals = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj("seals" -> Seq("Seals01", "Seals02")), Json.obj(), userAnswers.lastUpdated)
+
+        val userAnswers = UserAnswers(arrivalId, mrn, eoriNumber, Json.obj("test" -> "answer"))
+
+        val userAnswersWithSeals = UserAnswers(
+          arrivalId,
+          mrn,
+          eoriNumber,
+          Json.obj("test"  -> "answer", "seals" -> Seq("Seals01", "Seals02")),
+          Json.obj("seals" -> Seq("Seals01", "Seals02")),
+          userAnswers.lastUpdated
+        )
+
         service.convertSeals(userAnswers).futureValue mustBe Some(userAnswersWithSeals)
       }
 

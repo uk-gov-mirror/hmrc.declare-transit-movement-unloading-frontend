@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{JsObject, Json, OFormat}
 
-case class AuditAutoInput(autoInput: JsObject)
+case class AuditAutoInput(prepopulatedUserAnswers: JsObject)
 
 object AuditAutoInput {
   implicit val formats: OFormat[AuditAutoInput] = Json.format[AuditAutoInput]

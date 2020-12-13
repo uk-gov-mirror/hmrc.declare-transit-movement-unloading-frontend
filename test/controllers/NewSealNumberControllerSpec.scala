@@ -91,6 +91,7 @@ class NewSealNumberControllerSpec extends SpecBase with AppWithDefaultMockFixtur
         .thenReturn(Future.successful(Html("")))
 
       val userAnswers = emptyUserAnswers.set(NewSealNumberPage(index), "answer").success.value
+
       setExistingUserAnswers(userAnswers)
 
       val request        = FakeRequest(GET, newSealNumberRoute)

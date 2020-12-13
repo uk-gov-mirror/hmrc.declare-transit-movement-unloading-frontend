@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{JsObject, Json, OFormat}
 
-case class AuditUserInput(userInput: JsObject)
+case class AuditUserInput(fullUserAnswers: JsObject)
 
 object AuditUserInput {
   implicit val formats: OFormat[AuditUserInput] = Json.format[AuditUserInput]
