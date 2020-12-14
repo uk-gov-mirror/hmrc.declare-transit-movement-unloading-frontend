@@ -4,8 +4,6 @@ GET        /:arrivalId                                             controllers.I
 
 GET        /assets/*file                                           controllers.Assets.versioned(path="/public", file: Asset)
 
-GET        /:arrivalId/language/:lang                              controllers.LanguageSwitchController.switchToLanguage(arrivalId: ArrivalId, lang: String)
-
 GET        /error/this-service-has-been-reset                      controllers.SessionExpiredController.onPageLoad
 
 GET        /:arrivalId/check-your-answers                          controllers.CheckYourAnswersController.onPageLoad(arrivalId: ArrivalId)
