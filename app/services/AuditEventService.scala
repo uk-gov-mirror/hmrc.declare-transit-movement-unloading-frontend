@@ -17,8 +17,6 @@
 package services
 
 import models.{AuditAutoInput, AuditEventData, AuditUserInput, UserAnswers}
-import play.api.libs.json.Json
-import uk.gov.hmrc.play.audit.model._
 
 object AuditEventService {
 
@@ -29,5 +27,4 @@ object AuditEventService {
 
     AuditEventData(auditUserInput, auditAutoInput)
   }
-
 }

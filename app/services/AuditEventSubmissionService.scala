@@ -25,11 +25,11 @@ import scala.concurrent.ExecutionContext
 
 class AuditEventSubmissionService @Inject()(auditConnector: AuditConnector) {
 
-  def auditUnloadingRemarks(userAnswers: UserAnswers)(implicit hc: HeaderCarrier, ec: ExecutionContext): Unit = {
+  def auditUnloadingRemarks(userAnswers: UserAnswers, auditType: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Unit = {
 
     val data = AuditEventService.extendedDataEvent(userAnswers)
 
-    auditConnector.sendExplicitAudit("submitUnloadingRemarks", data)
+    auditConnector.sendExplicitAudit(auditType, data)
   }
 
 }

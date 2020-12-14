@@ -77,7 +77,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
         getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers) flatMap {
           case Some(updatedUnloadingRemarks) => {
 
-            auditEventSubmissionService.auditUnloadingRemarks(userAnswers)
+            auditEventSubmissionService.auditUnloadingRemarks(userAnswers, "resubmitUnloadingRemarks")
 
             unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
           }

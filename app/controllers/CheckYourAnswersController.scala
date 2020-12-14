@@ -84,7 +84,7 @@ class CheckYourAnswersController @Inject()(
         case Some(unloadingPermission) => {
           unloadingRemarksService.submit(arrivalId, request.userAnswers, unloadingPermission) flatMap {
             case Some(status) =>
-              auditEventSubmissionService.auditUnloadingRemarks(request.userAnswers)
+              auditEventSubmissionService.auditUnloadingRemarks(request.userAnswers, "submitUnloadingRemarks")
 
               status match {
                 case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
