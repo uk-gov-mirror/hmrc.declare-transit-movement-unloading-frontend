@@ -188,7 +188,7 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with AppWithDefaultMoc
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
-                Nil,
+                Seq(ResultsOfControlSealsUpdated),
                 seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3")))
               )
         }
@@ -228,11 +228,11 @@ class UnloadingRemarksRequestServiceSpec extends SpecBase with AppWithDefaultMoc
                 unloadingPermission.traderAtDestination,
                 unloadingPermission.presentationOffice,
                 unloadingRemarks,
-                Seq(
-                  ResultsOfControlDifferentValues(
-                    PointerToAttribute(TransportIdentity),
-                    "reference"
-                  )),
+                Seq(ResultsOfControlDifferentValues(
+                      PointerToAttribute(TransportIdentity),
+                      "reference"
+                    ),
+                    ResultsOfControlSealsUpdated),
                 seals = Some(Seals(3, Seq("seal 2", "seal 1", "seal 3")))
               )
         }
