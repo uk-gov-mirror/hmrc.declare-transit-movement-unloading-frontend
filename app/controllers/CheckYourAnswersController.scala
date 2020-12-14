@@ -16,16 +16,17 @@
 
 package controllers
 
+import audit.services.AuditEventSubmissionService
 import com.google.inject.Inject
 import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import handlers.ErrorHandler
-import models.{ArrivalId, AuditEventData}
+import models.ArrivalId
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
-import services.{AuditEventService, AuditEventSubmissionService, ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}
+import services.{ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import services.{ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}

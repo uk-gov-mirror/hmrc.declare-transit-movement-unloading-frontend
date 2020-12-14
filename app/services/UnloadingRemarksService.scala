@@ -18,6 +18,7 @@ package services
 
 import java.time.LocalDate
 
+import audit.services.AuditEventSubmissionService
 import com.google.inject.Inject
 import connectors.UnloadingConnector
 import logging.Logging

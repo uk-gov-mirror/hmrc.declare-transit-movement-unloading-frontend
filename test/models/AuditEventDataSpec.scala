@@ -16,6 +16,7 @@
 
 package models
 
+import audit.models.{AuditAutoInput, AuditEventData, AuditUserInput}
 import base.SpecBase
 import play.api.libs.json.Json
 

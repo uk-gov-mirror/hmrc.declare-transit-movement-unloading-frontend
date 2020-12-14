@@ -16,6 +16,7 @@
 
 package controllers
 
+import audit.services.AuditEventSubmissionService
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -27,7 +28,7 @@ import play.api.libs.json.JsObject
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.{AuditEventSubmissionService, UnloadingPermissionService, UnloadingRemarksService}
+import services.{UnloadingPermissionService, UnloadingRemarksService}
 
 import scala.concurrent.Future
 

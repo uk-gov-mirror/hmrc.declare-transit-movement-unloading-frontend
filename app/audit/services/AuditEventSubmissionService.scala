@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package models
+package audit.services
 
-import play.api.libs.json.{JsObject, Json, OFormat}
+import com.google.inject.Inject
+import models.UserAnswers
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
-case class AuditUserInput(fullUserAnswers: JsObject)
+import scala.concurrent.ExecutionContext
 
-object AuditUserInput {
-  implicit val formats: OFormat[AuditUserInput] = Json.format[AuditUserInput]
+class AuditEventSubmissionService @Inject()(auditConnector: AuditConnector) {
+
+  def auditUnloadingRemarks(userAnswers: UserAnswers, auditType: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Unit = {
+
+    val data = AuditEventService.extendedDataEvent(userAnswers)
+
+    auditConnector.sendExplicitAudit(auditType, data)
+  }
+
 }

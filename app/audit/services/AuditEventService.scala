@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package models
+package audit.services
 
-import play.api.libs.json.{JsObject, Json, OFormat}
+import audit.models.{AuditAutoInput, AuditEventData, AuditUserInput}
+import models.UserAnswers
 
-case class AuditAutoInput(prepopulatedUserAnswers: JsObject)
+object AuditEventService {
 
-object AuditAutoInput {
-  implicit val formats: OFormat[AuditAutoInput] = Json.format[AuditAutoInput]
+  def extendedDataEvent(userAnswers: UserAnswers): AuditEventData = {
+
+    val auditUserInput: AuditUserInput = AuditUserInput(userAnswers.data)
+    val auditAutoInput: AuditAutoInput = AuditAutoInput(userAnswers.prepopulateData)
+
+    AuditEventData(auditUserInput, auditAutoInput)
+  }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package models
+package audit.models
 
 import play.api.libs.json.{__, OWrites}
 
