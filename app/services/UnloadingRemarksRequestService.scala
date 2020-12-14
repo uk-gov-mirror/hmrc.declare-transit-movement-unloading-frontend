@@ -48,7 +48,7 @@ class UnloadingRemarksRequestServiceImpl @Inject()(resultOfControlService: Resul
           .getOrElse(unloadingPermission.seals)
       }
     }
-    val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
+    val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers, unloadingPermission)
 
     UnloadingRemarksRequest(
       meta,
