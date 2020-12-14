@@ -31,5 +31,4 @@ class AuditEventSubmissionService @Inject()(auditConnector: AuditConnector) {
 
     auditConnector.sendExplicitAudit(auditType, data)
   }
-
 }

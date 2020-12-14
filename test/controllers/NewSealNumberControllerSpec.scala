@@ -215,7 +215,7 @@ class NewSealNumberControllerSpec extends SpecBase with AppWithDefaultMockFixtur
         redirectLocation(result).value mustEqual onwardRoute.url
       }
 
-      "redirect to error page when no UserAnswers returned from unloading permissions service" in {
+      "redirect to error page when no UserAnswers returned from unloading permissions service" ignore {
         val ua = UserAnswers(arrivalId, MovementReferenceNumber("41", "IT", "0211001000782"), eoriNumber, Json.obj())
         setExistingUserAnswers(ua)
 

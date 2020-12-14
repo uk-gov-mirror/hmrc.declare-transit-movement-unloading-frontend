@@ -39,22 +39,15 @@ class UnloadingPermissionServiceImpl @Inject()(connector: UnloadingConnector) ex
         unloadingPermission =>
           unloadingPermission.seals.fold(Option(userAnswers)) {
             seals =>
-              for {
-                ua1 <- userAnswers.set(SealsQuery, seals.SealId).toOption
-                ua2 <- ua1.setPrepopulateData(SealsQuery, seals.SealId).toOption
-              } yield ua2
+              userAnswers.set(SealsQuery, seals.SealId).toOption
           }
       }
     }
 
   def convertSeals(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Option[UserAnswers] =
     unloadingPermission.seals match {
-      case Some(seals) =>
-        for {
-          ua1 <- userAnswers.set(SealsQuery, seals.SealId).toOption
-          ua2 <- ua1.setPrepopulateData(SealsQuery, seals.SealId).toOption
-        } yield ua2
-      case _ => Some(userAnswers)
+      case Some(seals) => userAnswers.set(SealsQuery, seals.SealId).toOption
+      case _           => Some(userAnswers)
     }
 }
 
