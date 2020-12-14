@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
   .settings(scalaVersion := "2.12.12")
   .settings(
     name := appName,
-    RoutesKeys.routesImport += "models._",
+    RoutesKeys.routesImport ++= Seq("models._", "models.OptionBinder._"),
     TwirlKeys.templateImports ++= Seq(
       "play.twirl.api.HtmlFormat",
       "play.twirl.api.HtmlFormat._",
@@ -50,7 +50,9 @@ lazy val root = (project in file("."))
       Resolver.jcenterRepo
     ),
     Concat.groups := Seq(
-      "javascripts/application.js" -> group(Seq("lib/govuk-frontend/govuk/all.js", "javascripts/ctc.js"))
+      "javascripts/application.js" -> group(
+        Seq("lib/govuk-frontend/govuk/all.js", "lib/hmrc-frontend/hmrc/all.js", "javascripts/ctc.js")
+      )
     ),
     uglifyCompressOptions          := Seq("unused=false", "dead_code=false"),
     pipelineStages in Assets       := Seq(concat, uglify),

@@ -22,6 +22,7 @@ function upTo(el, tagName) {
 
 // initialise GovUK lib
 GOVUKFrontend.initAll();
+HMRCFrontend.initAll();
 
 if (document.querySelector('.autocomplete') != null) {
     accessibleAutocomplete.enhanceSelectElement({

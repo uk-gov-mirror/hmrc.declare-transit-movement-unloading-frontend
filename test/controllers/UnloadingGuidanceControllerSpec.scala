@@ -50,6 +50,7 @@ class UnloadingGuidanceControllerSpec extends SpecBase with AppWithDefaultMockFi
       val expectedJson = Json.obj(
         "mrn"         -> mrn,
         "nextPageUrl" -> onwardRoute.url,
+        "arrivalId"   -> arrivalId,
         "pdfUrl"      -> routes.UnloadingPermissionPDFController.getPDF(arrivalId).url
       )
 

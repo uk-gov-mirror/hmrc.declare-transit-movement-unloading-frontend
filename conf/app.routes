@@ -20,6 +20,9 @@ GET        /error/accessibility-statement                          controllers.A
 
 GET        /error/technical-difficulties                           controllers.TechnicalDifficultiesController.onPageLoad()
 
+GET         /data/keep-alive                                            controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId] = None)
+GET         /data/:arrivalId/keep-alive                                 controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId])
+
 GET        /:arrivalId/unloading-guidance                                   controllers.UnloadingGuidanceController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)
 
 GET        /:arrivalId/date-goods-unloaded                                  controllers.DateGoodsUnloadedController.onPageLoad(arrivalId: ArrivalId, mode: Mode = NormalMode)

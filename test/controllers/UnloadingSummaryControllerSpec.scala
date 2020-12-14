@@ -67,7 +67,7 @@ class UnloadingSummaryControllerSpec extends SpecBase with AppWithDefaultMockFix
       verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
       //TODO fix the test with all the other controller tests
-      val expectedJson = Json.obj("mrn" -> mrn)
+      val expectedJson = Json.obj("mrn" -> mrn, "arrivalId" -> arrivalId)
 
       templateCaptor.getValue mustEqual "unloadingSummary.njk"
       jsonCaptor.getValue must containJson(expectedJson)

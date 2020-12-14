@@ -50,6 +50,7 @@ object UnloadingRemarksRejectionViewModel {
       Json.obj(
         "errors"                     -> errors,
         "contactUrl"                 -> nctsEnquiriesUrl,
+        "arrivalId"                  -> arrivalId,
         "declareUnloadingRemarksUrl" -> routes.IndexController.onPageLoad(arrivalId).url
       )
     Some(UnloadingRemarksRejectionViewModel("unloadingRemarksMultipleErrorsRejection.njk", json))
@@ -73,6 +74,7 @@ object UnloadingRemarksRejectionViewModel {
         def json: JsObject =
           Json.obj(
             "sections"   -> Json.toJson(Seq(Section(Seq(row)))),
+            "arrivalId"  -> arrivalId,
             "contactUrl" -> nctsEnquiriesUrl
           )
         UnloadingRemarksRejectionViewModel("unloadingRemarksRejection.njk", json)
