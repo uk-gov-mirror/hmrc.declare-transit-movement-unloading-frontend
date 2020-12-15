@@ -216,7 +216,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
         val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "new registration").get
 
         val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-        val result                     = arrivalNotificationService.resubmit(arrivalId, eoriNumber, userAnswers)
+        val result                     = arrivalNotificationService.resubmit(arrivalId, userAnswers)
         result.futureValue.value mustBe ACCEPTED
         verify(mockUnloadingRemarksMessageService).unloadingRemarksMessage(any())(any(), any())
 
@@ -228,7 +228,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
         when(mockUnloadingRemarksMessageService.unloadingRemarksMessage(any())(any(), any())) thenReturn Future.successful(None)
 
         val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-        val result                     = arrivalNotificationService.resubmit(arrivalId, eoriNumber, emptyUserAnswers)
+        val result                     = arrivalNotificationService.resubmit(arrivalId, emptyUserAnswers)
         result.futureValue mustBe None
 
         reset(mockUnloadingRemarksMessageService)
@@ -252,7 +252,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
             case x                                                                                       => x
           }
           val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
 
         }
@@ -274,7 +274,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
           }
 
           val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
         }
 
@@ -295,7 +295,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
           }
 
           val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
         }
 
@@ -316,7 +316,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
           }
 
           val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers)
           result.futureValue.value.resultOfControl mustBe expectedResultOfControl
 
         }
@@ -338,7 +338,7 @@ class UnloadingRemarksServiceSpec extends SpecBase with AppWithDefaultMockFixtur
           }
 
           val arrivalNotificationService = app.injector.instanceOf[UnloadingRemarksService]
-          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eoriNumber, userAnswers)
+          val result                     = arrivalNotificationService.getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers)
           result.futureValue.value.unloadingRemark mustBe expectedUnloadingRemark
 
         }

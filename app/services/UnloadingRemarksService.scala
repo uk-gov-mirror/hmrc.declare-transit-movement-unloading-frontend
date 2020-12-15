@@ -18,6 +18,7 @@ package services
 
 import java.time.LocalDate
 
+import audit.services.AuditEventSubmissionService
 import com.google.inject.Inject
 import connectors.UnloadingConnector
 import logging.Logging
@@ -70,18 +71,19 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
           None
       }
 
-  def resubmit(arrivalId: ArrivalId, eori: EoriNumber, userAnswers: UserAnswers)(implicit hc: HeaderCarrier): Future[Option[Int]] =
+  def resubmit(arrivalId: ArrivalId, userAnswers: UserAnswers)(implicit hc: HeaderCarrier): Future[Option[Int]] =
     unloadingRemarksMessageService.unloadingRemarksMessage(arrivalId) flatMap {
       case Some(unloadingRemarksRequest) =>
-        getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, eori, userAnswers) flatMap {
-          case Some(updatedUnloadingRemarks) => unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
-          case _                             => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
+        getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers) flatMap {
+          case Some(updatedUnloadingRemarks) => {
+            unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
+          }
+          case _ => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
         }
       case _ => logger.debug("Failed to get unloading remarks request: Service.unloadingRemarksMessage(arrivalId)"); Future.successful(None)
     }
 
   private[services] def getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest: UnloadingRemarksRequest,
-                                                         eori: EoriNumber,
                                                          userAnswers: UserAnswers): Future[Option[UnloadingRemarksRequest]] =
     interchangeControlReferenceIdRepository
       .nextInterchangeControlReferenceId()

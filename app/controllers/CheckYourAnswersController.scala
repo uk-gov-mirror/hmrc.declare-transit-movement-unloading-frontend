@@ -16,7 +16,9 @@
 
 package controllers
 
+import audit.services.AuditEventSubmissionService
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import handlers.ErrorHandler
 import models.ArrivalId
@@ -24,6 +26,9 @@ import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
 import renderer.Renderer
+import services.{ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import uk.gov.hmrc.play.bootstrap.controller.FrontendBaseController
 import services.{ReferenceDataService, UnloadingPermissionService, UnloadingRemarksService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
@@ -42,7 +47,8 @@ class CheckYourAnswersController @Inject()(
   renderer: Renderer,
   referenceDataService: ReferenceDataService,
   errorHandler: ErrorHandler,
-  unloadingRemarksService: UnloadingRemarksService
+  unloadingRemarksService: UnloadingRemarksService,
+  auditEventSubmissionService: AuditEventSubmissionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -83,14 +89,19 @@ class CheckYourAnswersController @Inject()(
           unloadingRemarksService.submit(arrivalId, request.userAnswers, unloadingPermission) flatMap {
             case Some(status) =>
               status match {
-                case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+                case ACCEPTED => {
+                  auditEventSubmissionService.auditUnloadingRemarks(request.userAnswers, "submitUnloadingRemarks")
+                  Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+                }
                 case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
                 case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
               }
+
             case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
           }
         }
         case _ => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
       }
   }
+
 }

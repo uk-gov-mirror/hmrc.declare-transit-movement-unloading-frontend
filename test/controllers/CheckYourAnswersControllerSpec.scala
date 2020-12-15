@@ -16,6 +16,7 @@
 
 package controllers
 
+import audit.services.AuditEventSubmissionService
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -33,13 +34,15 @@ import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
 
-  val mockUnloadingPermissionService: UnloadingPermissionService = mock[UnloadingPermissionService]
-  val mockUnloadingRemarksService: UnloadingRemarksService       = mock[UnloadingRemarksService]
+  val mockUnloadingPermissionService: UnloadingPermissionService   = mock[UnloadingPermissionService]
+  val mockUnloadingRemarksService: UnloadingRemarksService         = mock[UnloadingRemarksService]
+  val mockAuditEventSubmissionService: AuditEventSubmissionService = mock[AuditEventSubmissionService]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
     reset(mockUnloadingPermissionService)
     reset(mockUnloadingRemarksService)
+    reset(mockAuditEventSubmissionService)
   }
 
   override def guiceApplicationBuilder(): GuiceApplicationBuilder =
@@ -47,7 +50,8 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
       .guiceApplicationBuilder()
       .overrides(
         bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService),
-        bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService)
+        bind[UnloadingRemarksService].toInstance(mockUnloadingRemarksService),
+        bind[AuditEventSubmissionService].toInstance(mockAuditEventSubmissionService)
       )
 
   "Check Your Answers Controller" - {
