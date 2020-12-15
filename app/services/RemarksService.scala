@@ -36,6 +36,8 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
       case Some(date) =>
         implicit val unloadingDate: LocalDate = date
 
+        implicit val originalValues: UnloadingPermission = unloadingPermission
+
         implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers, unloadingPermission)
 
         Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers))
@@ -47,7 +49,8 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
     }
 
   private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate,
-                                                                         resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
+                                                                         resultsOfControl: Seq[ResultsOfControl],
+                                                                         originalValues: UnloadingPermission): PartialFunction[Option[Seals], Response] = {
     case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
 
       if (haveSealsChanged(unloadingPermissionSeals, userAnswers) ||
@@ -60,8 +63,10 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             unloadingDate   = unloadingDate
           ))
       } else {
-        (userAnswers.get(GrossMassAmountPage), userAnswers.get(TotalNumberOfItemsPage), userAnswers.get(TotalNumberOfPackagesPage)) match {
-          case (None, None, None) =>
+        (hasGrossMassChanged(originalValues.grossMass, userAnswers),
+         hasNumberOfItemsChanged(originalValues.numberOfItems, userAnswers),
+         hasTotalNumberOfPackagesChanged(originalValues.numberOfPackages, userAnswers)) match {
+          case (false, false, false) =>
             Future.successful(
               RemarksConformWithSeals(
                 unloadingRemark = userAnswers.get(ChangesToReportPage),
@@ -83,8 +88,10 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
 
   }
 
-  private def unloadingPermissionDoesNotContainSeals(
-    userAnswers: UserAnswers)(implicit unloadingDate: LocalDate, resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
+  private def unloadingPermissionDoesNotContainSeals(userAnswers: UserAnswers)(
+    implicit unloadingDate: LocalDate,
+    resultsOfControl: Seq[ResultsOfControl],
+    originalValues: UnloadingPermission): PartialFunction[Option[Seals], Response] = {
     case None =>
       userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) =>
@@ -96,8 +103,10 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             )
           )
         case None =>
-          (userAnswers.get(GrossMassAmountPage), userAnswers.get(TotalNumberOfItemsPage), userAnswers.get(TotalNumberOfPackagesPage)) match {
-            case (None, None, None) =>
+          (hasGrossMassChanged(originalValues.grossMass, userAnswers),
+           hasNumberOfItemsChanged(originalValues.numberOfItems, userAnswers),
+           hasTotalNumberOfPackagesChanged(originalValues.numberOfPackages, userAnswers)) match {
+            case (false, false, false) =>
               Future.successful(
                 RemarksConform(
                   unloadingRemark = userAnswers.get(ChangesToReportPage),
@@ -131,6 +140,24 @@ object RemarksService {
     userAnswers.get(SealsQuery).exists {
       userSeals =>
         userSeals.sorted != originalSeals.sorted
+    }
+
+  def hasGrossMassChanged(originalValue: String, userAnswers: UserAnswers): Boolean =
+    userAnswers.get(GrossMassAmountPage).exists {
+      userGrossMass =>
+        userGrossMass != originalValue
+    }
+
+  def hasNumberOfItemsChanged(originalValue: Int, userAnswers: UserAnswers): Boolean =
+    userAnswers.get(TotalNumberOfItemsPage).exists {
+      userNumberItems =>
+        userNumberItems != originalValue
+    }
+
+  def hasTotalNumberOfPackagesChanged(originalValue: Int, userAnswers: UserAnswers): Boolean =
+    userAnswers.get(TotalNumberOfPackagesPage).exists {
+      userNumberPackages =>
+        userNumberPackages != originalValue
     }
 
 }
