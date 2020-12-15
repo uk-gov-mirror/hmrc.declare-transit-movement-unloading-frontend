@@ -67,7 +67,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase with AppWithDefau
     "must redirect to Confirmation on valid submission" in {
       val userAnswers = emptyUserAnswers.set(VehicleNameRegistrationReferencePage, "updatedValue").success.value
 
-      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any()))
+      when(mockUnloadingRemarksService.resubmit(any(), any())(any()))
         .thenReturn(Future.successful(Some(ACCEPTED)))
 
       setExistingUserAnswers(userAnswers)
@@ -88,7 +88,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase with AppWithDefau
       setExistingUserAnswers(userAnswers)
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
-      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
+      when(mockUnloadingRemarksService.resubmit(any(), any())(any())).thenReturn(Future.successful(Some(UNAUTHORIZED)))
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 
@@ -105,7 +105,7 @@ class RejectionCheckYourAnswersControllerSpec extends SpecBase with AppWithDefau
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
-      when(mockUnloadingRemarksService.resubmit(any(), any(), any())(any())).thenReturn(Future.successful(None))
+      when(mockUnloadingRemarksService.resubmit(any(), any())(any())).thenReturn(Future.successful(None))
 
       val request = FakeRequest(POST, routes.RejectionCheckYourAnswersController.onSubmit(arrivalId).url)
 
