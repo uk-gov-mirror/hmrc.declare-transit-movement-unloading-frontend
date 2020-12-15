@@ -60,12 +60,24 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             unloadingDate   = unloadingDate
           ))
       } else {
-        Future.successful(
-          RemarksConformWithSeals(
-            unloadingRemark = userAnswers.get(ChangesToReportPage),
-            unloadingDate   = unloadingDate
-          )
-        )
+        (userAnswers.get(GrossMassAmountPage), userAnswers.get(TotalNumberOfItemsPage), userAnswers.get(TotalNumberOfPackagesPage)) match {
+          case (None, None, None) =>
+            Future.successful(
+              RemarksConformWithSeals(
+                unloadingRemark = userAnswers.get(ChangesToReportPage),
+                unloadingDate   = unloadingDate
+              )
+            )
+          case (_, _, _) =>
+            Future.successful(
+              RemarksNonConform(
+                stateOfSeals    = Some(1),
+                unloadingRemark = userAnswers.get(ChangesToReportPage),
+                unloadingDate   = unloadingDate
+              )
+            )
+        }
+
       }
     }
 
@@ -84,12 +96,23 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             )
           )
         case None =>
-          Future.successful(
-            RemarksConform(
-              unloadingRemark = userAnswers.get(ChangesToReportPage),
-              unloadingDate   = unloadingDate
-            )
-          )
+          (userAnswers.get(GrossMassAmountPage), userAnswers.get(TotalNumberOfItemsPage), userAnswers.get(TotalNumberOfPackagesPage)) match {
+            case (None, None, None) =>
+              Future.successful(
+                RemarksConform(
+                  unloadingRemark = userAnswers.get(ChangesToReportPage),
+                  unloadingDate   = unloadingDate
+                )
+              )
+            case (_, _, _) =>
+              Future.successful(
+                RemarksNonConform(
+                  stateOfSeals    = None,
+                  unloadingRemark = userAnswers.get(ChangesToReportPage),
+                  unloadingDate   = unloadingDate
+                )
+              )
+          }
       }
   }
 }
