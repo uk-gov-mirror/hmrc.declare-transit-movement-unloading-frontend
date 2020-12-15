@@ -36,8 +36,7 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
                                         unloadingRemarksRequestService: UnloadingRemarksRequestService,
                                         interchangeControlReferenceIdRepository: InterchangeControlReferenceIdRepository,
                                         unloadingRemarksMessageService: UnloadingRemarksMessageService,
-                                        unloadingConnector: UnloadingConnector,
-                                        auditEventSubmissionService: AuditEventSubmissionService)(implicit ec: ExecutionContext)
+                                        unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext)
     extends Logging {
 
   def submit(arrivalId: ArrivalId, userAnswers: UserAnswers, unloadingPermission: UnloadingPermission)(implicit hc: HeaderCarrier): Future[Option[Int]] =
@@ -77,9 +76,6 @@ class UnloadingRemarksService @Inject()(metaService: MetaService,
       case Some(unloadingRemarksRequest) =>
         getUpdatedUnloadingRemarkRequest(unloadingRemarksRequest, userAnswers) flatMap {
           case Some(updatedUnloadingRemarks) => {
-
-            auditEventSubmissionService.auditUnloadingRemarks(userAnswers, "resubmitUnloadingRemarks")
-
             unloadingConnector.post(arrivalId, updatedUnloadingRemarks).map(response => Some(response.status))
           }
           case _ => logger.debug("Failed to get updated unloading remarks request"); Future.successful(None)
