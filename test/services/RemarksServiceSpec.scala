@@ -23,6 +23,8 @@ import models.messages._
 import models.{Index, Seals, UnloadingPermission, UserAnswers}
 import org.mockito.Mockito.when
 import org.scalacheck.Arbitrary.arbitrary
+import org.scalacheck.Gen
+import org.scalacheck.Gen.choose
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import pages.{ChangesToReportPage, _}
 
@@ -33,6 +35,9 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
   private val mockResultOfControlService: ResultOfControlService = mock[ResultOfControlService]
 
   private val service = new RemarksServiceImpl(mockResultOfControlService)
+
+  private def genDecimal(min: Double, max: Double): Gen[BigDecimal] =
+    Gen.choose(min, max).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))
 
   "RemarksServiceSpec" - {
 
@@ -74,24 +79,269 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
         }
       }
 
-      "results of control exist without seals" in {
+      "results of control exist" - {
 
-        forAll(arbitrary[UnloadingPermission], arbitrary[ResultsOfControl], stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength)) {
-          (unloadingPermission, resultsOfControlValues, unloadingRemarks) =>
-            val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None)
-            val userAnswers = emptyUserAnswers
-              .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
-              .success
-              .value
-              .set(ChangesToReportPage, unloadingRemarks)
-              .success
-              .value
+        "without seals" in {
 
-            when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+          forAll(arbitrary[UnloadingPermission], arbitrary[ResultsOfControl], stringsWithMaxLength(RemarksNonConform.unloadingRemarkLength)) {
+            (unloadingPermission, resultsOfControlValues, unloadingRemarks) =>
+              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(ChangesToReportPage, unloadingRemarks)
+                .success
+                .value
 
-            service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
-              RemarksConform(unloadingRemark = Some(unloadingRemarks), unloadingDate = dateGoodsUnloaded)
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
 
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksConform(unloadingRemark = Some(unloadingRemarks), unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+      }
+
+      "gross mass has been updated" - {
+
+        "without seals" in {
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            genDecimal(0.0, 50000.999),
+            genDecimal(60000.000, 99999999.999)
+          ) {
+            (unloadingPermission, resultsOfControlValues, grossMassUnloading, grossMass) =>
+              val unloadingPermissionUpdated = unloadingPermission.copy(seals = None, grossMass = grossMassUnloading.toString)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(GrossMassAmountPage, grossMass.toString())
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionUpdated).futureValue mustBe
+                RemarksNonConform(stateOfSeals = None, unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+
+        "with seals" in {
+
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            genDecimal(0.0, 50000.999),
+            genDecimal(60000.000, 99999999.999)
+          ) {
+            (unloadingPermission, resultsOfControlValues, grossMassUnloading, grossMass) =>
+              val unloadingPermissionWithNoSeals =
+                unloadingPermission.copy(grossMass = grossMassUnloading.toString(), seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(GrossMassAmountPage, grossMass.toString())
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+
+        "and has same value as unloading permission" in {
+
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            genDecimal(0.0, 50000.999),
+          ) {
+            (unloadingPermission, resultsOfControlValues, grossMass) =>
+              val unloadingPermissionWithNoSeals =
+                unloadingPermission.copy(grossMass = grossMass.toString(), seals = Some(Seals(2, Seq("seal 1", "seal 2"))))
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(GrossMassAmountPage, grossMass.toString())
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksConformWithSeals(unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+          }
+        }
+
+      }
+
+      "number of items has been updated" - {
+
+        "without seals" in {
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            choose(min = 1: Int, 49: Int),
+            choose(min = 50: Int, 100: Int)
+          ) {
+            (unloadingPermission, resultsOfControlValues, numberOfItemsUnloadingPermission, numberOfItemsUpdated) =>
+              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None, numberOfItems = numberOfItemsUnloadingPermission)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(TotalNumberOfItemsPage, numberOfItemsUpdated)
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksNonConform(stateOfSeals = None, unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+
+        "with seals" in {
+
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            choose(min = 1: Int, 49: Int),
+            choose(min = 50: Int, 100: Int)
+          ) {
+            (unloadingPermission, resultsOfControlValues, numberOfItemsUnloadingPermission, numberOfItemsUpdated) =>
+              val unloadingPermissionWithNoSeals =
+                unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))), numberOfItems = numberOfItemsUnloadingPermission)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(TotalNumberOfItemsPage, numberOfItemsUpdated)
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+
+        "and has same value as unloading permission" in {
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            choose(min = 1: Int, 49: Int)
+          ) {
+            (unloadingPermission, resultsOfControlValues, numberOfItems) =>
+              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None, numberOfItems = numberOfItems)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(TotalNumberOfItemsPage, numberOfItems)
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksConform(unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+      }
+
+      "number of packages has been updated" - {
+
+        "without seals" in {
+
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            choose(min = 1: Int, 49: Int),
+            choose(min = 50: Int, 100: Int)
+          ) {
+            (unloadingPermission, resultsOfControlValues, numberOfPackagesUnloadingPermission, numberOfPackagesUpdated) =>
+              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None, numberOfItems = numberOfPackagesUnloadingPermission)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(TotalNumberOfPackagesPage, numberOfPackagesUpdated)
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksNonConform(stateOfSeals = None, unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+
+        "with seals" in {
+
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            choose(min = 1: Int, 49: Int),
+            choose(min = 50: Int, 100: Int)
+          ) {
+            (unloadingPermission, resultsOfControlValues, numberOfPackagesUnloadingPermission, numberOfPackagesUpdated) =>
+              val unloadingPermissionWithNoSeals =
+                unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))), numberOfPackages = numberOfPackagesUnloadingPermission)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(TotalNumberOfPackagesPage, numberOfPackagesUpdated)
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksNonConform(stateOfSeals = Some(1), unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
+        }
+
+        "and has same value as unloading permission" in {
+
+          forAll(
+            arbitrary[UnloadingPermission],
+            arbitrary[ResultsOfControl],
+            choose(min = 1: Int, 49: Int),
+          ) {
+            (unloadingPermission, resultsOfControlValues, numberOfPackages) =>
+              val unloadingPermissionWithNoSeals =
+                unloadingPermission.copy(seals = Some(Seals(2, Seq("seal 1", "seal 2"))), numberOfPackages = numberOfPackages)
+              val userAnswers = emptyUserAnswers
+                .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
+                .success
+                .value
+                .set(TotalNumberOfPackagesPage, numberOfPackages)
+                .success
+                .value
+
+              when(mockResultOfControlService.build(userAnswers, unloadingPermission)).thenReturn(Seq(resultsOfControlValues))
+
+              service.build(userAnswers, unloadingPermissionWithNoSeals).futureValue mustBe
+                RemarksConformWithSeals(unloadingRemark = None, unloadingDate = dateGoodsUnloaded)
+
+          }
         }
       }
 
