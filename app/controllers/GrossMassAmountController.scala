@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions._
 import forms.GrossMassAmountFormProvider
+
 import javax.inject.Inject
 import models.{ArrivalId, Mode}
 import navigation.Navigator
@@ -30,6 +31,7 @@ import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.text.DecimalFormat
 import scala.concurrent.{ExecutionContext, Future}
 
 class GrossMassAmountController @Inject()(
@@ -68,6 +70,7 @@ class GrossMassAmountController @Inject()(
 
   def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
+      val decimalFormat = new DecimalFormat("#.000")
       form
         .bindFromRequest()
         .fold(
@@ -84,7 +87,7 @@ class GrossMassAmountController @Inject()(
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(GrossMassAmountPage, value))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(GrossMassAmountPage, decimalFormat.format(value.toDouble)))
               _              <- sessionRepository.set(updatedAnswers)
             } yield Redirect(navigator.nextPage(GrossMassAmountPage, mode, updatedAnswers))
         )

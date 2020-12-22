@@ -30,7 +30,7 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
           Action(
             content            = msg"site.edit",
             href               = controllers.routes.NewSealNumberController.onPageLoad(arrivalId, index, CheckMode).url,
-            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
+            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display, value)),
             attributes         = Map("id" -> s"""change-seal-${index.position}""")
           )
         )
@@ -46,13 +46,13 @@ class UnloadingSummaryRow(userAnswers: UserAnswers) {
           Action(
             content            = msg"site.edit",
             href               = controllers.routes.NewSealNumberController.onPageLoad(arrivalId, index, CheckMode).url,
-            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display)),
+            visuallyHiddenText = Some(msg"changeSeal.sealList.change.hidden".withArgs(index.display, value)),
             attributes         = Map("id" -> s"""change-seal-${index.position}""")
           ),
           Action(
             content            = msg"site.delete",
             href               = controllers.routes.ConfirmRemoveSealController.onPageLoad(arrivalId, index, NormalMode).url,
-            visuallyHiddenText = Some(msg"changeSeal.sealList.remove.hidden".withArgs(index.display)),
+            visuallyHiddenText = Some(msg"changeSeal.sealList.remove.hidden".withArgs(index.display, value)),
             attributes         = Map("id" -> s"""remove-seal-${index.position}""")
           )
         )
