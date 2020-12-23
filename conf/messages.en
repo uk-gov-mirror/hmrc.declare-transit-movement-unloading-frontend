@@ -38,8 +38,8 @@ phaseBanner.3 = will help us to improve it.
 checkYourAnswers.title = Check your answers before sending these unloading remarks
 checkYourAnswers.heading = Check your answers before sending these unloading remarks
 
-checkYourAnswers.seals.subHeading = Check seals
-checkYourAnswers.seals.checkYourAnswersLabel = Seal numbers
+checkYourAnswers.seals.subHeading = Check official customs seals
+checkYourAnswers.seals.checkYourAnswersLabel = Official customs seal numbers
 checkYourAnswers.subHeading = What you found when unloading
 
 checkYourAnswers.confirmation.heading = Now send your unloading remarks
@@ -189,20 +189,20 @@ grossMassAmount.error.required = Enter the total gross mass in kilograms
 grossMassAmount.error.length = The total gross mass in kilograms must be 99999999999.999 or less
 grossMassAmount.error.characters = The total gross mass in kilograms must be 11 numbers or less and up to 3 decimal places, like 1000000.000
 
-newSealNumber.title = What is the new seal number or mark?
-newSealNumber.heading = What is the new seal number or mark?
-newSealNumber.checkYourAnswersLabel = What is the new seal number or mark?
-newSealNumber.error.required = Enter the new seal number or mark
-newSealNumber.error.length = Seal number or mark must be 20 characters or less
-newSealNumber.error.characters = Seal number or mark must only contain letters a to z or numbers 0 to 9
+newSealNumber.title = What is the new official customs seal number or mark?
+newSealNumber.heading = What is the new official customs seal number or mark?
+newSealNumber.checkYourAnswersLabel = What is the new official customs seal number or mark?
+newSealNumber.error.required = Enter the new official customs seal number or mark
+newSealNumber.error.length = The new official customs seal number must be 20 characters or less
+newSealNumber.error.characters = The new official customs seal number must only include letters a to z, numbers 0 to 9, ampersands (&), apostrophes, at signs (@), forward slashes, full stops, hyphens, percentage signs, question marks, greater than and less than signs
 
 unloadingSummary.title = Check what you found against the transit declaration
 unloadingSummary.heading = Check what you found against the transit declaration
-unloadingSummary.addSeal.link.text = Add a new seal number
+unloadingSummary.addSeal.link.text = Add a new official customs seal number
 unloadingSummary.addComment.link.text = Add comment
-unloadingSummary.noSeals = There are no seals.
-unloadingSummary.noSeals = There are no seals.
-unloadingSummary.seals.subheading = Seals
+unloadingSummary.noSeals = There are no official customs seals.
+unloadingSummary.noSeals = There are no official customs seals.
+unloadingSummary.seals.subheading = Official customs seals
 
 vehicleUsed.title = Vehicle used
 changeVehicle.reference.label = Name, registration or reference
@@ -210,10 +210,10 @@ changeVehicle.reference.change.hidden = name, registration or reference
 changeVehicle.registeredCountry.label = Registered
 changeVehicle.registeredCountry.change.hidden = registered
 
-changeSeal.title = Seals
-changeSeal.sealList.label = Seal {0}
-changeSeal.sealList.change.hidden = seal {0}
-changeSeal.sealList.remove.hidden = seal {0}
+changeSeal.title = Official customs seals
+changeSeal.sealList.label = Official customs seal {0}
+changeSeal.sealList.change.hidden = official customs seal {0}
+changeSeal.sealList.remove.hidden = official customs seal {0}
 
 changeItems.title = Items
 changeItems.grossMass.label = Total gross mass in kilograms
@@ -232,15 +232,15 @@ changeItems.comments.label = Comments
 changeItems.comments.change.hidden = change comments
 changeItems.comments.remove.hidden = remove comments
 
-canSealsBeRead.title = Can all of the seal numbers or marks be read?
-canSealsBeRead.heading = Can all of the seal numbers or marks be read?
-canSealsBeRead.checkYourAnswersLabel = Can all of the seal numbers or marks be read?
-canSealsBeRead.error.required = Select yes if all of the seals can be read
+canSealsBeRead.title = Can all of the official customs seal numbers or marks be read?
+canSealsBeRead.heading = Can all of the official customs seal numbers or marks be read?
+canSealsBeRead.checkYourAnswersLabel = Can all of the official customs seal numbers or marks be read?
+canSealsBeRead.error.required = Select yes if all of the official customs seals can be read
 
-areAnySealsBroken.title = Are any of the seals broken?
-areAnySealsBroken.heading = Are any of the seals broken?
-areAnySealsBroken.checkYourAnswersLabel = Are any of the seals broken?
-areAnySealsBroken.error.required = Select yes if any of the seals are broken
+areAnySealsBroken.title = Are any of the official customs seals broken?
+areAnySealsBroken.heading = Are any of the official customs seals broken?
+areAnySealsBroken.checkYourAnswersLabel = Are any of the official customs seals broken?
+areAnySealsBroken.error.required = Select yes if any of the official customs seals are broken
 
 anythingElseToReport.title = Is there anything else to report?
 anythingElseToReport.heading = Is there anything else to report?
@@ -271,10 +271,10 @@ confirmRemoveComments.error.required = Select yes if you are sure you want to re
 techicalDifficulties.title = techicalDifficulties
 techicalDifficulties.heading = techicalDifficulties
 
-confirmRemoveSeal.title = Are you sure you want to remove seal?
-confirmRemoveSeal.heading = Are you sure you want to remove seal {0}?
-confirmRemoveSeal.checkYourAnswersLabel = Are you sure you want to remove seal {0}?
-confirmRemoveSeal.error.required = Select yes if you are sure you want to remove seal {0}
+confirmRemoveSeal.title = Are you sure you want to remove official customs seal?
+confirmRemoveSeal.heading = Are you sure you want to remove official customs seal {0}?
+confirmRemoveSeal.checkYourAnswersLabel = Are you sure you want to remove official customs seal {0}?
+confirmRemoveSeal.error.required = Select yes if you are sure you want to remove official customs seal {0}
 
 totalNumberOfItems.title = What is the new total number of items?
 totalNumberOfItems.heading = What is the new total number of items?

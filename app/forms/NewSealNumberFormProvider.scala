@@ -29,5 +29,11 @@ class NewSealNumberFormProvider @Inject() extends Mappings {
         .verifying(
           maxLength(UnloadingRemarksRequest.newSealNumberMaximumLength, "newSealNumber.error.length")
         )
+        .verifying(
+          regexp(
+            "^[a-zA-Z0-9&'@/.\\-%?<>]*$",
+            "newSealNumber.error.characters"
+          )
+        )
     )
 }

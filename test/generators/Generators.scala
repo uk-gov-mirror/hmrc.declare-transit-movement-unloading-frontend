@@ -88,6 +88,12 @@ trait Generators extends UserAnswersGenerator with PageGenerators with ModelGene
       chars  <- listOfN(length, alphaNumChar)
     } yield chars.mkString
 
+  def stringsWithRegexPattern(maxLength: Int, pattern: String): Gen[String] =
+    for {
+      length <- choose(1, maxLength)
+      chars  <- listOfN(length, pattern)
+    } yield chars.mkString
+
   def stringsLongerThan(minLength: Int): Gen[String] =
     for {
       maxLength <- (minLength * 2).max(100)

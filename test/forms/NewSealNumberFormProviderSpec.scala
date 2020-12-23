@@ -16,14 +16,19 @@
 
 package forms
 
+import base.SpecBase
 import forms.behaviours.StringFieldBehaviours
+import models.Seals
 import models.messages.UnloadingRemarksRequest
-import play.api.data.FormError
+import org.scalacheck.Gen
+import play.api.data.{Field, FormError}
+import wolfendale.scalacheck.regexp.RegexpGen
 
 class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
   private val requiredKey = "newSealNumber.error.required"
   private val maxLength   = UnloadingRemarksRequest.newSealNumberMaximumLength
+  private val invalidKey  = "newSealNumber.error.characters"
 
   private val form      = new NewSealNumberFormProvider()()
   private val fieldName = "value"

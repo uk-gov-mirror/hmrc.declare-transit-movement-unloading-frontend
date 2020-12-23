@@ -129,7 +129,7 @@ trait ModelGenerators {
     Arbitrary {
       for {
         numberOfSeals <- choose(min = 1: Int, 10: Int)
-        sealId        <- listWithMaxSize(numberOfSeals, stringsWithMaxLength(Seals.sealIdLength))
+        sealId        <- listWithMaxSize(numberOfSeals, stringsWithRegexPattern(Seals.sealIdLength, Seals.sealIdRegex))
       } yield Seals(numberOfSeals, sealId)
     }
 
