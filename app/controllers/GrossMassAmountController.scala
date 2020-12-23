@@ -31,7 +31,6 @@ import repositories.SessionRepository
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
-import java.text.DecimalFormat
 import scala.concurrent.{ExecutionContext, Future}
 
 class GrossMassAmountController @Inject()(
