@@ -70,7 +70,6 @@ class GrossMassAmountController @Inject()(
 
   def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      val decimalFormat = new DecimalFormat("#.000")
       form
         .bindFromRequest()
         .fold(
@@ -87,7 +86,7 @@ class GrossMassAmountController @Inject()(
           },
           value =>
             for {
-              updatedAnswers <- Future.fromTry(request.userAnswers.set(GrossMassAmountPage, decimalFormat.format(value.toDouble)))
+              updatedAnswers <- Future.fromTry(request.userAnswers.set(GrossMassAmountPage, value))
               _              <- sessionRepository.set(updatedAnswers)
             } yield Redirect(navigator.nextPage(GrossMassAmountPage, mode, updatedAnswers))
         )
