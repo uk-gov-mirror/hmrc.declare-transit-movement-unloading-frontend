@@ -20,6 +20,7 @@ import generators.Generators
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import models.messages.escapeXml
 
 import scala.xml.Elem
 import scala.xml.Utility.trim
