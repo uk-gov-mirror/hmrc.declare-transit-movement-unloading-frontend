@@ -18,7 +18,7 @@ package models
 
 import cats.syntax.all._
 import com.lucidchart.open.xtract.XmlReader._
-import com.lucidchart.open.xtract.{__, XmlReader}
+import com.lucidchart.open.xtract.{XmlReader, __}
 
 case class Seals(numberOfSeals: Int, SealId: Seq[String])
 

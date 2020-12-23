@@ -24,6 +24,7 @@ import models.{UnloadingPermission, _}
 import org.scalacheck.Arbitrary.{arbitrary, _}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Gen.choose
+import wolfendale.scalacheck.regexp.RegexpGen
 
 trait ModelGenerators {
 
@@ -129,7 +130,8 @@ trait ModelGenerators {
     Arbitrary {
       for {
         numberOfSeals <- choose(min = 1: Int, 10: Int)
-        sealId        <- listWithMaxSize(numberOfSeals, stringsWithRegexPattern(Seals.sealIdLength, Seals.sealIdRegex))
+        sealPattern: Gen[String] = RegexpGen.from(Seals.sealIdRegex)
+        sealId <- listWithMaxSize(numberOfSeals, sealPattern)
       } yield Seals(numberOfSeals, sealId)
     }
 
