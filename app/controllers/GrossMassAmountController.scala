@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions._
 import forms.GrossMassAmountFormProvider
+
 import javax.inject.Inject
 import models.{ArrivalId, Mode}
 import navigation.Navigator
