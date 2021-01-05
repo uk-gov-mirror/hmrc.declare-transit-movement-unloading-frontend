@@ -13,7 +13,7 @@ site.continue = Continue
 site.confirmAndSend = Confirm and send
 site.service_name = Manage your transit movements
 site.textarea.char_limit = (Limit is {0} characters)
-site.title.suffix = - declare-transit-movement-unloading-frontend - GOV.UK
+site.title.suffix = - Manage your transit movements - GOV.UK
 
 error.title.prefix = Error:
 error.summary.title = There is a problem
