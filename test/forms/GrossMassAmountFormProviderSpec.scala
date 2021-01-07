@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class GrossMassAmountFormProviderSpec extends StringFieldBehaviours {
 
   "must not bind strings that do not match regex" in {
 
-    val generator: Gen[String] = RegexpGen.from(s"^(\\d{1,15}|(\\d{0,15}\\.{1}\\d{1,3}){1)")
+    val generator: Gen[String] = RegexpGen.from("""[^\d{1,15}|(\d{0,15}.{1}\d{1,3}){1}]""")
     val validRegex: String     = UnloadingRemarksRequest.grossMassRegex
     val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
 

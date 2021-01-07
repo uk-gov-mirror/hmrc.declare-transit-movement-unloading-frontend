@@ -15,15 +15,15 @@
  */
 
 package services
-import models.UserAnswers
+import models.{Seals, UnloadingPermission, UserAnswers}
 import models.messages._
 import models.reference.Country
 import pages._
+import queries.SealsQuery
 
 class ResultOfControlServiceImpl extends ResultOfControlService {
 
-  //TODO: This needs refactoring (give it a map of pages/pointers and build ResultsOfControlDifferentValues automatically)
-  def build(userAnswers: UserAnswers): Seq[ResultsOfControl] = {
+  def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Seq[ResultsOfControl] = {
 
     implicit val ua: UserAnswers = userAnswers
 
@@ -39,7 +39,9 @@ class ResultOfControlServiceImpl extends ResultOfControlService {
 
     val sealsBroken: Seq[ResultsOfControl] = resultsOfControlOther
 
-    vehicleRegistrationReference ++ vehicleRegistrationCountry ++ totalNumberOfItemsPage ++ totalNumberOfPackagesPage ++ grossMassAmount ++ sealsBroken
+    val sealsUpdated: Seq[ResultsOfControl] = resultsOfControlSealsUpdated(unloadingPermission.seals)
+
+    Seq(vehicleRegistrationReference, vehicleRegistrationCountry, totalNumberOfItemsPage, totalNumberOfPackagesPage, grossMassAmount, sealsBroken, sealsUpdated).flatten
   }
 
   private def resultsOfControlString(questionPage: QuestionPage[String], pointerIdentity: PointerIdentity)(
@@ -85,8 +87,24 @@ class ResultOfControlServiceImpl extends ResultOfControlService {
       case (_, Some(false))          => Seq(ResultsOfControlSealsNotReadable)
       case _                         => Nil
     }
+
+  private def resultsOfControlSealsUpdated(unloadingPermissionSeals: Option[Seals])(implicit ua: UserAnswers): Seq[ResultsOfControlOther] =
+    unloadingPermissionSeals match {
+      case Some(Seals(_, originalSeals)) if originalSeals.nonEmpty =>
+        if (RemarksService.haveSealsChanged(originalSeals, ua)) {
+          Seq(ResultsOfControlSealsUpdated)
+        } else {
+          Nil
+        }
+      case _ =>
+        if (ua.get(SealsQuery).exists(_.nonEmpty)) {
+          Seq(ResultsOfControlSealsUpdated)
+        } else {
+          Nil
+        }
+    }
 }
 
 trait ResultOfControlService {
-  def build(userAnswers: UserAnswers): Seq[ResultsOfControl]
+  def build(userAnswers: UserAnswers, unloadingPermissionSeals: UnloadingPermission): Seq[ResultsOfControl]
 }

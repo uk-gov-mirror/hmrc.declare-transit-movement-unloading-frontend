@@ -28,7 +28,7 @@ import scala.concurrent.Future
 
 class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlService) extends RemarksService {
 
-  import RemarksServiceImpl._
+  import RemarksService._
 
   def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Response =
     userAnswers.get(DateGoodsUnloadedPage) match {
@@ -36,7 +36,9 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
       case Some(date) =>
         implicit val unloadingDate: LocalDate = date
 
-        implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers)
+        implicit val originalValues: UnloadingPermission = unloadingPermission
+
+        implicit val resultsOfControl: Seq[ResultsOfControl] = resultOfControlService.build(userAnswers, unloadingPermission)
 
         Seq(unloadingPermissionContainsSeals(userAnswers), unloadingPermissionDoesNotContainSeals(userAnswers))
           .reduce(_ orElse _)
@@ -47,7 +49,8 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
     }
 
   private def unloadingPermissionContainsSeals(userAnswers: UserAnswers)(implicit unloadingDate: LocalDate,
-                                                                         resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
+                                                                         resultsOfControl: Seq[ResultsOfControl],
+                                                                         originalValues: UnloadingPermission): PartialFunction[Option[Seals], Response] = {
     case Some(Seals(_, unloadingPermissionSeals)) if unloadingPermissionSeals.nonEmpty => {
 
       if (haveSealsChanged(unloadingPermissionSeals, userAnswers) ||
@@ -60,59 +63,105 @@ class RemarksServiceImpl @Inject()(resultOfControlService: ResultOfControlServic
             unloadingDate   = unloadingDate
           ))
       } else {
-        Future.successful(
-          RemarksConformWithSeals(
-            unloadingRemark = userAnswers.get(ChangesToReportPage),
-            unloadingDate   = unloadingDate
-          )
-        )
+        (hasGrossMassChanged(originalValues.grossMass, userAnswers),
+         hasNumberOfItemsChanged(originalValues.numberOfItems, userAnswers),
+         hasTotalNumberOfPackagesChanged(originalValues.numberOfPackages, userAnswers)) match {
+          case (false, false, false) =>
+            Future.successful(
+              RemarksConformWithSeals(
+                unloadingRemark = userAnswers.get(ChangesToReportPage),
+                unloadingDate   = unloadingDate
+              )
+            )
+          case (_, _, _) =>
+            Future.successful(
+              RemarksNonConform(
+                stateOfSeals    = Some(1),
+                unloadingRemark = userAnswers.get(ChangesToReportPage),
+                unloadingDate   = unloadingDate
+              )
+            )
+        }
+
       }
     }
 
   }
 
-  private def unloadingPermissionDoesNotContainSeals(
-    userAnswers: UserAnswers)(implicit unloadingDate: LocalDate, resultsOfControl: Seq[ResultsOfControl]): PartialFunction[Option[Seals], Response] = {
+  private def unloadingPermissionDoesNotContainSeals(userAnswers: UserAnswers)(
+    implicit unloadingDate: LocalDate,
+    resultsOfControl: Seq[ResultsOfControl],
+    originalValues: UnloadingPermission): PartialFunction[Option[Seals], Response] = {
     case None =>
       userAnswers.get(DeriveNumberOfSeals) match {
         case Some(_) =>
           Future.successful(
             RemarksNonConform(
-              stateOfSeals    = None,
+              stateOfSeals    = Some(0),
               unloadingRemark = userAnswers.get(ChangesToReportPage),
               unloadingDate   = unloadingDate
             )
           )
         case None =>
-          Future.successful(
-            RemarksConform(
-              unloadingRemark = userAnswers.get(ChangesToReportPage),
-              unloadingDate   = unloadingDate
-            )
-          )
+          (hasGrossMassChanged(originalValues.grossMass, userAnswers),
+           hasNumberOfItemsChanged(originalValues.numberOfItems, userAnswers),
+           hasTotalNumberOfPackagesChanged(originalValues.numberOfPackages, userAnswers)) match {
+            case (false, false, false) =>
+              Future.successful(
+                RemarksConform(
+                  unloadingRemark = userAnswers.get(ChangesToReportPage),
+                  unloadingDate   = unloadingDate
+                )
+              )
+            case (_, _, _) =>
+              Future.successful(
+                RemarksNonConform(
+                  stateOfSeals    = None,
+                  unloadingRemark = userAnswers.get(ChangesToReportPage),
+                  unloadingDate   = unloadingDate
+                )
+              )
+          }
       }
   }
 }
 
-object RemarksServiceImpl {
+object RemarksService {
 
   type Response = Future[Remarks]
 
-  private def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
+  def sealsUnreadable(canSealsBeReadPage: Option[Boolean]): Boolean =
     !canSealsBeReadPage.getOrElse(true)
 
-  private def sealsBroken(areAnySealsBrokenPage: Option[Boolean]): Boolean =
+  def sealsBroken(areAnySealsBrokenPage: Option[Boolean]): Boolean =
     areAnySealsBrokenPage.getOrElse(false)
 
-  private def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean =
+  def haveSealsChanged(originalSeals: Seq[String], userAnswers: UserAnswers): Boolean =
     userAnswers.get(SealsQuery).exists {
       userSeals =>
         userSeals.sorted != originalSeals.sorted
     }
 
+  def hasGrossMassChanged(originalValue: String, userAnswers: UserAnswers): Boolean =
+    userAnswers.get(GrossMassAmountPage).exists {
+      userGrossMass =>
+        userGrossMass != originalValue
+    }
+
+  def hasNumberOfItemsChanged(originalValue: Int, userAnswers: UserAnswers): Boolean =
+    userAnswers.get(TotalNumberOfItemsPage).exists {
+      userNumberItems =>
+        userNumberItems != originalValue
+    }
+
+  def hasTotalNumberOfPackagesChanged(originalValue: Int, userAnswers: UserAnswers): Boolean =
+    userAnswers.get(TotalNumberOfPackagesPage).exists {
+      userNumberPackages =>
+        userNumberPackages != originalValue
+    }
+
 }
 
 trait RemarksService {
-  //TODO: Is it better to return a Future or Either?
   def build(userAnswers: UserAnswers, unloadingPermission: UnloadingPermission): Future[Remarks]
 }

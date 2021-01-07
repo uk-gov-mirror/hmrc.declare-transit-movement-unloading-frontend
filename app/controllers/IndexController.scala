@@ -22,6 +22,7 @@ import logging.Logging
 import models.{ArrivalId, MovementReferenceNumber, UserAnswers}
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import queries.SealsQuery
 import repositories.SessionRepository
 import services.UnloadingPermissionService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -52,7 +53,17 @@ class IndexController @Inject()(
               MovementReferenceNumber(unloadingPermission.movementReferenceNumber) match {
                 case Some(mrn) =>
                   val updatedAnswers = request.userAnswers.getOrElse(UserAnswers(id = arrivalId, mrn = mrn, eoriNumber = request.eoriNumber))
-                  sessionRepository.set(updatedAnswers).flatMap {
+
+                  val userAnswersWithPrepopulatedSeals: UserAnswers = {
+                    unloadingPermission.seals
+                      .flatMap {
+                        seals =>
+                          updatedAnswers.setPrepopulateData(SealsQuery, seals.SealId).toOption
+                      }
+                      .getOrElse(updatedAnswers)
+                  }
+
+                  sessionRepository.set(userAnswersWithPrepopulatedSeals).flatMap {
                     _ =>
                       Future.successful(Redirect(nextPage(arrivalId)))
                   }

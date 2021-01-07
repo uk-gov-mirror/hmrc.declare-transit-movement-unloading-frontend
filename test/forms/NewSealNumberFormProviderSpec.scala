@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,19 @@
 
 package forms
 
+import base.SpecBase
 import forms.behaviours.StringFieldBehaviours
+import models.Seals
 import models.messages.UnloadingRemarksRequest
-import play.api.data.FormError
+import org.scalacheck.{Gen, Shrink}
+import play.api.data.{Field, FormError}
+import wolfendale.scalacheck.regexp.RegexpGen
 
 class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
   private val requiredKey = "newSealNumber.error.required"
   private val maxLength   = UnloadingRemarksRequest.newSealNumberMaximumLength
+  private val invalidKey  = "newSealNumber.error.characters"
 
   private val form      = new NewSealNumberFormProvider()()
   private val fieldName = "value"
@@ -41,5 +46,18 @@ class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
     )
+  }
+
+  "must not bind strings that do not match regex" in {
+
+    val generator: Gen[String] = RegexpGen.from(s"[!£^*(){}_+=:;|`~,±]{20}")
+    val validRegex: String     = Seals.sealIdRegex
+    val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
+
+    forAll(generator) {
+      invalidString =>
+        val result: Field = form.bind(Map(fieldName -> invalidString)).apply(fieldName)
+        result.errors should contain(expectedError)
+    }
   }
 }

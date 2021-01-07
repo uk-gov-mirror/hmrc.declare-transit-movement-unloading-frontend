@@ -16,6 +16,7 @@
 
 package controllers
 
+import audit.services.AuditEventSubmissionService
 import com.google.inject.Inject
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import handlers.ErrorHandler
@@ -40,7 +41,8 @@ class RejectionCheckYourAnswersController @Inject()(
   unloadingRemarksService: UnloadingRemarksService,
   val controllerComponents: MessagesControllerComponents,
   errorHandler: ErrorHandler,
-  renderer: Renderer
+  renderer: Renderer,
+  auditEventSubmissionService: AuditEventSubmissionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -63,10 +65,13 @@ class RejectionCheckYourAnswersController @Inject()(
 
   def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      unloadingRemarksService.resubmit(arrivalId, request.eoriNumber, request.userAnswers) flatMap {
+      unloadingRemarksService.resubmit(arrivalId, request.userAnswers) flatMap {
         case Some(status) =>
           status match {
-            case ACCEPTED     => Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+            case ACCEPTED => {
+              auditEventSubmissionService.auditUnloadingRemarks(request.userAnswers, "resubmitUnloadingRemarks")
+              Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
+            }
             case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
             case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
           }

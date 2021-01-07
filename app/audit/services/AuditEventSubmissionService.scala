@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-package controllers
+package audit.services
 
-import javax.inject.Inject
-import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import renderer.Renderer
-import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
+import com.google.inject.Inject
+import models.UserAnswers
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 
 import scala.concurrent.ExecutionContext
 
-class AccessibilityController @Inject()(
-  val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport {
+class AuditEventSubmissionService @Inject()(auditConnector: AuditConnector) {
 
-  def onPageLoad: Action[AnyContent] = Action.async {
-    implicit request =>
-      renderer.render("accessibility.njk").map(Ok(_))
+  def auditUnloadingRemarks(userAnswers: UserAnswers, auditType: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Unit = {
+
+    val data = AuditEventService.extendedDataEvent(userAnswers)
+
+    auditConnector.sendExplicitAudit(auditType, data)
   }
 }

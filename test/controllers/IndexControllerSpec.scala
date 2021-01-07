@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@ package controllers
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import cats.data.NonEmptyList
-import models.{EoriNumber, UnloadingPermission, UserAnswers}
+import models.{EoriNumber, Seals, UnloadingPermission, UserAnswers}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito._
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.Json
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
@@ -48,9 +49,13 @@ class IndexControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
   private val nextPage = routes.UnloadingGuidanceController.onPageLoad(arrivalId).url
 
   "Index Controller" - {
-    "must redirect to onward route for a GET when there are no UserAnswers" in {
+    "must redirect to onward route for a GET when there are no UserAnswers and prepopulate data" in {
+
+      val seals                        = Seals(1, Seq("Seal1", "Seal2"))
+      val unloadingPermissionWithSeals = unloadingPermission.copy(seals = Some(seals))
+
       when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any()))
-        .thenReturn(Future.successful(Some(unloadingPermission)))
+        .thenReturn(Future.successful(Some(unloadingPermissionWithSeals)))
 
       when(mockSessionRepository.set(any())).thenReturn(Future.successful(true))
 
@@ -69,6 +74,7 @@ class IndexControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
       userAnswersCaptor.getValue.mrn.toString mustBe unloadingPermission.movementReferenceNumber
       userAnswersCaptor.getValue.id mustBe arrivalId
       userAnswersCaptor.getValue.eoriNumber mustBe EoriNumber("id")
+      userAnswersCaptor.getValue.prepopulateData mustBe Json.obj("seals" -> ("Seal1", "Seal2"))
     }
 
     "must redirect to onward route for a when there are UserAnswers" in {
