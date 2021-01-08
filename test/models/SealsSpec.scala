@@ -17,14 +17,13 @@
 package models
 import com.lucidchart.open.xtract.{ParseSuccess, XmlReader}
 import generators.Generators
+import models.XMLWrites._
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers, StreamlinedXmlEquality}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import models.messages.escapeXml
 
 import scala.xml.Elem
 import scala.xml.Utility.trim
-import models.XMLWrites._
 
 class SealsSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks with StreamlinedXmlEquality {
 

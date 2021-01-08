@@ -16,11 +16,10 @@
 
 package forms
 
-import base.SpecBase
 import forms.behaviours.StringFieldBehaviours
 import models.Seals
 import models.messages.UnloadingRemarksRequest
-import org.scalacheck.{Gen, Shrink}
+import org.scalacheck.Gen
 import play.api.data.{Field, FormError}
 import wolfendale.scalacheck.regexp.RegexpGen
 
