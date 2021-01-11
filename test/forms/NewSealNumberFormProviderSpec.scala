@@ -49,7 +49,7 @@ class NewSealNumberFormProviderSpec extends StringFieldBehaviours {
 
   "must not bind strings that do not match regex" in {
 
-    val generator: Gen[String] = RegexpGen.from(s"[!£^*(){}_+=:;|`~,±]{20}")
+    val generator: Gen[String] = RegexpGen.from(s"[!£^*(){}_+=:;|`~,±<>]{20}")
     val validRegex: String     = Seals.sealIdRegex
     val expectedError          = FormError(fieldName, invalidKey, Seq(validRegex))
 
