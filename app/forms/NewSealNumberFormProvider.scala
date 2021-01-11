@@ -20,6 +20,7 @@ import javax.inject.Inject
 import forms.mappings.Mappings
 import models.messages.UnloadingRemarksRequest
 import play.api.data.Form
+import models.Seals
 
 class NewSealNumberFormProvider @Inject() extends Mappings {
 
@@ -31,7 +32,7 @@ class NewSealNumberFormProvider @Inject() extends Mappings {
         )
         .verifying(
           regexp(
-            "^[a-zA-Z0-9&'@/.\\-%?<>]*$",
+            Seals.sealIdRegex,
             "newSealNumber.error.characters"
           )
         )
