@@ -28,18 +28,17 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   lazy val appName = configuration.get[String]("appName")
 
-  private val contactHost                  = configuration.get[String]("urls.contactFrontend")
-  private val contactFormServiceIdentifier = "play26frontend"
+  lazy val contactHost: String             = configuration.get[Service]("microservice.services.contact-frontend").baseUrl
+  lazy val contactFrontendUrl: String      = configuration.get[Service]("microservice.services.contact-frontend").fullServiceUrl
+  val contactFormServiceIdentifier: String = "CTCTrader"
 
   val trackingConsentUrl: String = configuration.get[String]("microservice.services.tracking-consent-frontend.url")
   val gtmContainer: String       = configuration.get[String]("microservice.services.tracking-consent-frontend.gtm.container")
 
   val analyticsToken: String         = configuration.get[String](s"google-analytics.token")
   val analyticsHost: String          = configuration.get[String](s"google-analytics.host")
-  val reportAProblemPartialUrl       = s"$contactHost/problem_reports_ajax?service=$contactFormServiceIdentifier"
-  val reportAProblemNonJSUrl         = s"$contactHost/problem_reports_nonjs?service=$contactFormServiceIdentifier"
-  val betaFeedbackUrl                = s"$contactHost/beta-feedback"
-  val betaFeedbackUnauthenticatedUrl = s"$contactHost/beta-feedback-unauthenticated"
+  val betaFeedbackUrl                = s"$contactFrontendUrl/beta-feedback"
+  val betaFeedbackUnauthenticatedUrl = s"$contactFrontendUrl/beta-feedback-unauthenticated"
   val signOutUrl: String             = configuration.get[String]("urls.logout")
 
   lazy val loginUrl: String               = configuration.get[String]("microservice.services.auth.login")
