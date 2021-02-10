@@ -18,12 +18,16 @@ package forms
 
 import forms.behaviours.StringFieldBehaviours
 import models.messages.UnloadingRemarksRequest
-import play.api.data.FormError
+import org.scalacheck.Gen
+import org.scalatest.MustMatchers.convertToAnyMustWrapper
+import play.api.data.{Field, FormError}
+import wolfendale.scalacheck.regexp.RegexpGen
 
 class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehaviours {
 
   private val requiredKey = "vehicleNameRegistrationReference.error.required"
   private val maxLength   = UnloadingRemarksRequest.vehicleNameMaxLength
+  private val invalidKey  = "vehicleNameRegistrationReference.error.invalid"
 
   private val form      = new VehicleNameRegistrationReferenceFormProvider()()
   private val fieldName = "value"
@@ -41,5 +45,17 @@ class VehicleNameRegistrationReferenceFormProviderSpec extends StringFieldBehavi
       fieldName,
       requiredError = FormError(fieldName, requiredKey)
     )
+
+    "must not bind strings that do not match regex" in {
+
+      val expectedError          = FormError(fieldName, invalidKey)
+      val generator: Gen[String] = RegexpGen.from(s"[!£^*(){}_+=:;|`~,±üçñèé@]{35}")
+
+      forAll(generator) {
+        invalidString =>
+          val result: Field = form.bind(Map(fieldName -> invalidString)).apply(fieldName)
+          result.errors must contain(expectedError)
+      }
+    }
   }
 }
