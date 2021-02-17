@@ -274,7 +274,7 @@ class RemarksServiceSpec extends SpecBase with Generators with ScalaCheckPropert
             choose(min = 50: Int, 100: Int)
           ) {
             (unloadingPermission, resultsOfControlValues, numberOfPackagesUnloadingPermission, numberOfPackagesUpdated) =>
-              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None, numberOfItems = numberOfPackagesUnloadingPermission)
+              val unloadingPermissionWithNoSeals = unloadingPermission.copy(seals = None, numberOfPackages = Some(numberOfPackagesUnloadingPermission))
               val userAnswers = emptyUserAnswers
                 .set(DateGoodsUnloadedPage, dateGoodsUnloaded)
                 .success
