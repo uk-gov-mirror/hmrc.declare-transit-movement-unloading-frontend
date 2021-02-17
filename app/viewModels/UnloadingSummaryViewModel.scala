@@ -112,7 +112,7 @@ object ItemsSection {
 
     val totalNumberOfPackagesAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfPackagesPage)
     val totalNumberOfPackagesRow: Seq[Row] =
-      SummaryRow.rowInt(totalNumberOfPackagesAnswer)(Some(unloadingPermission.numberOfPackages))(unloadingSummaryRow.totalNumberOfPackages)
+      SummaryRow.rowInt(totalNumberOfPackagesAnswer)(unloadingPermission.numberOfPackages)(unloadingSummaryRow.totalNumberOfPackages)
 
     val itemsRow: NonEmptyList[Row]    = SummaryRow.rowGoodsItems(unloadingPermission.goodsItems)(userAnswers)(unloadingSummaryRow.items)
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)

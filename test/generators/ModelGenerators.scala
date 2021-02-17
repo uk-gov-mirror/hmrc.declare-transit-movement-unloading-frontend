@@ -104,7 +104,7 @@ trait ModelGenerators {
         transportIdentity       <- Gen.option(stringsWithMaxLength(UnloadingPermission.transportIdentityLength))
         transportCountry        <- Gen.option(Gen.pick(2, 'A' to 'Z'))
         numberOfItems           <- choose(min = 1: Int, 2: Int)
-        numberOfPackages        <- choose(min = 1: Int, 2: Int)
+        numberOfPackages        <- Gen.option(choose(min = 1: Int, 2: Int))
         grossMass               <- stringsWithMaxLength(2: Int)
         traderAtDestination     <- Gen.oneOf(arbitrary[TraderAtDestinationWithEori], arbitrary[TraderAtDestinationWithoutEori])
         presentationOffice      <- stringsWithMaxLength(UnloadingPermission.presentationOfficeLength)

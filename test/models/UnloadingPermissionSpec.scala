@@ -43,7 +43,11 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
                 {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
                 {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
                 <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
-                <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
+                {
+                  unloadingPermission.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
+                    <TotNumOfPacHEA306>{numberOfPackages}</TotNumOfPacHEA306>
+                  }
+                }
                 <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
               </HEAHEA>
               {trader(unloadingPermission.traderAtDestination)}
@@ -73,7 +77,11 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
             {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
             <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
-            <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
+            {
+              unloadingPermission.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
+                <TotNumOfPacHEA306>{numberOfPackages}</TotNumOfPacHEA306>
+              }
+            }
             <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
           </HEAHEA>
           {trader(unloadingPermission.traderAtDestination)}
@@ -101,7 +109,11 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
             {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
             <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
-            <TotNumOfPacHEA306>{unloadingPermission.numberOfPackages}</TotNumOfPacHEA306>
+            {
+              unloadingPermission.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
+                <TotNumOfPacHEA306>{numberOfPackages}</TotNumOfPacHEA306>
+              }
+            }
             <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
           </HEAHEA>
           {trader(unloadingPermission.traderAtDestination)}

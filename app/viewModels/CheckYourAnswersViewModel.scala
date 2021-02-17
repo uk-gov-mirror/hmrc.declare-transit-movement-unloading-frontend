@@ -89,7 +89,7 @@ object CheckYourAnswersViewModel {
 
     val totalNumberOfPackagesAnswer: Option[Int] = SummaryRow.userAnswerInt(userAnswers)(TotalNumberOfPackagesPage)
     val totalNumberOfPackagesRow: Seq[Row] =
-      SummaryRow.rowInt(totalNumberOfPackagesAnswer)(Some(unloadingPermission.numberOfPackages))(unloadingSummaryRow.totalNumberOfPackagesCYA)
+      SummaryRow.rowInt(totalNumberOfPackagesAnswer)(unloadingPermission.numberOfPackages)(unloadingSummaryRow.totalNumberOfPackagesCYA)
 
     val commentsAnswer: Option[String] = SummaryRow.userAnswerString(userAnswers)(ChangesToReportPage)
     val commentsRow: Seq[Row]          = SummaryRow.row(commentsAnswer)(None)(unloadingSummaryRow.commentsCYA)

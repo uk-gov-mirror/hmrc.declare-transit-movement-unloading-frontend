@@ -108,7 +108,7 @@ class IndexControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
         transportCountry        = None,
         grossMass               = "1000",
         numberOfItems           = 1,
-        numberOfPackages        = 1,
+        numberOfPackages        = Some(1),
         traderAtDestination     = traderWithoutEori,
         presentationOffice      = "GB000060",
         seals                   = None,

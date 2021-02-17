@@ -26,7 +26,7 @@ case class Header(
   transportIdentity: Option[String],
   transportCountry: Option[String],
   numberOfItems: Int,
-  numberOfPackages: Int,
+  numberOfPackages: Option[Int],
   grossMass: String
 )
 
@@ -48,7 +48,11 @@ object Header {
           }
         }
         <TotNumOfIteHEA305>{header.numberOfItems}</TotNumOfIteHEA305>
-        <TotNumOfPacHEA306>{header.numberOfPackages}</TotNumOfPacHEA306>
+        {
+          header.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
+            <TotNumOfPacHEA306>{numberOfPackages}</TotNumOfPacHEA306>
+          }
+        }
         <TotGroMasHEA307>{escapeXml(header.grossMass)}</TotGroMasHEA307>
       </HEAHEA>
   }
@@ -58,7 +62,7 @@ object Header {
     (__ \ "IdeOfMeaOfTraAtDHEA78").read[String].optional,
     (__ \ "NatOfMeaOfTraAtDHEA80").read[String].optional,
     (__ \ "TotNumOfIteHEA305").read[Int],
-    (__ \ "TotNumOfPacHEA306").read[Int],
+    (__ \ "TotNumOfPacHEA306").read[Int].optional,
     (__ \ "TotGroMasHEA307").read[String]
   ).mapN(apply)
 }

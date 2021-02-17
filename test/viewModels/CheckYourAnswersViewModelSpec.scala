@@ -32,7 +32,7 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
     transportIdentity       = Some("YK67 XPF"),
     transportCountry        = Some("United Kingdom"),
     numberOfItems           = 1,
-    numberOfPackages        = 1,
+    numberOfPackages        = Some(1),
     grossMass               = "1000",
     traderAtDestination     = traderWithoutEori,
     presentationOffice      = "GB000060",
