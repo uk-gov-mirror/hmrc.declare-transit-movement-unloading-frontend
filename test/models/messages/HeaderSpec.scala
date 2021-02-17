@@ -47,7 +47,11 @@ class HeaderSpec extends FreeSpec with MustMatchers with ScalaCheckPropertyCheck
             {transportIdentity.getOrElse(NodeSeq.Empty)}
             {transportCountry.getOrElse(NodeSeq.Empty)}
             <TotNumOfIteHEA305>{header.numberOfItems}</TotNumOfIteHEA305>
-            <TotNumOfPacHEA306>{header.numberOfPackages}</TotNumOfPacHEA306>
+            {
+              header.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
+                <TotNumOfPacHEA306>{numberOfPackages}</TotNumOfPacHEA306>
+              }
+            }
             <TotGroMasHEA307>{escapeXml(header.grossMass)}</TotGroMasHEA307>
           </HEAHEA>
 

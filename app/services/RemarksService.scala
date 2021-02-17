@@ -154,12 +154,8 @@ object RemarksService {
         userNumberItems != originalValue
     }
 
-  def hasTotalNumberOfPackagesChanged(originalValue: Int, userAnswers: UserAnswers): Boolean =
-    userAnswers.get(TotalNumberOfPackagesPage).exists {
-      userNumberPackages =>
-        userNumberPackages != originalValue
-    }
-
+  def hasTotalNumberOfPackagesChanged(originalValue: Option[Int], userAnswers: UserAnswers): Boolean =
+    userAnswers.get(TotalNumberOfPackagesPage).exists(!originalValue.contains(_))
 }
 
 trait RemarksService {
