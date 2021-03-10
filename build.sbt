@@ -88,9 +88,7 @@ lazy val itSettings = Defaults.itSettings ++ Seq(
     baseDirectory.value / "it",
     baseDirectory.value / "test" / "generators"
   ),
-  unmanagedResourceDirectories := Seq(
-    baseDirectory.value / "it" / "resources"
-  ),
+  unmanagedResourceDirectories += baseDirectory.value / "it" / "resources",
   parallelExecution := false,
   fork              := true,
   javaOptions ++= Seq(
