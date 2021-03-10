@@ -37,6 +37,8 @@ import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{FakeRequest, Helpers}
 
+import java.time.LocalDate
+
 trait SpecBase
     extends FreeSpec
     with MustMatchers
@@ -82,7 +84,8 @@ trait SpecBase
     traderAtDestination     = traderWithoutEori,
     presentationOffice      = "GB000060",
     seals                   = None,
-    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
   )
 
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")

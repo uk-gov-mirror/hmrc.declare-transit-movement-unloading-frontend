@@ -15,6 +15,8 @@
  */
 
 package models
+
+import base.SpecBase
 import cats.data.NonEmptyList
 import com.lucidchart.open.xtract.{ParseFailure, ParseSuccess, XmlReader}
 import generators.Generators
@@ -22,60 +24,70 @@ import org.scalacheck.Arbitrary.arbitrary
 import org.scalatest.{FreeSpec, MustMatchers}
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 
+import java.time.LocalDate
 import scala.xml.Utility.trim
 import scala.xml.{Elem, NodeSeq}
 
-class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators with ScalaCheckPropertyChecks {
+class UnloadingPermissionSpec extends SpecBase with Generators {
 
   import UnloadingPermissionSpec._
+
+  val genUnloadingPermission = arbitrary[UnloadingPermission].map(_.copy(dateOfPreparation = LocalDate.of(2020, 12, 31)))
 
   "UnloadingPermission" - {
 
     "must serialize UnloadingPermission from Xml" in {
 
-      forAll(arbitrary[UnloadingPermission]) {
-        unloadingPermission =>
-          //NOTE: Only extracting what we need for UnloadingRemarks message
+      forAll(genUnloadingPermission) {
+        case unloadingPermission @ UnloadingPermission(movementReferenceNumber,
+                                                       transportIdentity,
+                                                       transportCountry,
+                                                       numberOfItems,
+                                                       numberOfPackages,
+                                                       grossMass,
+                                                       traderAtDestination,
+                                                       presentationOffice,
+                                                       seals,
+                                                       goodsItems,
+                                                       _) =>
           val expectedResult = {
             <CC043A>
               <HEAHEA>
-                <DocNumHEA5>{unloadingPermission.movementReferenceNumber}</DocNumHEA5>
-                {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
-                {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
-                <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
+                <DocNumHEA5>{movementReferenceNumber}</DocNumHEA5>
+                {transportIdentityXml(transportIdentity).getOrElse(NodeSeq.Empty)}
+                {transportCountryXml(transportCountry).getOrElse(NodeSeq.Empty)}
+                <TotNumOfIteHEA305>{numberOfItems}</TotNumOfIteHEA305>
                 {
-                  unloadingPermission.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
+                  numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
                     <TotNumOfPacHEA306>{numberOfPackages}</TotNumOfPacHEA306>
                   }
                 }
-                <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
+                <TotGroMasHEA307>{grossMass}</TotGroMasHEA307>
               </HEAHEA>
-              {trader(unloadingPermission.traderAtDestination)}
+              {traderXml(traderAtDestination)}
               <CUSOFFPREOFFRES>
-                <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
+                <RefNumRES1>{presentationOffice}</RefNumRES1>
               </CUSOFFPREOFFRES>
-              {seals(unloadingPermission.seals)}
-              {goodsItems(unloadingPermission.goodsItems)}
+              {sealsXml(seals)}
+              {goodsItemsXml(goodsItems)}
+              <DatOfPreMES9>20201231</DatOfPreMES9>
             </CC043A>
           }
 
-          XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe
-            ParseSuccess(unloadingPermission)
+          XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe ParseSuccess(unloadingPermission)
       }
     }
 
     "return ParseFailure when converting into UnloadingPermission with no goodsItem" in {
 
-      val unloadingPermissionObject = arbitrary[UnloadingPermission]
-
-      val unloadingPermission = unloadingPermissionObject.sample.get
+      val unloadingPermission = genUnloadingPermission.sample.value
 
       val expectedResult = {
         <CC043A>
           <HEAHEA>
             <DocNumHEA5>{unloadingPermission.movementReferenceNumber}</DocNumHEA5>
-            {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
-            {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
+            {transportIdentityXml(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
+            {transportCountryXml(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
             <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
             {
               unloadingPermission.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
@@ -84,16 +96,16 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             }
             <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
           </HEAHEA>
-          {trader(unloadingPermission.traderAtDestination)}
+          {traderXml(unloadingPermission.traderAtDestination)}
           <CUSOFFPREOFFRES>
             <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES>
-          {seals(unloadingPermission.seals)}
+          {sealsXml(unloadingPermission.seals)}
+          <DatOfPreMES9>20201231</DatOfPreMES9>
         </CC043A>
       }
 
-      XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe
-        ParseFailure(List())
+      XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe ParseFailure(List())
     }
 
     "return ParseFailure when converting into UnloadingPermission with no packages" in {
@@ -106,8 +118,8 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
         <CC043A>
           <HEAHEA>
             <DocNumHEA5>{unloadingPermission.movementReferenceNumber}</DocNumHEA5>
-            {transportIdentity(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
-            {transportCountry(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
+            {transportIdentityXml(unloadingPermission.transportIdentity).getOrElse(NodeSeq.Empty)}
+            {transportCountryXml(unloadingPermission.transportCountry).getOrElse(NodeSeq.Empty)}
             <TotNumOfIteHEA305>{unloadingPermission.numberOfItems}</TotNumOfIteHEA305>
             {
               unloadingPermission.numberOfPackages.fold(NodeSeq.Empty) { numberOfPackages =>
@@ -116,17 +128,17 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
             }
             <TotGroMasHEA307>{unloadingPermission.grossMass}</TotGroMasHEA307>
           </HEAHEA>
-          {trader(unloadingPermission.traderAtDestination)}
+          {traderXml(unloadingPermission.traderAtDestination)}
           <CUSOFFPREOFFRES>
             <RefNumRES1>{unloadingPermission.presentationOffice}</RefNumRES1>
           </CUSOFFPREOFFRES>
-          {seals(unloadingPermission.seals)}
-          {goodsItems(unloadingPermission.goodsItems, ignorePackages = true)}
+          {sealsXml(unloadingPermission.seals)}
+          {goodsItemsXml(unloadingPermission.goodsItems, ignorePackages = true)}
+          <DatOfPreMES9>20201231</DatOfPreMES9>
         </CC043A>
       }
 
-      XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe
-        ParseFailure(List())
+      XmlReader.of[UnloadingPermission].read(trim(expectedResult)) mustBe ParseFailure(List())
     }
 
   }
@@ -135,21 +147,21 @@ class UnloadingPermissionSpec extends FreeSpec with MustMatchers with Generators
 
 object UnloadingPermissionSpec {
 
-  val transportIdentity: Option[String] => Option[Elem] =
+  val transportIdentityXml: Option[String] => Option[Elem] =
     transportIdentity =>
       transportIdentity.map {
         transportIdentity =>
           <IdeOfMeaOfTraAtDHEA78>{transportIdentity}</IdeOfMeaOfTraAtDHEA78>
     }
 
-  val transportCountry: Option[String] => Option[Elem] =
+  val transportCountryXml: Option[String] => Option[Elem] =
     transportCountry =>
       transportCountry.map {
         transportCountry =>
           <NatOfMeaOfTraAtDHEA80>{transportCountry}</NatOfMeaOfTraAtDHEA80>
     }
 
-  def goodsItems(goodsItem: NonEmptyList[GoodsItem], ignorePackages: Boolean = false) = {
+  def goodsItemsXml(goodsItem: NonEmptyList[GoodsItem], ignorePackages: Boolean = false) = {
 
     import GoodsItemSpec._
 
@@ -199,7 +211,7 @@ object UnloadingPermissionSpec {
     response.toList
   }
 
-  def seals(seals: Option[Seals]) = seals match {
+  def sealsXml(seals: Option[Seals]) = seals match {
     case Some(sealValues) => {
       <SEAINFSLI>
         <SeaNumSLI2>{sealValues.numberOfSeals}</SeaNumSLI2>
@@ -215,7 +227,7 @@ object UnloadingPermissionSpec {
     case None => NodeSeq.Empty
   }
 
-  def trader(traderAtDestination: TraderAtDestination): Elem = traderAtDestination match {
+  def traderXml(traderAtDestination: TraderAtDestination): Elem = traderAtDestination match {
 
     case traderWithEori: TraderAtDestinationWithEori => {
 

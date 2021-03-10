@@ -25,7 +25,7 @@ import org.scalatest.{FreeSpec, MustMatchers}
 import pages._
 import uk.gov.hmrc.viewmodels.Text.Literal
 
-class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with SpecBase {
+class CheckYourAnswersViewModelSpec extends SpecBase {
 
   private val unloadingPermissionWithTransport = UnloadingPermission(
     movementReferenceNumber = "19IT02110010007827",
@@ -37,7 +37,8 @@ class CheckYourAnswersViewModelSpec extends FreeSpec with MustMatchers with Spec
     traderAtDestination     = traderWithoutEori,
     presentationOffice      = "GB000060",
     seals                   = None,
-    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
   )
 
   private val transportCountry = None
