@@ -16,10 +16,10 @@
 
 package controllers
 
-import java.time.LocalDate
-
+import java.time.{Clock, LocalDate}
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
+
 import javax.inject.Inject
 import models.{ArrivalId, UserAnswers}
 import navigation.NavigatorUnloadingPermission
@@ -46,13 +46,15 @@ class DateGoodsUnloadedRejectionController @Inject()(
   rejectionService: UnloadingRemarksRejectionService,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
-  unloadingPermissionService: UnloadingPermissionService
+  unloadingPermissionService: UnloadingPermissionService,
+  clock: Clock
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form: Form[LocalDate] = formProvider()
+  private val dateOfPrep            = LocalDate.now(clock)
+  private def form: Form[LocalDate] = formProvider(dateOfPrep)
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>

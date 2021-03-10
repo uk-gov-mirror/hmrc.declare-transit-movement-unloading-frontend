@@ -18,6 +18,7 @@ package controllers
 
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
+
 import javax.inject.Inject
 import models.{ArrivalId, Mode}
 import navigation.NavigatorUnloadingPermission
@@ -31,6 +32,7 @@ import services.UnloadingPermissionService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
+import java.time.LocalDate
 import scala.concurrent.{ExecutionContext, Future}
 
 class DateGoodsUnloadedController @Inject()(
@@ -49,7 +51,8 @@ class DateGoodsUnloadedController @Inject()(
     with I18nSupport
     with NunjucksSupport {
 
-  private def form = formProvider()
+  private val dateOfPrep = LocalDate.now.minusYears(1)
+  private def form       = formProvider(dateOfPrep)
 
   def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>

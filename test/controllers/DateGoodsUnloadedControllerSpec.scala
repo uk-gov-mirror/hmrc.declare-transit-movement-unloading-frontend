@@ -16,8 +16,7 @@
 
 package controllers
 
-import java.time.{LocalDate, ZoneOffset}
-
+import java.time.{Clock, Instant, LocalDate, ZoneId, ZoneOffset}
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
@@ -42,9 +41,12 @@ import scala.concurrent.Future
 class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
   val formProvider = new DateGoodsUnloadedFormProvider()
-  private def form = formProvider()
+  val stubClock    = Clock.fixed(Instant.now, ZoneId.systemDefault)
+  val minDate      = LocalDate.now(stubClock)
 
-  private val validAnswer = LocalDate.now(ZoneOffset.UTC)
+  private def form = formProvider(minDate)
+
+  private val validAnswer = minDate.plusDays(1)
 
   private lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedController.onPageLoad(arrivalId, NormalMode).url
 

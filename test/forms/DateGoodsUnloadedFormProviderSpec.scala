@@ -23,22 +23,22 @@ import play.api.data.FormError
 
 class DateGoodsUnloadedFormProviderSpec extends DateBehaviours {
 
-  val form = new DateGoodsUnloadedFormProvider()()
+  val minDate         = LocalDate.of(2020, 12, 31)
+  val minDateAsString = "31 December 2020"
+  val form            = new DateGoodsUnloadedFormProvider()(minDate)
 
   ".value" - {
 
     val validData = datesBetween(
-      min = LocalDate.now.minusYears(1),
-      max = LocalDate.now(ZoneOffset.UTC)
+      min = LocalDate.now(ZoneOffset.UTC),
+      max = LocalDate.now(ZoneOffset.UTC).plusYears(1)
     )
 
     behave like dateField(form, "value", validData)
 
     behave like mandatoryDateField(form, "value", "dateGoodsUnloaded.error.required.all")
 
-    behave like dateFieldWithMax(form, "value", max = LocalDate.now, FormError("value", "dateGoodsUnloaded.error.max.date"))
-
-    behave like dateFieldWithMin(form, "value", min = LocalDate.now.minusYears(1), FormError("value", "dateGoodsUnloaded.error.min.date"))
+    behave like dateFieldWithMin(form, "value", min = minDate, FormError("value", "dateGoodsUnloaded.error.min.date", Seq(minDateAsString)))
 
   }
 }
