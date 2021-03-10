@@ -23,8 +23,10 @@ import utils.Format
 @Singleton
 class DateTimeServiceImpl extends DateTimeService {
 
+  @deprecated("Will be removed. Use LocalDateTime.now(clock), with the system clock", "next")
   override def currentDateTime: LocalDateTime = LocalDateTime.now()
 
+  @deprecated("Will be removed. Use LocalDateTime.now(clock), with the system clock and then format", "next")
   def dateFormatted: String = currentDateTime.format(Format.dateFormatter)
 }
 
