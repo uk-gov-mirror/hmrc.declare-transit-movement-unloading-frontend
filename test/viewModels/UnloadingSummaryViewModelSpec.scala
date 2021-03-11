@@ -17,11 +17,28 @@
 package viewModels
 
 import base.SpecBase
-import models.Seals
+import cats.data.NonEmptyList
+import models.{Seals, UnloadingPermission}
 import pages.{GrossMassAmountPage, TotalNumberOfItemsPage, TotalNumberOfPackagesPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
 
+import java.time.LocalDate
+
 class UnloadingSummaryViewModelSpec extends SpecBase {
+
+  val unloadingPermission: UnloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    grossMass               = "1000",
+    numberOfItems           = 1,
+    numberOfPackages        = Some(1),
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
+  )
 
   private val transportCountry = None
 

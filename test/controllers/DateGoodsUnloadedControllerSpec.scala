@@ -18,9 +18,10 @@ package controllers
 
 import java.time.{Clock, Instant, LocalDate, ZoneId, ZoneOffset}
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import cats.data.NonEmptyList
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
-import models.NormalMode
+import models.{NormalMode, UnloadingPermission}
 import navigation.{FakeUnloadingPermissionNavigator, NavigatorUnloadingPermission}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -40,6 +41,20 @@ import scala.concurrent.Future
 
 class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
+  val unloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    grossMass               = "1000",
+    numberOfItems           = 1,
+    numberOfPackages        = Some(1),
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
+  )
+
   val formProvider = new DateGoodsUnloadedFormProvider()
   val stubClock    = Clock.fixed(Instant.now, ZoneId.systemDefault)
   val minDate      = LocalDate.now(stubClock)
@@ -52,14 +67,6 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFi
 
   def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest(GET, dateGoodsUnloadedRoute)
-
-  def postRequest(): FakeRequest[AnyContentAsFormUrlEncoded] =
-    FakeRequest(POST, dateGoodsUnloadedRoute)
-      .withFormUrlEncodedBody(
-        "value.day"   -> validAnswer.getDayOfMonth.toString,
-        "value.month" -> validAnswer.getMonthValue.toString,
-        "value.year"  -> validAnswer.getYear.toString
-      )
 
   private val mockUnloadingPermissionService = mock[UnloadingPermissionService]
 
@@ -154,7 +161,14 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFi
 
       setExistingUserAnswers(emptyUserAnswers)
 
-      val result = route(app, postRequest()).value
+      val postRequest =
+        FakeRequest(POST, dateGoodsUnloadedRoute)
+          .withFormUrlEncodedBody(
+            "value.day"   -> validAnswer.getDayOfMonth.toString,
+            "value.month" -> validAnswer.getMonthValue.toString,
+            "value.year"  -> validAnswer.getYear.toString
+          )
+      val result = route(app, postRequest).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual onwardRoute.url
@@ -166,8 +180,17 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFi
 
       setExistingUserAnswers(emptyUserAnswers)
 
-      val request        = FakeRequest(POST, dateGoodsUnloadedRoute).withFormUrlEncodedBody(("value", "invalid value"))
-      val boundForm      = form.bind(Map("value" -> "invalid value"))
+      val badSubmission = Map(
+        "value.day"   -> "invalid value",
+        "value.month" -> "invalid value",
+        "value.year"  -> "invalid value"
+      )
+      val request =
+        FakeRequest(POST, dateGoodsUnloadedRoute)
+          .withFormUrlEncodedBody(badSubmission.toSeq: _*)
+
+      val boundForm = form.bind(badSubmission)
+
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
