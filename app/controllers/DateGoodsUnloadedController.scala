@@ -16,10 +16,9 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
-
-import javax.inject.Inject
 import models.{ArrivalId, Mode}
 import navigation.NavigatorUnloadingPermission
 import pages.DateGoodsUnloadedPage
@@ -32,7 +31,7 @@ import services.UnloadingPermissionService
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
-import java.time.LocalDate
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DateGoodsUnloadedController @Inject()(
@@ -45,62 +44,85 @@ class DateGoodsUnloadedController @Inject()(
   formProvider: DateGoodsUnloadedFormProvider,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
-  unloadingPermissionService: UnloadingPermissionService
+  unloadingPermissionService: UnloadingPermissionService,
+  frontendAppConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private val dateOfPrep = LocalDate.now.minusYears(1)
-  private def form       = formProvider(dateOfPrep)
-
   def onPageLoad(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
     implicit request =>
-      val preparedForm = request.userAnswers.get(DateGoodsUnloadedPage) match {
-        case Some(value) => form.fill(value)
-        case None        => form
-      }
+      unloadingPermissionService
+        .getUnloadingPermission(arrivalId)
+        .flatMap {
+          case Some(up) => {
+            val form = formProvider(up.dateOfPreparation)
 
-      val viewModel = DateInput.localDate(preparedForm("value"))
+            val preparedForm = request.userAnswers.get(DateGoodsUnloadedPage) match {
+              case Some(value) => form.fill(value)
+              case None        => form
+            }
 
-      val json = Json.obj(
-        "form"      -> preparedForm,
-        "mode"      -> mode,
-        "mrn"       -> request.userAnswers.mrn,
-        "arrivalId" -> arrivalId,
-        "date"      -> viewModel
-      )
-
-      renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_))
-  }
-
-  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
-    implicit request =>
-      form
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
-
-            val viewModel = DateInput.localDate(formWithErrors("value"))
+            val viewModel = DateInput.localDate(preparedForm("value"))
 
             val json = Json.obj(
-              "form"      -> formWithErrors,
+              "form"      -> preparedForm,
               "mode"      -> mode,
               "mrn"       -> request.userAnswers.mrn,
               "arrivalId" -> arrivalId,
               "date"      -> viewModel
             )
 
-            renderer.render("dateGoodsUnloaded.njk", json).map(BadRequest(_))
-          },
-          value =>
-            for {
-              updatedAnswers      <- Future.fromTry(request.userAnswers.set(DateGoodsUnloadedPage, value))
-              _                   <- sessionRepository.set(updatedAnswers)
-              unloadingPermission <- unloadingPermissionService.getUnloadingPermission(arrivalId)
-            } yield {
-              Redirect(navigator.nextPage(DateGoodsUnloadedPage, mode, updatedAnswers, unloadingPermission))
+            renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_))
           }
-        )
+          case None =>
+            val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+            renderer.render("technicalDifficulties.njk", json).map(Ok(_))
+        }
+
+  }
+
+  def onSubmit(arrivalId: ArrivalId, mode: Mode): Action[AnyContent] = (identify andThen getData(arrivalId) andThen requireData).async {
+    implicit request =>
+      unloadingPermissionService
+        .getUnloadingPermission(arrivalId)
+        .flatMap {
+          case Some(up) => {
+            formProvider(up.dateOfPreparation)
+              .bindFromRequest()
+              .fold(
+                formWithErrors => {
+
+                  val viewModel = DateInput.localDate(formWithErrors("value"))
+
+                  val json = Json.obj(
+                    "form"      -> formWithErrors,
+                    "mode"      -> mode,
+                    "mrn"       -> request.userAnswers.mrn,
+                    "arrivalId" -> arrivalId,
+                    "date"      -> viewModel
+                  )
+
+                  renderer.render("dateGoodsUnloaded.njk", json).map(BadRequest(_))
+                },
+                value =>
+                  for {
+                    updatedAnswers      <- Future.fromTry(request.userAnswers.set(DateGoodsUnloadedPage, value))
+                    _                   <- sessionRepository.set(updatedAnswers)
+                    unloadingPermission <- unloadingPermissionService.getUnloadingPermission(arrivalId)
+                  } yield {
+                    Redirect(navigator.nextPage(DateGoodsUnloadedPage, mode, updatedAnswers, unloadingPermission))
+                }
+              )
+
+          }
+          case None =>
+            val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+            renderer.render("technicalDifficulties.njk", json).map(Ok(_))
+        }
+
   }
 }
