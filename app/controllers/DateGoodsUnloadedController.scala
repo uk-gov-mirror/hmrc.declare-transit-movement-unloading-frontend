@@ -79,7 +79,7 @@ class DateGoodsUnloadedController @Inject()(
           case None =>
             val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
 
-            renderer.render("technicalDifficulties.njk", json).map(Ok(_))
+            renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
         }
 
   }
@@ -121,7 +121,7 @@ class DateGoodsUnloadedController @Inject()(
           case None =>
             val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
 
-            renderer.render("technicalDifficulties.njk", json).map(Ok(_))
+            renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
         }
 
   }

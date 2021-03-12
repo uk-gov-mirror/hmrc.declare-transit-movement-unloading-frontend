@@ -18,6 +18,7 @@ package controllers
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import cats.data.NonEmptyList
+import config.FrontendAppConfig
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
 import models.{NormalMode, UnloadingPermission}
@@ -148,7 +149,30 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFi
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "must redirect to the next page when valid data is submitted" in {
+    "must return an Internal Server Error on a GET when date of preparation is not available" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      setExistingUserAnswers(emptyUserAnswers)
+
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(app, FakeRequest(GET, dateGoodsUnloadedRoute)).value
+
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+    }
+
+    "must redirect on to the next page when valid data is submitted" in {
       when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
@@ -246,6 +270,33 @@ class DateGoodsUnloadedControllerSpec extends SpecBase with AppWithDefaultMockFi
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "must return an Internal Server Error when valid data is submitted but date of preparation is not available" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      setExistingUserAnswers(emptyUserAnswers)
+
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val postRequest =
+        FakeRequest(POST, dateGoodsUnloadedRoute)
+          .withFormUrlEncodedBody(
+            "value.day"   -> validAnswer.getDayOfMonth.toString,
+            "value.month" -> validAnswer.getMonthValue.toString,
+            "value.year"  -> validAnswer.getYear.toString
+          )
+      val result = route(app, postRequest).value
+
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
       jsonCaptor.getValue must containJson(expectedJson)
     }
   }

@@ -17,6 +17,7 @@
 package controllers
 
 import cats.data.OptionT
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
 import models.{ArrivalId, UserAnswers}
@@ -44,7 +45,8 @@ class DateGoodsUnloadedRejectionController @Inject()(
   rejectionService: UnloadingRemarksRejectionService,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
-  unloadingPermissionService: UnloadingPermissionService
+  unloadingPermissionService: UnloadingPermissionService,
+  frontendAppConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
@@ -68,9 +70,11 @@ class DateGoodsUnloadedRejectionController @Inject()(
           "date"      -> viewModel
         )
 
-      }).foldF(
-        Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
-      )(json => renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_)))
+      }).foldF({
+        val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+        renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
+      })(json => renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_)))
 
   }
 
@@ -106,7 +110,12 @@ class DateGoodsUnloadedRejectionController @Inject()(
 
             }
           )
-      }).getOrElse(Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))).flatten
+      }).getOrElse({
+          val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+          renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
+        })
+        .flatten
 
   }
 

@@ -16,9 +16,10 @@
 
 package controllers
 
-import java.time.{Clock, Instant, LocalDate, ZoneId, ZoneOffset}
+import java.time.{Clock, Instant, LocalDate, ZoneId}
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import cats.data.NonEmptyList
+import config.FrontendAppConfig
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
@@ -142,6 +143,30 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with AppWithDefa
       redirectLocation(result).value mustEqual routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url
     }
 
+    "must return an Internal Server Error on a GET when date of preparation is not available" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      setNoExistingUserAnswers()
+
+      val result = route(app, FakeRequest(GET, dateGoodsUnloadedRoute)).value
+
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
     "must return a Bad Request and errors when invalid data is submitted" in {
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
@@ -219,6 +244,41 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with AppWithDefa
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
       jsonCaptor.getValue must containJson(expectedJson)
 
+    }
+
+    "must return an Internal Server Error when valid data is submitted but date of preparation is not available" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      setNoExistingUserAnswers()
+
+      val invalidDate = dateOfPreparation.minusDays(1)
+
+      val badSubmission = Map(
+        "value.day"   -> invalidDate.getDayOfMonth.toString,
+        "value.month" -> invalidDate.getMonth.toString,
+        "value.year"  -> invalidDate.getYear.toString
+      )
+
+      val postRequest = FakeRequest(POST, dateGoodsUnloadedRoute)
+        .withFormUrlEncodedBody(badSubmission.toSeq: _*)
+
+      val result = route(app, postRequest).value
+
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+      jsonCaptor.getValue must containJson(expectedJson)
     }
   }
 }
