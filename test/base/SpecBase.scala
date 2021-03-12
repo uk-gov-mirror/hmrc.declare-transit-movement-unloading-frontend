@@ -37,6 +37,8 @@ import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
 import play.api.test.{FakeRequest, Helpers}
 
+import java.time.LocalDate
+
 trait SpecBase
     extends FreeSpec
     with MustMatchers
@@ -70,19 +72,6 @@ trait SpecBase
     containers                = Seq.empty,
     packages                  = NonEmptyList(packages, Nil),
     sensitiveGoodsInformation = Seq.empty
-  )
-
-  protected val unloadingPermission: UnloadingPermission = UnloadingPermission(
-    movementReferenceNumber = "19IT02110010007827",
-    transportIdentity       = None,
-    transportCountry        = None,
-    grossMass               = "1000",
-    numberOfItems           = 1,
-    numberOfPackages        = Some(1),
-    traderAtDestination     = traderWithoutEori,
-    presentationOffice      = "GB000060",
-    seals                   = None,
-    goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
   )
 
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")

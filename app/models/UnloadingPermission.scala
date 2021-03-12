@@ -19,7 +19,10 @@ import cats.data.NonEmptyList
 import com.lucidchart.open.xtract.{__, XmlReader}
 import com.lucidchart.open.xtract.XmlReader._
 import cats.syntax.all._
+import models.XMLReads.xmlDateReads
 import xml.NonEmptyListOps
+
+import java.time.LocalDate
 
 case class UnloadingPermission(
   movementReferenceNumber: String,
@@ -31,7 +34,8 @@ case class UnloadingPermission(
   traderAtDestination: TraderAtDestination,
   presentationOffice: String,
   seals: Option[Seals],
-  goodsItems: NonEmptyList[GoodsItem]
+  goodsItems: NonEmptyList[GoodsItem],
+  dateOfPreparation: LocalDate
 )
 
 object UnloadingPermission {
@@ -52,6 +56,7 @@ object UnloadingPermission {
     (__ \ "TRADESTRD").read[TraderAtDestination],
     (__ \ "CUSOFFPREOFFRES" \ "RefNumRES1").read[String],
     (__ \ "SEAINFSLI").read[Seals].optional,
-    (__ \ "GOOITEGDS").read[NonEmptyList[GoodsItem]](NonEmptyListOps.nonEmptyListReader)
+    (__ \ "GOOITEGDS").read[NonEmptyList[GoodsItem]](NonEmptyListOps.nonEmptyListReader),
+    (__ \ "DatOfPreMES9").read[LocalDate]
   ).mapN(apply)
 }

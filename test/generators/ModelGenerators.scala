@@ -110,6 +110,7 @@ trait ModelGenerators {
         presentationOffice      <- stringsWithMaxLength(UnloadingPermission.presentationOfficeLength)
         seals                   <- Gen.option(arbitrary[Seals])
         goodsItems              <- nonEmptyListWithMaxSize(2: Int, arbitrary[GoodsItem])
+        dateOfPreparation       <- arbitrary[LocalDate]
       } yield
         UnloadingPermission(
           movementReferenceNumber,
@@ -121,25 +122,24 @@ trait ModelGenerators {
           traderAtDestination,
           presentationOffice,
           seals,
-          goodsItems
+          goodsItems,
+          dateOfPreparation
         )
     }
 
-  //TODO: Check spec and add correct max sizes as constants
   implicit lazy val arbitrarySeals: Arbitrary[Seals] =
     Arbitrary {
       for {
-        numberOfSeals <- choose(min = 1: Int, 10: Int)
+        numberOfSeals <- choose(min = 1, 10)
         sealPattern: Gen[String] = RegexpGen.from(Seals.sealIdRegex)
         sealId <- listWithMaxSize(numberOfSeals, sealPattern)
       } yield Seals(numberOfSeals, sealId)
     }
 
-  //TODO: Check spec and add correct max sizes as constants
   implicit lazy val arbitraryGoodsItem: Arbitrary[GoodsItem] =
     Arbitrary {
       for {
-        itemNumber                <- choose(min = 1: Int, 100: Int)
+        itemNumber                <- choose(min = 1, 10)
         commodityCode             <- Gen.option(stringsWithMaxLength(GoodsItem.commodityCodeLength: Int))
         description               <- stringsWithMaxLength(Packages.kindOfPackageLength)
         grossMass                 <- Gen.option(Gen.choose(0.0, 99999999.999).map(BigDecimal(_).bigDecimal.setScale(3, BigDecimal.RoundingMode.DOWN))) //BigDecimal.RoundingMode.DOWN

@@ -22,6 +22,8 @@ import controllers.actions._
 import repositories.{DefaultSessionRepository, SessionRepository}
 import services._
 
+import java.time.{Clock, ZoneOffset}
+
 class Module extends AbstractModule {
 
   override def configure(): Unit = {
@@ -50,6 +52,9 @@ class Module extends AbstractModule {
     bind(classOf[MetaService]).to(classOf[MetaServiceImpl]).asEagerSingleton()
 
     bind(classOf[UnloadingRemarksRequestService]).to(classOf[UnloadingRemarksRequestServiceImpl]).asEagerSingleton()
+
+    bind(classOf[Clock]).toInstance(Clock.systemDefaultZone.withZone(ZoneOffset.UTC))
+
   }
 
 }

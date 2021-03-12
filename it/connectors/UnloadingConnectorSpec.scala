@@ -69,7 +69,7 @@ class UnloadingConnectorSpec
 
         running(app) {
           val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
-          val unloadingRemarksRequest = arbitrary[UnloadingRemarksRequest].sample.value
+          val unloadingRemarksRequest       = arbitrary[UnloadingRemarksRequest].sample.value
 
           val result = connector.post(arrivalId, unloadingRemarksRequest).futureValue
 
@@ -116,7 +116,7 @@ class UnloadingConnectorSpec
         val app = appBuilder.build()
         running(app) {
           val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
-          val result = connector.getUnloadingPermission(unloadingPermissionUrl).futureValue
+          val result                        = connector.getUnloadingPermission(unloadingPermissionUrl).futureValue
           result.value mustBe an[UnloadingPermission]
         }
       }
@@ -176,8 +176,14 @@ class UnloadingConnectorSpec
         )
 
         val messageAction =
-          MessagesSummary(arrivalId,
-            MessagesLocation(s"/movements/arrivals/${arrivalId.value}/messages/3", Some(s"/movements/arrivals/${arrivalId.value}/messages/4"), Some(s"/movements/arrivals/${arrivalId.value}/messages/5")))
+          MessagesSummary(
+            arrivalId,
+            MessagesLocation(
+              s"/movements/arrivals/${arrivalId.value}/messages/3",
+              Some(s"/movements/arrivals/${arrivalId.value}/messages/4"),
+              Some(s"/movements/arrivals/${arrivalId.value}/messages/5")
+            )
+          )
 
         server.stubFor(
           get(urlEqualTo(summaryUri))
@@ -214,7 +220,7 @@ class UnloadingConnectorSpec
 
     "getRejectionMessage" - {
       "must return valid 'rejection message'" in {
-        val genRejectionError = arbitrary[ErrorType].sample.value
+        val genRejectionError     = arbitrary[ErrorType].sample.value
         val rejectionXml: NodeSeq = <CC058A>
           <HEAHEA>
             <DocNumHEA5>19IT021300100075E9</DocNumHEA5>
@@ -248,7 +254,7 @@ class UnloadingConnectorSpec
         val app = appBuilder.build()
         running(app) {
           val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
-          val result = connector.getRejectionMessage(rejectionUri).futureValue
+          val result                        = connector.getRejectionMessage(rejectionUri).futureValue
           result mustBe expectedResult
         }
       }
@@ -312,7 +318,7 @@ class UnloadingConnectorSpec
         val app = appBuilder.build()
         running(app) {
           val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
-          val result = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue.value
+          val result                        = connector.getUnloadingRemarksMessage(unloadingRemarksUri).futureValue.value
           result mustBe unloadingRemarksRequest
         }
       }
@@ -351,7 +357,7 @@ class UnloadingConnectorSpec
         val app = appBuilder.build()
         running(app) {
           val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
-          val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
+          val result: Future[WSResponse]    = connector.getPDF(arrivalId, "bearerToken")
 
           result.futureValue.status mustBe 200
         }
@@ -372,7 +378,7 @@ class UnloadingConnectorSpec
             val app = appBuilder.build()
             running(app) {
               val connector: UnloadingConnector = app.injector.instanceOf[UnloadingConnector]
-              val result: Future[WSResponse] = connector.getPDF(arrivalId, "bearerToken")
+              val result: Future[WSResponse]    = connector.getPDF(arrivalId, "bearerToken")
 
               result.futureValue.status mustBe responseCode
             }

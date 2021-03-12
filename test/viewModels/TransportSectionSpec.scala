@@ -17,13 +17,31 @@
 package viewModels
 
 import base.SpecBase
+import cats.data.NonEmptyList
+import models.UnloadingPermission
 import models.reference.Country
 import pages.{VehicleNameRegistrationReferencePage, VehicleRegistrationCountryPage}
 import uk.gov.hmrc.viewmodels.Text.Literal
 import utils.UnloadingSummaryRow
 import viewModels.sections.Section
 
+import java.time.LocalDate
+
 class TransportSectionSpec extends SpecBase {
+
+  val unloadingPermission: UnloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    grossMass               = "1000",
+    numberOfItems           = 1,
+    numberOfPackages        = Some(1),
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
+  )
 
   "TransportSection" - {
 

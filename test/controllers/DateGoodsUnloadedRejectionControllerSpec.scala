@@ -16,13 +16,14 @@
 
 package controllers
 
-import java.time.{LocalDate, ZoneOffset}
-
+import java.time.{Clock, Instant, LocalDate, ZoneId}
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import cats.data.NonEmptyList
+import config.FrontendAppConfig
 import forms.DateGoodsUnloadedFormProvider
 import matchers.JsonMatchers
 import models.ErrorType.IncorrectValue
-import models.{DefaultPointer, FunctionalError, UnloadingRemarksRejectionMessage}
+import models.{DefaultPointer, FunctionalError, UnloadingPermission, UnloadingRemarksRejectionMessage}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -30,60 +31,73 @@ import play.api.data.Form
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.{JsObject, Json}
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
-import services.UnloadingRemarksRejectionService
+import services.{UnloadingPermissionService, UnloadingRemarksRejectionService}
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
 import scala.concurrent.Future
 
 class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
 
-  val formProvider                  = new DateGoodsUnloadedFormProvider()
-  private def form: Form[LocalDate] = formProvider()
+  val formProvider      = new DateGoodsUnloadedFormProvider()
+  val stubClock         = Clock.fixed(Instant.now.plusSeconds(200000), ZoneId.systemDefault)
+  val dateOfPreparation = LocalDate.now(stubClock)
 
-  private val validAnswer: LocalDate = LocalDate.now(ZoneOffset.UTC)
+  val unloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    grossMass               = "1000",
+    numberOfItems           = 1,
+    numberOfPackages        = Some(1),
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = dateOfPreparation
+  )
+
+  val unloadingRemarksRejectionMessage = UnloadingRemarksRejectionMessage(
+    movementReferenceNumber = mrn,
+    rejectionDate           = LocalDate.now,
+    action                  = None,
+    errors                  = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some("some reference")))
+  )
+
+  private def form: Form[LocalDate]  = formProvider(dateOfPreparation)
+  private val validAnswer: LocalDate = dateOfPreparation.plusDays(1)
 
   private lazy val dateGoodsUnloadedRoute = routes.DateGoodsUnloadedRejectionController.onPageLoad(arrivalId).url
 
-  def getRequest(): FakeRequest[AnyContentAsEmpty.type] =
-    FakeRequest(GET, dateGoodsUnloadedRoute)
-
-  def postRequest(): FakeRequest[AnyContentAsFormUrlEncoded] =
-    FakeRequest(POST, dateGoodsUnloadedRoute)
-      .withFormUrlEncodedBody(
-        "value.day"   -> validAnswer.getDayOfMonth.toString,
-        "value.month" -> validAnswer.getMonthValue.toString,
-        "value.year"  -> validAnswer.getYear.toString
-      )
-
-  private val mockRejectionService = mock[UnloadingRemarksRejectionService]
+  private val mockRejectionService           = mock[UnloadingRemarksRejectionService]
+  private val mockUnloadingPermissionService = mock[UnloadingPermissionService]
 
   override def guiceApplicationBuilder(): GuiceApplicationBuilder =
     super
       .guiceApplicationBuilder()
       .overrides(bind[UnloadingRemarksRejectionService].toInstance(mockRejectionService))
+      .overrides(bind[UnloadingPermissionService].toInstance(mockUnloadingPermissionService))
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    reset(mockRejectionService)
+    reset(mockRejectionService, mockUnloadingPermissionService)
   }
 
-  "DateGoodsUnloaded Controller" - {
+  "DateGoodsUnloadedRejectionController" - {
 
     "must populate the view correctly on a GET" in {
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.getRejectedValueAsDate(any(), any())(any())(any())).thenReturn(Future.successful(Some(validAnswer)))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
       setNoExistingUserAnswers()
 
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(app, getRequest()).value
+      val result = route(app, FakeRequest(GET, dateGoodsUnloadedRoute)).value
 
       status(result) mustEqual OK
 
@@ -110,34 +124,70 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with AppWithDefa
     }
 
     "must redirect to the next page when valid data is submitted" in {
-
-      val originalValue    = "some reference"
-      val errors           = Seq(FunctionalError(IncorrectValue, DefaultPointer(""), None, Some(originalValue)))
-      val rejectionMessage = UnloadingRemarksRejectionMessage(mrn, LocalDate.now, None, errors)
-
-      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(rejectionMessage)))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
       setNoExistingUserAnswers()
 
-      val result = route(app, postRequest()).value
+      val postRequest = FakeRequest(POST, dateGoodsUnloadedRoute)
+        .withFormUrlEncodedBody(
+          "value.day"   -> validAnswer.getDayOfMonth.toString,
+          "value.month" -> validAnswer.getMonthValue.toString,
+          "value.year"  -> validAnswer.getYear.toString
+        )
+
+      val result = route(app, postRequest).value
 
       status(result) mustEqual SEE_OTHER
       redirectLocation(result).value mustEqual routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId).url
     }
 
+    "must return an Internal Server Error on a GET when date of preparation is not available" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      setNoExistingUserAnswers()
+
+      val result = route(app, FakeRequest(GET, dateGoodsUnloadedRoute)).value
+
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
     "must return a Bad Request and errors when invalid data is submitted" in {
-      when(mockRenderer.render(any(), any())(any()))
-        .thenReturn(Future.successful(Html("")))
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
 
       setExistingUserAnswers(emptyUserAnswers)
 
-      val request        = FakeRequest(POST, dateGoodsUnloadedRoute).withFormUrlEncodedBody(("value", "invalid value"))
-      val boundForm      = form.bind(Map("value" -> "invalid value"))
+      val badSubmission = Map(
+        "value.day"   -> "invalid value",
+        "value.month" -> "invalid value",
+        "value.year"  -> "invalid value"
+      )
+
+      val postRequest = FakeRequest(POST, dateGoodsUnloadedRoute)
+        .withFormUrlEncodedBody(badSubmission.toSeq: _*)
+
+      val boundForm      = form.bind(badSubmission)
       val templateCaptor = ArgumentCaptor.forClass(classOf[String])
       val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-      val result = route(app, request).value
+      val result = route(app, postRequest).value
 
       status(result) mustEqual BAD_REQUEST
 
@@ -152,6 +202,82 @@ class DateGoodsUnloadedRejectionControllerSpec extends SpecBase with AppWithDefa
       )
 
       templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+    }
+
+    "must return a Bad Request and errors when the date is before date of preparation" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(Some(unloadingPermission)))
+
+      setExistingUserAnswers(emptyUserAnswers)
+
+      val invalidDate = dateOfPreparation.minusDays(1)
+
+      val badSubmission = Map(
+        "value.day"   -> invalidDate.getDayOfMonth.toString,
+        "value.month" -> invalidDate.getMonth.toString,
+        "value.year"  -> invalidDate.getYear.toString
+      )
+
+      val postRequest = FakeRequest(POST, dateGoodsUnloadedRoute)
+        .withFormUrlEncodedBody(badSubmission.toSeq: _*)
+
+      val boundForm      = form.bind(badSubmission)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
+
+      val result = route(app, postRequest).value
+
+      status(result) mustEqual BAD_REQUEST
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val viewModel = DateInput.localDate(boundForm("value"))
+
+      val expectedJson = Json.obj(
+        "form"      -> boundForm,
+        "arrivalId" -> arrivalId,
+        "date"      -> viewModel
+      )
+
+      templateCaptor.getValue mustEqual "dateGoodsUnloaded.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
+
+    }
+
+    "must return an Internal Server Error when valid data is submitted but date of preparation is not available" in {
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
+      when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(Some(unloadingRemarksRejectionMessage)))
+      when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
+      when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any())).thenReturn(Future.successful(None))
+
+      setNoExistingUserAnswers()
+
+      val invalidDate = dateOfPreparation.minusDays(1)
+
+      val badSubmission = Map(
+        "value.day"   -> invalidDate.getDayOfMonth.toString,
+        "value.month" -> invalidDate.getMonth.toString,
+        "value.year"  -> invalidDate.getYear.toString
+      )
+
+      val postRequest = FakeRequest(POST, dateGoodsUnloadedRoute)
+        .withFormUrlEncodedBody(badSubmission.toSeq: _*)
+
+      val result = route(app, postRequest).value
+
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+
+      val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
+      val templateCaptor    = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor        = ArgumentCaptor.forClass(classOf[JsObject])
+
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
       jsonCaptor.getValue must containJson(expectedJson)
     }
   }

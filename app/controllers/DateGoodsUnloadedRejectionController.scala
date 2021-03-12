@@ -16,15 +16,13 @@
 
 package controllers
 
-import java.time.LocalDate
-
+import cats.data.OptionT
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.DateGoodsUnloadedFormProvider
-import javax.inject.Inject
 import models.{ArrivalId, UserAnswers}
 import navigation.NavigatorUnloadingPermission
 import pages.DateGoodsUnloadedPage
-import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
@@ -34,6 +32,7 @@ import services.{UnloadingPermissionService, UnloadingRemarksRejectionService}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 import uk.gov.hmrc.viewmodels.{DateInput, NunjucksSupport}
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class DateGoodsUnloadedRejectionController @Inject()(
@@ -46,60 +45,78 @@ class DateGoodsUnloadedRejectionController @Inject()(
   rejectionService: UnloadingRemarksRejectionService,
   val controllerComponents: MessagesControllerComponents,
   renderer: Renderer,
-  unloadingPermissionService: UnloadingPermissionService
+  unloadingPermissionService: UnloadingPermissionService,
+  frontendAppConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
     with NunjucksSupport {
 
-  private def form: Form[LocalDate] = formProvider()
-
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      rejectionService.getRejectedValueAsDate(arrivalId, request.userAnswers)(DateGoodsUnloadedPage) flatMap {
-        case Some(originalValue) =>
-          val preparedForm = form.fill(originalValue)
-          val viewModel    = DateInput.localDate(preparedForm("value"))
+      (for {
+        up            <- OptionT(unloadingPermissionService.getUnloadingPermission(arrivalId))
+        originalValue <- OptionT(rejectionService.getRejectedValueAsDate(arrivalId, request.userAnswers)(DateGoodsUnloadedPage))
+        dateOfPreparation = up.dateOfPreparation
+      } yield {
+        val form = formProvider(dateOfPreparation)
 
-          val json = Json.obj(
-            "form"      -> preparedForm,
-            "arrivalId" -> arrivalId,
-            "date"      -> viewModel
-          )
+        val preparedForm = form.fill(originalValue)
+        val viewModel    = DateInput.localDate(preparedForm("value"))
 
-          renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_))
-        case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
-      }
+        Json.obj(
+          "form"      -> preparedForm,
+          "arrivalId" -> arrivalId,
+          "date"      -> viewModel
+        )
+
+      }).foldF({
+        val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+        renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
+      })(json => renderer.render("dateGoodsUnloaded.njk", json).map(Ok(_)))
+
   }
 
   def onSubmit(arrivalId: ArrivalId): Action[AnyContent] = (identify andThen getData(arrivalId)).async {
     implicit request =>
-      form
-        .bindFromRequest()
-        .fold(
-          formWithErrors => {
+      (for {
+        up <- OptionT(unloadingPermissionService.getUnloadingPermission(arrivalId))
+        dateOfPreparation = up.dateOfPreparation
+        rejectionMessage <- OptionT(rejectionService.unloadingRemarksRejectionMessage(arrivalId))
+      } yield {
 
-            val viewModel = DateInput.localDate(formWithErrors("value"))
+        formProvider(dateOfPreparation)
+          .bindFromRequest()
+          .fold(
+            formWithErrors => {
 
-            val json = Json.obj(
-              "form"      -> formWithErrors,
-              "arrivalId" -> arrivalId,
-              "date"      -> viewModel
-            )
+              val viewModel = DateInput.localDate(formWithErrors("value"))
 
-            renderer.render("dateGoodsUnloaded.njk", json).map(BadRequest(_))
-          },
-          value =>
-            rejectionService.unloadingRemarksRejectionMessage(arrivalId) flatMap {
-              case Some(rejectionMessage) =>
-                val userAnswers = UserAnswers(arrivalId, rejectionMessage.movementReferenceNumber, request.eoriNumber)
-                for {
-                  updatedAnswers <- Future.fromTry(userAnswers.set(DateGoodsUnloadedPage, value))
-                  _              <- sessionRepository.set(updatedAnswers)
-                } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
+              val json = Json.obj(
+                "form"      -> formWithErrors,
+                "arrivalId" -> arrivalId,
+                "date"      -> viewModel
+              )
 
-              case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
-          }
-        )
+              renderer.render("dateGoodsUnloaded.njk", json).map(BadRequest(_))
+            },
+            value => {
+              val userAnswers = UserAnswers(arrivalId, rejectionMessage.movementReferenceNumber, request.eoriNumber)
+              for {
+                updatedAnswers <- Future.fromTry(userAnswers.set(DateGoodsUnloadedPage, value))
+                _              <- sessionRepository.set(updatedAnswers)
+              } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
+
+            }
+          )
+      }).getOrElse({
+          val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+          renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
+        })
+        .flatten
+
   }
+
 }

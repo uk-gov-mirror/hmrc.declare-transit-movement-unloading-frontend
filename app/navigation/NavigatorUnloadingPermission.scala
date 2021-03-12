@@ -29,7 +29,7 @@ class NavigatorUnloadingPermission @Inject()() {
     case DateGoodsUnloadedPage =>
       ua =>
         {
-          case Some(UnloadingPermission(_, _, _, _, _, _, _, _, Some(seals: Seals), _)) if seals.numberOfSeals > 0 =>
+          case Some(unloadingPermission) if unloadingPermission.seals.fold(false)(_.numberOfSeals > 0) =>
             routes.CanSealsBeReadController.onPageLoad(ua.id, NormalMode)
           case _ => routes.UnloadingSummaryController.onPageLoad(ua.id)
         }

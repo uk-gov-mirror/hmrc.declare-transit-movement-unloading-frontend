@@ -18,6 +18,8 @@ package controllers
 
 import audit.services.AuditEventSubmissionService
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import cats.data.NonEmptyList
+import models.UnloadingPermission
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
 import org.mockito.Mockito.{reset, times, verify, when}
@@ -30,9 +32,24 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import services.{UnloadingPermissionService, UnloadingRemarksService}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
+
+  val unloadingPermission: UnloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    grossMass               = "1000",
+    numberOfItems           = 1,
+    numberOfPackages        = Some(1),
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
+  )
 
   val mockUnloadingPermissionService: UnloadingPermissionService   = mock[UnloadingPermissionService]
   val mockUnloadingRemarksService: UnloadingRemarksService         = mock[UnloadingRemarksService]

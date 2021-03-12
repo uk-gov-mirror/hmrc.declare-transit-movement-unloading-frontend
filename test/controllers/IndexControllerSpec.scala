@@ -30,9 +30,24 @@ import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import services.UnloadingPermissionService
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class IndexControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
+
+  val unloadingPermission: UnloadingPermission = UnloadingPermission(
+    movementReferenceNumber = "19IT02110010007827",
+    transportIdentity       = None,
+    transportCountry        = None,
+    grossMass               = "1000",
+    numberOfItems           = 1,
+    numberOfPackages        = Some(1),
+    traderAtDestination     = traderWithoutEori,
+    presentationOffice      = "GB000060",
+    seals                   = None,
+    goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+    dateOfPreparation       = LocalDate.now()
+  )
 
   private val mockUnloadingPermissionService = mock[UnloadingPermissionService]
 
@@ -112,7 +127,8 @@ class IndexControllerSpec extends SpecBase with AppWithDefaultMockFixtures {
         traderAtDestination     = traderWithoutEori,
         presentationOffice      = "GB000060",
         seals                   = None,
-        goodsItems              = NonEmptyList(goodsItemMandatory, Nil)
+        goodsItems              = NonEmptyList(goodsItemMandatory, Nil),
+        dateOfPreparation       = LocalDate.now()
       )
 
       when(mockUnloadingPermissionService.getUnloadingPermission(any())(any(), any()))
