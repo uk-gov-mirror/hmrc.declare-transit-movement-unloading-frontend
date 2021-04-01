@@ -19,6 +19,8 @@ package controllers
 import audit.services.AuditEventSubmissionService
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import cats.data.NonEmptyList
+import config.FrontendAppConfig
+import matchers.JsonMatchers.containJson
 import models.UnloadingPermission
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
@@ -26,7 +28,7 @@ import org.mockito.Mockito.{reset, times, verify, when}
 import play.api.http.Status.ACCEPTED
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.JsObject
+import play.api.libs.json.{JsObject, Json}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.twirl.api.Html
@@ -153,7 +155,11 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
         redirectLocation(result).value mustEqual routes.ConfirmationController.onPageLoad(arrivalId).url
       }
 
-      "redirect to Technical Difficulties on failed submission (invalid response code)" in {
+      "render the Technical Difficulties page on failed submission (invalid response code)" in {
+
+        when(mockRenderer.render(any(), any())(any()))
+          .thenReturn(Future.successful(Html("")))
+        val frontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
         setExistingUserAnswers(emptyUserAnswers)
 
@@ -161,13 +167,20 @@ class CheckYourAnswersControllerSpec extends SpecBase with AppWithDefaultMockFix
 
         when(mockUnloadingRemarksService.submit(any(), any(), any())(any())).thenReturn(Future.successful(Some(BAD_REQUEST)))
 
-        val request = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
+        val request        = FakeRequest(POST, routes.CheckYourAnswersController.onSubmit(arrivalId).url)
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
         val result = route(app, request).value
 
-        status(result) mustEqual SEE_OTHER
+        status(result) mustEqual INTERNAL_SERVER_ERROR
 
-        redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+        val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+        templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+        jsonCaptor.getValue must containJson(expectedJson)
       }
 
       "return UNAUTHORIZED when backend returns 401" in {

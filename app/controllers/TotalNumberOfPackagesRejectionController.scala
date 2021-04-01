@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.TotalNumberOfPackagesFormProvider
 import javax.inject.Inject
@@ -40,11 +41,13 @@ class TotalNumberOfPackagesRejectionController @Inject()(
   formProvider: TotalNumberOfPackagesFormProvider,
   val controllerComponents: MessagesControllerComponents,
   rejectionService: UnloadingRemarksRejectionService,
-  renderer: Renderer
+  val renderer: Renderer,
+  val appConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with TechnicalDifficultiesPage {
 
   private val form = formProvider()
 
@@ -57,7 +60,7 @@ class TotalNumberOfPackagesRejectionController @Inject()(
             "arrivalId" -> arrivalId
           )
           renderer.render("totalNumberOfPackages.njk", json).map(Ok(_))
-        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+        case None => renderTechnicalDifficultiesPage
       }
   }
 
@@ -84,7 +87,7 @@ class TotalNumberOfPackagesRejectionController @Inject()(
                   _              <- sessionRepository.set(updatedAnswers)
                 } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
 
-              case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+              case _ => renderTechnicalDifficultiesPage
           }
         )
   }

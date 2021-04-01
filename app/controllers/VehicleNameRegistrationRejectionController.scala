@@ -16,6 +16,7 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import controllers.actions._
 import forms.VehicleNameRegistrationReferenceFormProvider
 import javax.inject.Inject
@@ -41,11 +42,13 @@ class VehicleNameRegistrationRejectionController @Inject()(
   getData: DataRetrievalActionProvider,
   val controllerComponents: MessagesControllerComponents,
   rejectionService: UnloadingRemarksRejectionService,
-  renderer: Renderer
+  val renderer: Renderer,
+  val appConfig: FrontendAppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with TechnicalDifficultiesPage {
 
   private val form = formProvider()
 
@@ -58,7 +61,7 @@ class VehicleNameRegistrationRejectionController @Inject()(
             "arrivalId" -> arrivalId
           )
           renderer.render("vehicleNameRegistrationReference.njk", json).map(Ok(_))
-        case None => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+        case None => renderTechnicalDifficultiesPage
       }
   }
 
@@ -83,7 +86,7 @@ class VehicleNameRegistrationRejectionController @Inject()(
                   _              <- sessionRepository.set(updatedAnswers)
                 } yield Redirect(routes.RejectionCheckYourAnswersController.onPageLoad(arrivalId))
 
-              case _ => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+              case _ => renderTechnicalDifficultiesPage
           }
         )
   }

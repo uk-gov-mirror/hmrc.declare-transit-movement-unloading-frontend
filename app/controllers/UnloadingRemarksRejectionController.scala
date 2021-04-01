@@ -34,13 +34,14 @@ class UnloadingRemarksRejectionController @Inject()(
   override val messagesApi: MessagesApi,
   identify: IdentifierAction,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer,
-  appConfig: FrontendAppConfig,
+  val renderer: Renderer,
+  val appConfig: FrontendAppConfig,
   service: UnloadingRemarksRejectionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-    with Logging {
+    with Logging
+    with TechnicalDifficultiesPage {
 
   def onPageLoad(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
@@ -50,11 +51,11 @@ class UnloadingRemarksRejectionController @Inject()(
             case Some(viewModel) => renderer.render(viewModel.page, viewModel.json).map(Ok(_))
             case _ =>
               logger.debug(s"Couldn't build a UnloadingRemarksRejectionViewModel for arrival: $arrivalId")
-              Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+              renderTechnicalDifficultiesPage
           }
         case _ =>
           logger.error(s"Failed to pull back a rejection message for arrival: $arrivalId")
-          Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+          renderTechnicalDifficultiesPage
       }
   }
 }

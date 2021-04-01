@@ -17,28 +17,34 @@
 package controllers
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import config.FrontendAppConfig
 import connectors.UnloadingConnector
 import generators.Generators
+import matchers.JsonMatchers.containJson
 import models.ArrivalId
+import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{reset, when}
+import org.mockito.Mockito.{reset, times, verify, when}
 import org.scalacheck.Arbitrary.arbitrary
 import org.scalacheck.Gen
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.libs.json.{JsObject, Json}
 import play.api.libs.ws.ahc.AhcWSResponse
 import play.api.libs.ws.ahc.cache.{CacheableHttpResponseBodyPart, CacheableHttpResponseStatus}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.shaded.ahc.org.asynchttpclient.Response
 import play.shaded.ahc.org.asynchttpclient.uri.Uri
+import play.twirl.api.Html
 
 import scala.concurrent.Future
 
 class UnloadingPermissionPDFControllerSpec extends SpecBase with AppWithDefaultMockFixtures with Generators with ScalaCheckPropertyChecks {
 
   private val mockUnloadingConnector: UnloadingConnector = mock[UnloadingConnector]
+  private val frontendAppConfig                          = app.injector.instanceOf[FrontendAppConfig]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -98,33 +104,37 @@ class UnloadingPermissionPDFControllerSpec extends SpecBase with AppWithDefaultM
         redirectLocation(result).value mustEqual controllers.routes.UnauthorisedController.onPageLoad().url
       }
 
-      "must redirect to TechnicalDifficultiesController if connector returns error" in {
+      "must render the TechnicalDifficulties page if connector returns error" in {
+        when(mockRenderer.render(any(), any())(any()))
+          .thenReturn(Future.successful(Html("")))
+        val genErrorResponseCode = Gen.oneOf(300, 500).sample.value
 
-        val genErrorResponse = Gen.oneOf(300, 500)
+        val wsResponse: AhcWSResponse = new AhcWSResponse(
+          new Response.ResponseBuilder()
+            .accumulate(new CacheableHttpResponseStatus(Uri.create("http://uri"), genErrorResponseCode, "status text", "protocols!"))
+            .build())
 
-        forAll(genErrorResponse) {
-          errorCode =>
-            val wsResponse: AhcWSResponse = new AhcWSResponse(
-              new Response.ResponseBuilder()
-                .accumulate(new CacheableHttpResponseStatus(Uri.create("http://uri"), errorCode, "status text", "protocols!"))
-                .build())
+        when(mockUnloadingConnector.getPDF(any(), any())(any()))
+          .thenReturn(Future.successful(wsResponse))
 
-            when(mockUnloadingConnector.getPDF(any(), any())(any()))
-              .thenReturn(Future.successful(wsResponse))
+        val arrivalId = ArrivalId(0)
 
-            val arrivalId = ArrivalId(0)
+        setNoExistingUserAnswers()
 
-            setNoExistingUserAnswers()
+        val request = FakeRequest(GET, routes.UnloadingPermissionPDFController.getPDF(arrivalId).url)
+          .withSession(("authToken" -> "BearerToken"))
+        val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+        val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
-            val request = FakeRequest(GET, routes.UnloadingPermissionPDFController.getPDF(arrivalId).url)
-              .withSession(("authToken" -> "BearerToken"))
+        val result = route(app, request).value
 
-            val result = route(app, request).value
+        status(result) mustEqual INTERNAL_SERVER_ERROR
+        verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-            status(result) mustEqual SEE_OTHER
+        val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
 
-            redirectLocation(result).value mustEqual controllers.routes.TechnicalDifficultiesController.onPageLoad().url
-        }
+        templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+        jsonCaptor.getValue must containJson(expectedJson)
       }
     }
   }

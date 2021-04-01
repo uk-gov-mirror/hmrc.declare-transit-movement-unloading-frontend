@@ -114,7 +114,7 @@ class UnloadingRemarksRejectionControllerSpec extends SpecBase with AppWithDefau
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "redirect to 'Technical difficulties' page when unloading rejection message's has no errors" in {
+    "render 'Technical difficulties' page when unloading rejection message's has no errors" in {
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
 
@@ -123,14 +123,18 @@ class UnloadingRemarksRejectionControllerSpec extends SpecBase with AppWithDefau
 
       setExistingUserAnswers(emptyUserAnswers)
 
-      val request = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+      val request        = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
       val result = route(app, request).value
 
-      status(result) mustEqual SEE_OTHER
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
     }
 
-    "redirect to 'Technical difficulties' page when unloading rejection message returns a None" in {
+    "render the 'Technical difficulties' page when unloading rejection message returns a None" in {
 
       when(mockRenderer.render(any(), any())(any()))
         .thenReturn(Future.successful(Html("")))
@@ -140,13 +144,17 @@ class UnloadingRemarksRejectionControllerSpec extends SpecBase with AppWithDefau
 
       setExistingUserAnswers(emptyUserAnswers)
 
-      val request = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+      val request        = FakeRequest(GET, routes.UnloadingRemarksRejectionController.onPageLoad(arrivalId).url)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
 
       val result = route(app, request).value
 
-      status(result) mustEqual SEE_OTHER
+      status(result) mustEqual INTERNAL_SERVER_ERROR
 
       verify(mockUnloadingRemarksRejectionService, times(1)).unloadingRemarksRejectionMessage(any())(any())
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), any())(any())
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
     }
   }
 }

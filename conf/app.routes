@@ -14,8 +14,6 @@ POST       /:arrivalId/rejection-check-your-answers                controllers.R
 
 GET        /error/cannot-use-service-no-eori                       controllers.UnauthorisedController.onPageLoad
 
-GET        /error/technical-difficulties                           controllers.TechnicalDifficultiesController.onPageLoad()
-
 GET         /data/keep-alive                                            controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId] = None)
 GET         /data/:arrivalId/keep-alive                                 controllers.KeepAliveController.keepAlive(arrivalId: Option[ArrivalId])
 

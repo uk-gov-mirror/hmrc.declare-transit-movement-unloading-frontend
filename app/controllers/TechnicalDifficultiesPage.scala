@@ -17,30 +17,25 @@
 package controllers
 
 import config.FrontendAppConfig
-import controllers.actions._
-import javax.inject.Inject
-import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.mvc.{Request, Result}
 import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
-class TechnicalDifficultiesController @Inject()(
-  override val messagesApi: MessagesApi,
-  identify: IdentifierAction,
-  val frontendAppConfig: FrontendAppConfig,
-  val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer
-)(implicit ec: ExecutionContext)
-    extends FrontendBaseController
-    with I18nSupport {
+trait TechnicalDifficultiesPage {
+  self: FrontendBaseController =>
 
-  def onPageLoad(): Action[AnyContent] = identify.async {
-    implicit request =>
-      val json = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+  val appConfig: FrontendAppConfig
+  val renderer: Renderer
 
-      renderer.render("technicalDifficulties.njk", json).map(Ok(_))
+  def renderTechnicalDifficultiesPage(implicit request: Request[_], ec: ExecutionContext): Future[Result] = {
+    val json = Json.obj(
+      "contactUrl" -> appConfig.nctsEnquiriesUrl
+    )
+
+    renderer.render("technicalDifficulties.njk", json).map(InternalServerError(_))
   }
+
 }

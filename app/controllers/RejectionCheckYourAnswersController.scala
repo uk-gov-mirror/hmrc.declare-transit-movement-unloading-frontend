@@ -18,6 +18,7 @@ package controllers
 
 import audit.services.AuditEventSubmissionService
 import com.google.inject.Inject
+import config.FrontendAppConfig
 import controllers.actions.{DataRequiredAction, DataRetrievalActionProvider, IdentifierAction}
 import handlers.ErrorHandler
 import models.ArrivalId
@@ -41,12 +42,14 @@ class RejectionCheckYourAnswersController @Inject()(
   unloadingRemarksService: UnloadingRemarksService,
   val controllerComponents: MessagesControllerComponents,
   errorHandler: ErrorHandler,
-  renderer: Renderer,
+  val renderer: Renderer,
+  val appConfig: FrontendAppConfig,
   auditEventSubmissionService: AuditEventSubmissionService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with TechnicalDifficultiesPage {
 
   private val redirectUrl: ArrivalId => Call =
     arrivalId => controllers.routes.ConfirmationController.onPageLoad(arrivalId)
@@ -73,7 +76,7 @@ class RejectionCheckYourAnswersController @Inject()(
               Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
             }
             case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
-            case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+            case _            => renderTechnicalDifficultiesPage
           }
         case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
       }
