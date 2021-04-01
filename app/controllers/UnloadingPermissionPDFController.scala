@@ -16,34 +16,39 @@
 
 package controllers
 
+import config.FrontendAppConfig
 import connectors.UnloadingConnector
 import controllers.actions.IdentifierAction
 import javax.inject.Inject
 import models.ArrivalId
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import renderer.Renderer
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class UnloadingPermissionPDFController @Inject()(identify: IdentifierAction,
                                                  val controllerComponents: MessagesControllerComponents,
-                                                 unloadingConnector: UnloadingConnector)(implicit ec: ExecutionContext)
+                                                 unloadingConnector: UnloadingConnector,
+                                                 val renderer: Renderer,
+                                                 val appConfig: FrontendAppConfig)(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with TechnicalDifficultiesPage {
 
   def getPDF(arrivalId: ArrivalId): Action[AnyContent] = identify.async {
     implicit request =>
       hc.authorization
         .map {
           token =>
-            unloadingConnector.getPDF(arrivalId, token.value).map {
+            unloadingConnector.getPDF(arrivalId, token.value).flatMap {
               result =>
                 result.status match {
                   case OK =>
-                    Ok(result.bodyAsBytes.toArray)
+                    Future.successful(Ok(result.bodyAsBytes.toArray))
                   case _ =>
-                    Redirect(controllers.routes.TechnicalDifficultiesController.onPageLoad())
+                    renderTechnicalDifficultiesPage
                 }
             }
         }

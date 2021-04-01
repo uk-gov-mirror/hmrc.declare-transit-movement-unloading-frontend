@@ -44,7 +44,8 @@ class CheckYourAnswersController @Inject()(
   requireData: DataRequiredAction,
   unloadingPermissionService: UnloadingPermissionService,
   val controllerComponents: MessagesControllerComponents,
-  renderer: Renderer,
+  val renderer: Renderer,
+  val appConfig: FrontendAppConfig,
   referenceDataService: ReferenceDataService,
   errorHandler: ErrorHandler,
   unloadingRemarksService: UnloadingRemarksService,
@@ -52,7 +53,8 @@ class CheckYourAnswersController @Inject()(
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-    with NunjucksSupport {
+    with NunjucksSupport
+    with TechnicalDifficultiesPage {
 
   private val redirectUrl: ArrivalId => Call =
     arrivalId => controllers.routes.ConfirmationController.onPageLoad(arrivalId)
@@ -94,13 +96,13 @@ class CheckYourAnswersController @Inject()(
                   Future.successful(Redirect(routes.ConfirmationController.onPageLoad(arrivalId)))
                 }
                 case UNAUTHORIZED => errorHandler.onClientError(request, UNAUTHORIZED)
-                case _            => Future.successful(Redirect(routes.TechnicalDifficultiesController.onPageLoad()))
+                case _            => renderTechnicalDifficultiesPage
               }
 
-            case None => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
+            case None => renderTechnicalDifficultiesPage
           }
         }
-        case _ => errorHandler.onClientError(request, INTERNAL_SERVER_ERROR)
+        case _ => renderTechnicalDifficultiesPage
       }
   }
 

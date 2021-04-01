@@ -19,6 +19,7 @@ package controllers
 import java.time.LocalDate
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import config.FrontendAppConfig
 import forms.VehicleNameRegistrationReferenceFormProvider
 import generators.MessagesModelGenerators
 import matchers.JsonMatchers
@@ -51,6 +52,7 @@ class VehicleNameRegistrationRejectionControllerSpec
   lazy val vehicleNameRegistrationRejectionRoute: String = routes.VehicleNameRegistrationRejectionController.onPageLoad(arrivalId).url
 
   private val mockRejectionService = mock[UnloadingRemarksRejectionService]
+  private val frontendAppConfig    = app.injector.instanceOf[FrontendAppConfig]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -91,19 +93,26 @@ class VehicleNameRegistrationRejectionControllerSpec
       jsonCaptor.getValue must containJson(expectedJson)
     }
 
-    "must go to technical difficulties when there is no rejection message" in {
+    "must render the technical difficulties page when there is no rejection message" in {
 
       when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.getRejectedValueAsString(any(), any())(any())(any())).thenReturn(Future.successful(None))
 
       setExistingUserAnswers(emptyUserAnswers)
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
       val request = FakeRequest(GET, vehicleNameRegistrationRejectionRoute)
 
       val result = route(app, request).value
 
-      status(result) mustEqual SEE_OTHER
-      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
+
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
 
     "must return a Bad Request and errors when invalid data is submitted" in {
@@ -161,12 +170,15 @@ class VehicleNameRegistrationRejectionControllerSpec
       userAnswersCaptor.getValue.mrn mustBe mrn
     }
 
-    "must redirect to technical difficulties page for a POST" in {
+    "must render the technical difficulties page for a POST" in {
 
+      when(mockRenderer.render(any(), any())(any())).thenReturn(Future.successful(Html("")))
       when(mockRejectionService.unloadingRemarksRejectionMessage(any())(any())).thenReturn(Future.successful(None))
       when(mockSessionRepository.set(any())) thenReturn Future.successful(true)
 
       setNoExistingUserAnswers()
+      val templateCaptor = ArgumentCaptor.forClass(classOf[String])
+      val jsonCaptor     = ArgumentCaptor.forClass(classOf[JsObject])
 
       val request =
         FakeRequest(POST, vehicleNameRegistrationRejectionRoute)
@@ -174,9 +186,13 @@ class VehicleNameRegistrationRejectionControllerSpec
 
       val result = route(app, request).value
 
-      status(result) mustEqual SEE_OTHER
+      status(result) mustEqual INTERNAL_SERVER_ERROR
+      verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
 
-      redirectLocation(result).value mustEqual routes.TechnicalDifficultiesController.onPageLoad().url
+      val expectedJson = Json.obj("contactUrl" -> frontendAppConfig.nctsEnquiriesUrl)
+
+      templateCaptor.getValue mustEqual "technicalDifficulties.njk"
+      jsonCaptor.getValue must containJson(expectedJson)
     }
   }
 }
