@@ -16,8 +16,6 @@
 
 package controllers
 
-import java.time.LocalDate
-
 import base.{AppWithDefaultMockFixtures, SpecBase}
 import config.FrontendAppConfig
 import forms.GrossMassAmountFormProvider
@@ -36,6 +34,7 @@ import play.twirl.api.Html
 import services.UnloadingRemarksRejectionService
 import uk.gov.hmrc.viewmodels.NunjucksSupport
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class GrossMassAmountRejectionControllerSpec extends SpecBase with AppWithDefaultMockFixtures with NunjucksSupport with JsonMatchers {
@@ -45,7 +44,7 @@ class GrossMassAmountRejectionControllerSpec extends SpecBase with AppWithDefaul
 
   lazy val grossMassAmountRejectionRoute = routes.GrossMassAmountRejectionController.onPageLoad(arrivalId).url
 
-  private val mockRejectionService         = mock[UnloadingRemarksRejectionService]
+  private val mockRejectionService                 = mock[UnloadingRemarksRejectionService]
   private val frontendAppConfig: FrontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
   override def beforeEach(): Unit = {
