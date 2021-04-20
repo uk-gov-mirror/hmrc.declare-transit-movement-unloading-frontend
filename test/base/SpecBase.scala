@@ -17,17 +17,8 @@
 package base
 
 import cats.data.NonEmptyList
-import models.{
-  ArrivalId,
-  EoriNumber,
-  GoodsItem,
-  MovementReferenceNumber,
-  Packages,
-  ProducedDocument,
-  TraderAtDestinationWithoutEori,
-  UnloadingPermission,
-  UserAnswers
-}
+import config.FrontendAppConfig
+import models.{ArrivalId, EoriNumber, GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
@@ -75,6 +66,9 @@ trait SpecBase
   )
 
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
+
+  def frontendAppConfig: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
+
 
   implicit def messages: Messages = Helpers.stubMessages()
 }
