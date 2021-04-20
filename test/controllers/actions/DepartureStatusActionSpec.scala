@@ -33,6 +33,7 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
