@@ -55,7 +55,7 @@ class DepartureStatusActionSpec extends SpecBase with BeforeAndAfterEach with Ap
     a => Future.successful(Ok("fake ok result value"))
 
   "a check cancellation status action" - {
-    "will get a 200 and will load the correct page when the departure status is DepartureSubmitted" in {
+    "will get a 200 and will load the correct page when the departure status is UnloadingPermission" in {
       val mockDepartureResponse: ResponseDeparture = {
         ResponseDeparture(
           LocalReferenceNumber("lrn"),
@@ -104,7 +104,7 @@ class DepartureStatusActionSpec extends SpecBase with BeforeAndAfterEach with Ap
     status(result) mustEqual BAD_REQUEST
     verify(mockRenderer, times(1)).render(templateCaptor.capture(), jsonCaptor.capture())(any())
     contentAsString(result) must not be ("fake ok result value")
-    templateCaptor.getValue mustEqual "canNotCancel.njk"
+    templateCaptor.getValue mustEqual "canNotSendUnloadingRemarks.njk"
   }
 
   "will get a 404 and will load the departure not found page when the departure record is not found" in {
