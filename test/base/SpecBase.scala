@@ -18,7 +18,17 @@ package base
 
 import cats.data.NonEmptyList
 import config.FrontendAppConfig
-import models.{ArrivalId, EoriNumber, GoodsItem, MovementReferenceNumber, Packages, ProducedDocument, TraderAtDestinationWithoutEori, UnloadingPermission, UserAnswers}
+import models.{
+  ArrivalId,
+  EoriNumber,
+  GoodsItem,
+  MovementReferenceNumber,
+  Packages,
+  ProducedDocument,
+  TraderAtDestinationWithoutEori,
+  UnloadingPermission,
+  UserAnswers
+}
 import org.scalatest._
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatestplus.mockito.MockitoSugar
@@ -26,6 +36,7 @@ import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
 import play.api.i18n.Messages
 import play.api.libs.json.Json
 import play.api.mvc.AnyContentAsEmpty
+import play.api.test.Helpers.baseApplicationBuilder.injector
 import play.api.test.{FakeRequest, Helpers}
 
 import java.time.LocalDate
@@ -66,9 +77,6 @@ trait SpecBase
   )
 
   def fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("", "")
-
-  def frontendAppConfig: FrontendAppConfig = injector.instanceOf[FrontendAppConfig]
-
 
   implicit def messages: Messages = Helpers.stubMessages()
 }

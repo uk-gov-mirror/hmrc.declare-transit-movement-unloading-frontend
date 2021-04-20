@@ -26,6 +26,6 @@ object ResponseDeparture {
   implicit val reads: Reads[ResponseDeparture] = (
     (__ \ "referenceNumber").read[LocalReferenceNumber] and
       (__ \ "status").read[String]
-    )(ResponseDeparture.apply _)
+  )(ResponseDeparture.apply _)
 
 }

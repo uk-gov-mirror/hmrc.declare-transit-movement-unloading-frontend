@@ -17,6 +17,7 @@
 package controllers.actions
 
 import base.{AppWithDefaultMockFixtures, SpecBase}
+import config.FrontendAppConfig
 import connectors.DepartureMovementConnector
 import models.requests.IdentifierRequest
 import models.response.ResponseDeparture
@@ -33,13 +34,15 @@ import play.api.test.Helpers._
 import play.twirl.api.Html
 import renderer.Renderer
 import uk.gov.hmrc.viewmodels.NunjucksSupport
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class DepartureStatusActionSpec extends SpecBase with BeforeAndAfterEach with AppWithDefaultMockFixtures with NunjucksSupport {
 
   val mockConnector: DepartureMovementConnector = mock[DepartureMovementConnector]
+
+  private val frontendAppConfig: FrontendAppConfig = app.injector.instanceOf[FrontendAppConfig]
 
   val renderer: Renderer = app.injector.instanceOf[Renderer]
 
@@ -56,7 +59,7 @@ class DepartureStatusActionSpec extends SpecBase with BeforeAndAfterEach with Ap
       val mockDepartureResponse: ResponseDeparture = {
         ResponseDeparture(
           LocalReferenceNumber("lrn"),
-          "DepartureSubmitted"
+          "UnloadingPermission"
         )
       }
 

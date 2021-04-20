@@ -47,7 +47,7 @@ class DepartureStatusAction(
 )(implicit protected val executionContext: ExecutionContext)
     extends ActionRefiner[IdentifierRequest, AuthorisedRequest] {
 
-  final val validStatus: Seq[String] = Seq("DepartureSubmitted", "MrnAllocated", "PositiveAcknowledgement")
+  final val validStatus: Seq[String] = Seq("UnloadingPermission", "UnloadingRemarksRejection")
 
   override protected def refine[A](request: IdentifierRequest[A]): Future[Either[Result, AuthorisedRequest[A]]] = {
 
@@ -55,9 +55,9 @@ class DepartureStatusAction(
     departureMovementConnector.getDeparture(departureId).flatMap {
       case Some(responseDeparture: ResponseDeparture) if !validStatus.contains(responseDeparture.status) =>
         renderer
-          .render("canNotCancel.njk",
+          .render("canNotSendUnloadingRemarks.njk",
                   Json.obj(
-                    "arrivalHistory" -> s"${appConfig.arrivalNotificationsUrl}"
+                    "arrivalNotifications" -> s"${appConfig.arrivalNotificationsUrl}"
                   ))(request)
           .map(html => Left(BadRequest(html)))
 
@@ -68,7 +68,7 @@ class DepartureStatusAction(
         renderer
           .render("declarationNotFound.njk",
                   Json.obj(
-                    "departureList" -> s"${appConfig.arrivalNotificationsUrl}"
+                    "arrivalNotifications" -> s"${appConfig.arrivalNotificationsUrl}"
                   ))(request)
           .map(html => Left(NotFound(html)))
 

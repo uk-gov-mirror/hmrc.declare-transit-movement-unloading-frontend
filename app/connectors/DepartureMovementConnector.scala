@@ -27,7 +27,6 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-
 class DepartureMovementConnector @Inject()(val appConfig: FrontendAppConfig, http: HttpClient)(implicit ec: ExecutionContext) extends Logging {
 
   private val channel: String = "web"
@@ -45,7 +44,6 @@ class DepartureMovementConnector @Inject()(val appConfig: FrontendAppConfig, htt
         None
     }
   }
-
 
   object ChannelHeader {
     def apply(value: String): (String, String) = ("Channel", value)

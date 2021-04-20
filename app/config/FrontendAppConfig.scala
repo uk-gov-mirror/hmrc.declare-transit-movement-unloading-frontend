@@ -31,7 +31,7 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
   lazy val contactHost: String             = configuration.get[Service]("microservice.services.contact-frontend").baseUrl
   lazy val contactFrontendUrl: String      = configuration.get[Service]("microservice.services.contact-frontend").fullServiceUrl
   val contactFormServiceIdentifier: String = "CTCTraders"
-  lazy val departureUrl: String     = configuration.get[Service]("microservice.services.departures").fullServiceUrl
+  lazy val departureUrl: String            = configuration.get[Service]("microservice.services.departures").fullServiceUrl
 
   val trackingConsentUrl: String = configuration.get[String]("microservice.services.tracking-consent-frontend.url")
   val gtmContainer: String       = configuration.get[String]("microservice.services.tracking-consent-frontend.gtm.container")
@@ -60,8 +60,8 @@ class FrontendAppConfig @Inject()(configuration: Configuration) {
 
   lazy val referenceDataUrl: String = configuration.get[Service]("microservice.services.reference-data").fullServiceUrl
 
-  lazy val arrivalsBackend: String        = configuration.get[Service]("microservice.services.arrivals-backend").fullServiceUrl
-  lazy val arrivalsBackendBaseUrl: String = configuration.get[Service]("microservice.services.arrivals-backend").baseUrl
+  lazy val arrivalsBackend: String         = configuration.get[Service]("microservice.services.arrivals-backend").fullServiceUrl
+  lazy val arrivalsBackendBaseUrl: String  = configuration.get[Service]("microservice.services.arrivals-backend").baseUrl
   lazy val arrivalNotificationsUrl: String = configuration.get[String]("urls.arrivalNotifications")
 
   lazy val languageTranslationEnabled: Boolean =
